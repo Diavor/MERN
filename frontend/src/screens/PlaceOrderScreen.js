@@ -84,7 +84,7 @@ const PlaceOrderScreen = ({ history }) => {
                           <Link to={`/product/${i.product}`}>{i.name}</Link>
                         </Col>
                         <Col md={4}>
-                          {i.qty} x ${i.price} = ${i.qty * i.price}
+                          {i.qty} x ${i.price} = ${(i.qty * i.price).toFixed(2)}
                         </Col>
                       </Row>
                     </ListGroup.Item>
