@@ -71,3 +71,57 @@ export const userUpdateProfileReducer = (state = {}, action) => {
       return state;
   }
 };
+
+export const userListReducer = (state = { users: [] }, action) => {
+  switch (action.type) {
+    case actionTypes.USER_LIST_REQUEST:
+      return { loading: true };
+    case actionTypes.USER_LIST_SUCCES:
+      return {
+        loading: false,
+        users: action.payload,
+      };
+    case actionTypes.USER_LIST_FAIL:
+      return { loading: false, error: action.payload };
+    case actionTypes.USER_LIST_RESET:
+      return { users: [] };
+    default:
+      return state;
+  }
+};
+
+export const userDeleteReducer = (state = {}, action) => {
+  switch (action.type) {
+    case actionTypes.USER_DELETE_REQUEST:
+      return { loading: true };
+    case actionTypes.USER_DELETE_SUCCES:
+      return {
+        loading: false,
+        success: true,
+      };
+    case actionTypes.USER_DELETE_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const userUpdateReducer = (state = { user: {} }, action) => {
+  switch (action.type) {
+    case actionTypes.USER_UPDATE_ADMIN_REQUEST:
+      return { loading: true };
+    case actionTypes.USER_UPDATE_ADMIN_SUCCES:
+      return {
+        loading: false,
+        success: true,
+      };
+    case actionTypes.USER_UPDATE_ADMIN_FAIL:
+      return { loading: false, error: action.payload };
+    case actionTypes.USER_UPDATE_ADMIN_RESET:
+      return {
+        user: {},
+      };
+    default:
+      return state;
+  }
+};
