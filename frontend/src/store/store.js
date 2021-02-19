@@ -1,12 +1,13 @@
 import { createStore, combineReducers, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
 import { composeWithDevTools } from "redux-devtools-extension";
-import { productList } from "./reducers/products";
+import { productList, productTopRatedReducer } from "./reducers/products";
 import {
   productDetails,
   productDeleteReducer,
   productCreateReducer,
   productUpdateReducer,
+  productReviewCreateReducer,
 } from "./reducers/product";
 import { cartReducer } from "./reducers/cart";
 import {
@@ -32,7 +33,9 @@ const reducer = combineReducers({
   productCreate: productCreateReducer,
   productDelete: productDeleteReducer,
   productList: productList,
+  productTopRated: productTopRatedReducer,
   productDetails: productDetails,
+  productReviewCreate: productReviewCreateReducer,
   cart: cartReducer,
   userLogin: userLoginReducer,
   userRegister: userRegisterReducer,

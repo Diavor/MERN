@@ -5,6 +5,7 @@ import path from "path";
 import colors from "colors";
 import connectDB from "./config/db.js";
 import express from "express";
+import morgan from "morgan";
 import dotenv from "dotenv";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -18,6 +19,9 @@ connectDB();
 
 const app = express();
 
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 app.use(express.json());
 
 app.get("/", (req, res) => {
