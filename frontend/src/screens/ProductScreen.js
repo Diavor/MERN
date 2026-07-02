@@ -23,6 +23,8 @@ import { PRODUCT_CREATE_REVIEW_RESET } from "../store/actionTypes";
 
 const ProductScreen = ({ history, match }) => {
   const [qty, setQty] = useState(1);
+  const [selectedToppings, setSelectedToppings] = useState([]);
+  const [selectedDough, setSelectedDough] = useState(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
@@ -50,8 +52,19 @@ const ProductScreen = ({ history, match }) => {
   //   history.push("/cart");
   // };
 
+  const toggleTopping = (topping) => {
+    setSelectedToppings((prev) =>
+      prev.find((t) => t.name === topping.name)
+        ? prev.filter((t) => t.name !== topping.name)
+        : [...prev, topping]
+    );
+  };
+
+  const toppingsTotal = selectedToppings.reduce((acc, t) => acc + t.price, 0);
+  const doughExtra = selectedDough ? selectedDough.price : 0;
+
   const addToCartHandler = () => {
-    dispatch(addToCart(product._id, qty));
+    dispatch(addToCart(product._id, qty, selectedToppings, selectedDough));
     history.push("/cart");
   };
 
@@ -91,10 +104,64 @@ const ProductScreen = ({ history, match }) => {
                     text={`${product.numReviews} reviews`}
                   />
                 </ListGroup.Item>
-                <ListGroup.Item>Price: ${product.price}</ListGroup.Item>
+                <ListGroup.Item>
+                  Price: €{(product.price + toppingsTotal + doughExtra).toFixed(2)}
+                  {(toppingsTotal + doughExtra) > 0 && (
+                    <small className="text-muted ms-2">
+                      (base €{product.price?.toFixed(2)} + extras €{(toppingsTotal + doughExtra).toFixed(2)})
+                    </small>
+                  )}
+                </ListGroup.Item>
                 <ListGroup.Item>
                   Description: {product.description}
                 </ListGroup.Item>
+                {product.doughVariants && product.doughVariants.length > 0 && (
+                  <ListGroup.Item>
+                    <strong>Impasto Speciale:</strong>
+                    <Form.Check
+                      type="radio"
+                      id="dough-standard"
+                      name="dough"
+                      label="Standard (incluso)"
+                      checked={!selectedDough}
+                      onChange={() => setSelectedDough(null)}
+                      className="mt-1"
+                    />
+                    {product.doughVariants.map((dough) => (
+                      <Form.Check
+                        key={dough.name}
+                        type="radio"
+                        id={`dough-${dough.name}`}
+                        name="dough"
+                        label={`${dough.name} (+€${dough.price.toFixed(2)})`}
+                        checked={selectedDough?.name === dough.name}
+                        onChange={() => setSelectedDough(dough)}
+                        className="mt-1"
+                      />
+                    ))}
+                  </ListGroup.Item>
+                )}
+                {product.toppings && product.toppings.length > 0 && (
+                  <ListGroup.Item>
+                    <strong>Add extras:</strong>
+                    {product.toppings.map((topping) => {
+                      const checked = !!selectedToppings.find(
+                        (t) => t.name === topping.name
+                      );
+                      return (
+                        <Form.Check
+                          key={topping.name}
+                          type="checkbox"
+                          id={`topping-${topping.name}`}
+                          label={`${topping.name} (+€${topping.price.toFixed(2)})`}
+                          checked={checked}
+                          onChange={() => toggleTopping(topping)}
+                          className="mt-1"
+                        />
+                      );
+                    })}
+                  </ListGroup.Item>
+                )}
               </ListGroup>
             </Col>
             <Col md={3} sm={2}>
@@ -104,7 +171,7 @@ const ProductScreen = ({ history, match }) => {
                     <Row>
                       <Col>Price: </Col>
                       <Col>
-                        <strong>${product.price}</strong>
+                        <strong>€{(product.price + toppingsTotal + doughExtra).toFixed(2)}</strong>
                       </Col>
                     </Row>
                   </ListGroup.Item>

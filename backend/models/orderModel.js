@@ -4,7 +4,7 @@ const orderSchema = mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: false,
       ref: "User",
     },
     orderItems: [
@@ -13,6 +13,7 @@ const orderSchema = mongoose.Schema(
         qty: { type: Number, required: true },
         image: { type: String, required: true },
         price: { type: Number, required: true },
+        toppings: [{ name: { type: String }, price: { type: Number } }],
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
@@ -21,10 +22,19 @@ const orderSchema = mongoose.Schema(
       },
     ],
     shippingAddress: {
-      country: { type: String, required: true },
-      city: { type: String, required: true },
-      address: { type: String, required: true },
-      postalCode: { type: Number, required: true },
+      name: { type: String },
+      phone: { type: String },
+      email: { type: String },
+      orderType: { type: String, default: "delivery" },
+      country: { type: String },
+      city: { type: String },
+      street: { type: String },
+      buildingNumber: { type: String },
+      floor: { type: String },
+      deliveryDate: { type: String },
+      deliverySlot: { type: String },
+      deliveryPrice: { type: Number },
+      notes: { type: String },
     },
     paymentMethod: {
       type: String,

@@ -1,7 +1,10 @@
 import axios from "axios";
 import * as actionTypes from "../actionTypes";
-export const addToCart = (id, qty) => async (dispatch, getState) => {
+export const addToCart = (id, qty, selectedToppings = [], selectedDough = null) => async (dispatch, getState) => {
   const { data } = await axios.get(`/api/products/${id}`);
+
+  const toppingsTotal = selectedToppings.reduce((acc, t) => acc + t.price, 0);
+  const doughExtra = selectedDough ? selectedDough.price : 0;
 
   dispatch({
     type: actionTypes.CART_ADD_ITEM,
@@ -9,7 +12,12 @@ export const addToCart = (id, qty) => async (dispatch, getState) => {
       product: data._id,
       name: data.name,
       image: data.img,
-      price: data.price,
+      price: data.price + toppingsTotal + doughExtra,
+      basePrice: data.price,
+      toppings: selectedToppings,
+      availableToppings: data.toppings || [],
+      selectedDough,
+      availableDoughVariants: data.doughVariants || [],
       countInStock: data.countInStock,
       qty,
     },

@@ -22,6 +22,14 @@ const reviewSchema = mongoose.Schema(
   }
 );
 
+const toppingSchema = mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const productSchema = mongoose.Schema(
   {
     user: {
@@ -49,6 +57,8 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    toppings: [toppingSchema],
+    doughVariants: [toppingSchema],
     reviews: [reviewSchema],
     rating: {
       type: Number,
