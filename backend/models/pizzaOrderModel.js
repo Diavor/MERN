@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
 const itemSchema = new mongoose.Schema(
   {
@@ -7,7 +7,7 @@ const itemSchema = new mongoose.Schema(
     price: { type: Number, required: true },
   },
   { _id: false }
-)
+);
 
 const pizzaOrderSchema = new mongoose.Schema(
   {
@@ -18,12 +18,12 @@ const pizzaOrderSchema = new mongoose.Schema(
     totalPrice: { type: Number, required: true },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'completed', 'cancelled'],
-      default: 'pending',
+      enum: ["pending", "confirmed", "completed", "cancelled"],
+      default: "pending",
     },
   },
   { timestamps: true }
-)
+);
 
-const PizzaOrder = mongoose.model('PizzaOrder', pizzaOrderSchema)
-export default PizzaOrder
+const PizzaOrder = mongoose.model("PizzaOrder", pizzaOrderSchema);
+export default PizzaOrder;

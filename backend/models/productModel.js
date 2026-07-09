@@ -86,6 +86,10 @@ const productSchema = mongoose.Schema(
   }
 );
 
+// Text index backs keyword search (name/brand); rating index backs /top.
+productSchema.index({ name: "text", brand: "text" });
+productSchema.index({ rating: -1 });
+
 const Product = mongoose.model("Product", productSchema);
 
 export default Product;

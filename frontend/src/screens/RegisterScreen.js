@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Form, Button, Row, Col } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import Message from "../components/Message";
-import Loader from "../components/Loader";
-import FormContainer from "../components/FormContainer";
+import Icon from "../brace/ui/Icon";
+import Field from "../brace/ui/Field";
+import Loader from "../brace/ui/Loader";
+import Message from "../brace/ui/Message";
+import Meta from "../components/Meta";
 import { register } from "../store/actions/user";
 
 const RegisterScreen = ({ location, history }) => {
@@ -15,83 +16,126 @@ const RegisterScreen = ({ location, history }) => {
   const [message, setMessage] = useState(null);
 
   const dispatch = useDispatch();
-
   const { loading, error, userInfo } = useSelector(
     (state) => state.userRegister
   );
 
   const redirect = location.search ? location.search.split("=")[1] : "/";
+
   useEffect(() => {
-    if (userInfo) {
-      history.push(redirect);
-    }
+    if (userInfo) history.push(redirect);
   }, [history, userInfo, redirect]);
+
   const submitHandler = (e) => {
     e.preventDefault();
-    password !== confirmPassword
-      ? setMessage("Passwords do not match")
-      : dispatch(register(name, email, password));
+    if (password !== confirmPassword) {
+      setMessage("Le password non coincidono");
+    } else {
+      setMessage(null);
+      dispatch(register(name, email, password));
+    }
   };
 
   return (
-    <FormContainer>
-      <h1> Sign Up</h1>
-      {message && <Message variant="danger">{message}</Message>}
-      {error && <Message variant="danger">{error}</Message>}
-      {loading && <Loader />}
-      <Form onSubmit={submitHandler}>
-        <Form.Group controlId="name">
-          <Form.Label>Name</Form.Label>
-          <Form.Control
-            type="name"
-            placeholder="Enter name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
-        <Form.Group controlId="email">
-          <Form.Label>Email Address</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
+    <main style={{ paddingTop: 150, paddingBottom: 120, minHeight: "100vh" }}>
+      <Meta title="Registrati · BRÀCE" />
+      <div className="b-container">
+        <div style={{ maxWidth: 460, margin: "0 auto" }}>
+          <div className="eyebrow" style={{ marginBottom: 18 }}>
+            Nuovo account
+          </div>
+          <h1
+            className="display"
+            style={{ fontSize: 64, lineHeight: 0.95, margin: "0 0 36px" }}
+          >
+            Unisciti
+            <br />
+            <span className="it" style={{ color: "var(--gold)", fontWeight: 300 }}>
+              a noi.
+            </span>
+          </h1>
 
-        <Form.Group controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
+          {message && (
+            <div style={{ marginBottom: 20 }}>
+              <Message variant="danger">{message}</Message>
+            </div>
+          )}
+          {error && (
+            <div style={{ marginBottom: 20 }}>
+              <Message variant="danger">{error}</Message>
+            </div>
+          )}
+          {loading && (
+            <div style={{ marginBottom: 20 }}>
+              <Loader />
+            </div>
+          )}
 
-        <Form.Group controlId="Confirmpassword">
-          <Form.Label>Confirm Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
-        <Button type="submit" variant="primary">
-          Register
-        </Button>
-      </Form>
+          <form onSubmit={submitHandler}>
+            <div style={{ display: "grid", gap: 16 }}>
+              <Field
+                label="Nome e cognome"
+                value={name}
+                onChange={setName}
+                autoComplete="name"
+                required
+              />
+              <Field
+                label="Email"
+                value={email}
+                onChange={setEmail}
+                type="email"
+                autoComplete="email"
+                required
+              />
+              <Field
+                label="Password"
+                value={password}
+                onChange={setPassword}
+                type="password"
+                autoComplete="new-password"
+                required
+              />
+              <Field
+                label="Conferma password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                type="password"
+                autoComplete="new-password"
+                required
+              />
+            </div>
 
-      <Row className="py-3">
-        <Col>
-          Have an acount?
-          <Link to={redirect ? `/login?redirect=${redirect}` : "/login"}>
-            Login
-          </Link>
-        </Col>
-      </Row>
-    </FormContainer>
+            <button
+              type="submit"
+              className="b-btn ember"
+              disabled={loading}
+              style={{ marginTop: 28, width: "100%", justifyContent: "center" }}
+            >
+              Crea account <Icon.arrow className="arrow" />
+            </button>
+          </form>
+
+          <div
+            style={{
+              marginTop: 28,
+              paddingTop: 24,
+              borderTop: "1px solid var(--line)",
+              fontSize: 14,
+              color: "var(--text-dim)",
+            }}
+          >
+            Hai già un account?{" "}
+            <Link
+              to={redirect ? `/login?redirect=${redirect}` : "/login"}
+              style={{ color: "var(--gold)" }}
+            >
+              Accedi
+            </Link>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 };
 

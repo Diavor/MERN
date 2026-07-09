@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
 const slotSchema = new mongoose.Schema(
   {
@@ -7,9 +7,9 @@ const slotSchema = new mongoose.Schema(
     count: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
-)
+);
 
-slotSchema.index({ date: 1, time: 1 }, { unique: true })
+slotSchema.index({ date: 1, time: 1 }, { unique: true });
 
-const Slot = mongoose.model('Slot', slotSchema)
-export default Slot
+const Slot = mongoose.model("Slot", slotSchema);
+export default Slot;

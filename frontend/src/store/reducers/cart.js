@@ -1,33 +1,42 @@
 import * as actionTypes from "../actionTypes";
 
+// Lines are matched by `key` (product + dough + toppings); older payloads
+// without a key fall back to the product id.
+const lineId = (i) => i.key || i.product;
+
 export const cartReducer = (
   state = { cartItems: [], shippingAddress: {} },
   action
 ) => {
   switch (action.type) {
-    case actionTypes.CART_ADD_ITEM:
+    case actionTypes.CART_ADD_ITEM: {
       const item = action.payload;
-
-      const existItem = state.cartItems.find((i) => i.product === item.product);
+      const existItem = state.cartItems.find((i) => lineId(i) === lineId(item));
 
       if (existItem) {
         return {
           ...state,
           cartItems: state.cartItems.map((i) =>
-            i.product === existItem.product ? item : i
+            lineId(i) === lineId(existItem) ? item : i
           ),
         };
-      } else {
-        return {
-          ...state,
-          cartItems: [...state.cartItems, item],
-        };
       }
+      return {
+        ...state,
+        cartItems: [...state.cartItems, item],
+      };
+    }
 
     case actionTypes.CART_REMOVE_ITEM:
       return {
         ...state,
-        cartItems: state.cartItems.filter((i) => i.product !== action.payload),
+        cartItems: state.cartItems.filter((i) => lineId(i) !== action.payload),
+      };
+
+    case actionTypes.CART_CLEAR_ITEMS:
+      return {
+        ...state,
+        cartItems: [],
       };
 
     case actionTypes.CART_SAVE_SHIPPING_ADDRESS:

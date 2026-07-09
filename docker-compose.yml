@@ -1,0 +1,41 @@
+# Production-like local stack: API (with the built frontend baked in) + MongoDB.
+#   docker compose up --build
+# Secrets come from the host environment or a sibling .env (see .env.example).
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Not published by default — only the API needs it. Uncomment to inspect.
+    # ports:
+    #   - "27017:27017"
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGO_URI: mongodb://mongo:27017/mern-shop
+      # Provide strong secrets via the host env (compose interpolates ${...}).
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in your environment or .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET}
+      ACCESS_TOKEN_TTL: 15m
+      REFRESH_TOKEN_TTL_DAYS: "7"
+      LOG_LEVEL: info
+      STORAGE_DRIVER: local
+    ports:
+      - "5001:5001"
+
+volumes:
+  mongo-data:

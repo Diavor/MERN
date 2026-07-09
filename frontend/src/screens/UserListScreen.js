@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { LinkContainer } from "react-router-bootstrap";
-import { Button, Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import Message from "../components/Message";
-import Loader from "../components/Loader";
+import Message from "../brace/ui/Message";
+import Loader from "../brace/ui/Loader";
+import Icon from "../brace/ui/Icon";
+import { AdminStatusPill, adminTh, adminTd, AdminEmptyState } from "../brace/admin/kit";
 import { listUsers, deleteUser } from "../store/actions/user";
 
 const UserListScreen = ({ history }) => {
@@ -21,64 +22,101 @@ const UserListScreen = ({ history }) => {
   }, [dispatch, history, userInfo, successDelete]);
 
   const deleteHandler = (id) => {
-    if (window.confirm("Are you sure?")) {
+    if (window.confirm("Eliminare questo utente?")) {
       dispatch(deleteUser(id));
     }
   };
 
   return (
-    <>
-      <h1>Users</h1>
+    <div className="b-rise">
       {loading ? (
         <Loader />
       ) : error ? (
         <Message variant="danger">{error}</Message>
+      ) : !users || users.length === 0 ? (
+        <AdminEmptyState icon="◉" title="Nessun utente" body="Gli account registrati compariranno qui." />
       ) : (
-        <Table striped bordered hover responsive className="table-sm">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>NAME</th>
-              <th>EMAIL</th>
-              <th>ADMIN</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user._id}>
-                <td>{user._id}</td>
-                <td>{user.name}</td>
-                <td>
-                  <a href={`mailto:${user.email}`}>{user.email}</a>
-                </td>
-                <td>
-                  {user.isAdmin ? (
-                    <i className="fas fa-check" style={{ color: "green" }}></i>
-                  ) : (
-                    <i className="fas fa-times" style={{ color: "red" }}></i>
-                  )}
-                </td>
-                <td>
-                  <LinkContainer to={`/admin/user/${user._id}/edit`}>
-                    <Button variant="info" className="btn-sm">
-                      <i className="fas fa-edit"></i>
-                    </Button>
-                  </LinkContainer>
-                  <Button
-                    variant="danger"
-                    className="btn-sm"
-                    onClick={() => deleteHandler(user._id)}
-                  >
-                    <i className="fas fa-trash"></i>
-                  </Button>
-                </td>
+        <div style={{ background: "var(--bg-2)", border: "1px solid var(--line)", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 720 }}>
+            <thead>
+              <tr
+                style={{
+                  textAlign: "left",
+                  fontFamily: "var(--mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: "var(--text-faint)",
+                }}
+              >
+                <th style={adminTh}>Cliente</th>
+                <th style={adminTh}>Email</th>
+                <th style={adminTh}>Ruolo</th>
+                <th style={{ ...adminTh, width: 120 }}></th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id} style={{ borderTop: "1px solid var(--line)" }}>
+                  <td style={adminTd}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 999,
+                          background: "var(--bg-3)",
+                          color: "var(--gold)",
+                          display: "grid",
+                          placeItems: "center",
+                          fontFamily: "var(--serif)",
+                          fontSize: 14,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {(user.name || "?").charAt(0).toUpperCase()}
+                      </div>
+                      <span>{user.name}</span>
+                    </div>
+                  </td>
+                  <td style={{ ...adminTd, fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)" }}>
+                    <a href={`mailto:${user.email}`} style={{ color: "var(--text-dim)", textDecoration: "none" }}>
+                      {user.email}
+                    </a>
+                  </td>
+                  <td style={adminTd}>
+                    {user.isAdmin ? (
+                      <AdminStatusPill label="Admin" color="var(--gold)" soft />
+                    ) : (
+                      <AdminStatusPill label="Cliente" color="var(--text-dim)" soft />
+                    )}
+                  </td>
+                  <td style={{ ...adminTd, textAlign: "right" }}>
+                    <div style={{ display: "inline-flex", gap: 8 }}>
+                      <Link
+                        to={`/admin/user/${user._id}/edit`}
+                        className="b-btn sm ghost"
+                        style={{ padding: "6px 12px" }}
+                      >
+                        Modifica
+                      </Link>
+                      <button
+                        onClick={() => deleteHandler(user._id)}
+                        className="b-btn sm ghost"
+                        style={{ padding: "6px 12px", color: "var(--accent)", borderColor: "var(--accent)" }}
+                        aria-label="Elimina"
+                      >
+                        <Icon.close />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-    </>
+    </div>
   );
 };
 

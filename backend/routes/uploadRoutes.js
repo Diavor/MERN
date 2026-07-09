@@ -1,41 +1,25 @@
-import path from "path";
 import express from "express";
-import multer from "multer";
+import asyncHandler from "express-async-handler";
+import { protect, admin } from "../middleware/authMiddleware.js";
+import { upload, persistUpload } from "../services/storage.service.js";
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
-  },
-});
+// Image upload — admin only (was previously unauthenticated). The storage driver
+// (local disk or S3) is chosen by env; this route is agnostic to it.
+router.post(
+  "/",
+  protect,
+  admin,
+  upload.single("img"),
+  asyncHandler(async (req, res) => {
+    if (!req.file) {
+      res.status(400);
+      throw new Error("No image file provided");
+    }
+    const url = await persistUpload(req.file);
+    res.status(201).json({ url });
+  })
+);
 
-function checkFileType(file, cb) {
-  const filetypes = /jpg|jpeg|png/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb("Images only");
-  }
-}
-
-const upload = multer({
-  storage,
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  },
-});
-
-router.post("/", upload.single("img"), (req, res) => {
-  res.send(`/${req.file.path}`);
-});
 export default router;

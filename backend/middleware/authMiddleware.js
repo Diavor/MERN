@@ -5,10 +5,7 @@ import User from "../models/userModel.js";
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     try {
       token = req.headers.authorization.split(" ")[1];
 
@@ -16,11 +13,10 @@ export const protect = asyncHandler(async (req, res, next) => {
 
       req.user = await User.findById(decoded.id).select("-password");
 
-      next();
+      return next();
     } catch (error) {
-      console.error(error);
       res.status(401);
-      throw new Error("Not authorized, token failed");
+      throw new Error("Not authorized, token failed", { cause: error });
     }
   }
 
@@ -31,15 +27,12 @@ export const protect = asyncHandler(async (req, res, next) => {
 });
 
 export const optionalAuth = asyncHandler(async (req, res, next) => {
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     try {
       const token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
-    } catch (error) {
+    } catch {
       // Invalid token — continue as guest
     }
   }

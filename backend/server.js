@@ -1,82 +1,51 @@
-// const express = require("express");
-// const dotenv = require("dotenv");
-// const products = require("./data/products");
-import path from "path";
-import colors from "colors";
-import connectDB from "./config/db.js";
-import express from "express";
-import morgan from "morgan";
-import dotenv from "dotenv";
-import productRoutes from "./routes/productRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import uploadRoutes from "./routes/uploadRoutes.js";
-import slotRoutes from "./routes/slotRoutes.js";
-import pizzaOrderRoutes from "./routes/pizzaOrderRoutes.js";
-import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+import env from "./config/env.js";
+import logger from "./utils/logger.js";
+import connectDB, { disconnectDB } from "./config/db.js";
+import app from "./app.js";
 
-dotenv.config();
+// Boot sequence: connect to Mongo, then start accepting traffic. If the DB is
+// unreachable at startup we crash loudly so the orchestrator restarts us.
+const start = async () => {
+  try {
+    await connectDB();
+  } catch (err) {
+    logger.fatal({ err }, "Failed to connect to MongoDB on startup");
+    process.exit(1);
+  }
 
-connectDB();
-
-const app = express();
-
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
-app.use(express.json());
-
-// CORS for embeddable widget (allow external sites to call slot & pizza-order APIs)
-app.use("/api/slots", (req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
-app.use("/api/pizza-orders", (req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
-
-app.use("/api/products", productRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/slots", slotRoutes);
-app.use("/api/pizza-orders", pizzaOrderRoutes);
-
-app.get("/api/config/paypal", (req, res) =>
-  res.send(process.env.PAYPAL_CLIENT_ID)
-);
-
-const __dirname = path.resolve();
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
-
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "/frontend/build")));
-
-  app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"))
+  const server = app.listen(env.PORT, () =>
+    logger.info(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`)
   );
-} else {
-  app.get("/", (req, res) => {
-    res.send("API is running...");
+
+  // Graceful shutdown: stop accepting connections, drain in-flight requests,
+  // close the DB pool, then exit. Prevents dropped orders on deploy/rollout.
+  const shutdown = async (signal) => {
+    logger.info(`${signal} received — shutting down gracefully`);
+    server.close(async () => {
+      try {
+        await disconnectDB();
+      } catch (err) {
+        logger.error({ err }, "Error during DB disconnect");
+      }
+      logger.info("Shutdown complete");
+      process.exit(0);
+    });
+    // Failsafe: force-exit if draining hangs.
+    setTimeout(() => {
+      logger.error("Forced shutdown after timeout");
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  ["SIGTERM", "SIGINT"].forEach((sig) => process.on(sig, () => shutdown(sig)));
+
+  process.on("unhandledRejection", (reason) => {
+    logger.error({ reason }, "Unhandled promise rejection");
   });
-}
+  process.on("uncaughtException", (err) => {
+    logger.fatal({ err }, "Uncaught exception — exiting");
+    process.exit(1);
+  });
+};
 
-// Handling error
-app.use(notFound);
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 5001;
-
-app.listen(
-  PORT,
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
-  )
-);
+start();

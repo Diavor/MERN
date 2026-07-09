@@ -8,6 +8,9 @@ export const login = (email, password) => async (dispatch) => {
       headers: {
         "Content-Type": "application/json",
       },
+      // Allow the httpOnly refresh cookie to be set (needed for split-origin;
+      // harmless same-origin).
+      withCredentials: true,
     };
     const { data } = await axios.post(
       "/api/users/login",
@@ -32,7 +35,24 @@ export const login = (email, password) => async (dispatch) => {
   }
 };
 
-export const logout = () => (dispatch) => {
+export const logout = () => (dispatch, getState) => {
+  // Best-effort server-side invalidation of the refresh token (fire and forget).
+  const {
+    userLogin: { userInfo },
+  } = getState();
+  if (userInfo?.token) {
+    axios
+      .post(
+        "/api/users/logout",
+        {},
+        {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+          withCredentials: true,
+        }
+      )
+      .catch(() => {});
+  }
+
   localStorage.removeItem("userInfo");
   dispatch({
     type: actionTypes.USER_LOGOUT,
@@ -57,6 +77,7 @@ export const register = (name, email, password) => async (dispatch) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     };
 
     const { data } = await axios.post(

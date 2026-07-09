@@ -1,13 +1,77 @@
 import React, { useEffect } from "react";
-import { Row, Col, ListGroup, Image, Card, Button, Badge } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import Loader from "../components/Loader";
-import Message from "../components/Message";
 import { Link } from "react-router-dom";
+import Icon from "../brace/ui/Icon";
+import fmt from "../brace/ui/fmt";
+import Loader from "../brace/ui/Loader";
+import Message from "../brace/ui/Message";
 import { getOrderDetails, payOrder, deliverOrder } from "../store/actions/order";
 import * as actionTypes from "../store/actionTypes";
 
-const OrderScreen = ({ match, history }) => {
+const Cell = ({ k, v, sub }) => (
+  <div style={{ background: "var(--bg)", padding: "26px 24px", textAlign: "left" }}>
+    <div
+      className="mono"
+      style={{
+        fontSize: 10,
+        color: "var(--text-faint)",
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+      }}
+    >
+      {k}
+    </div>
+    <div
+      className="display"
+      style={{ fontSize: 22, marginTop: 10, color: "var(--gold)" }}
+    >
+      {v}
+    </div>
+    {sub && (
+      <div
+        className="mono"
+        style={{
+          fontSize: 11,
+          color: "var(--text-dim)",
+          marginTop: 6,
+          letterSpacing: "0.08em",
+        }}
+      >
+        {sub}
+      </div>
+    )}
+  </div>
+);
+
+const Pill = ({ ok, okLabel, offLabel }) => (
+  <span
+    className="mono"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 14px",
+      fontSize: 11,
+      letterSpacing: "0.12em",
+      textTransform: "uppercase",
+      background: ok ? "rgba(93,138,74,0.14)" : "var(--bg-2)",
+      border: "1px solid " + (ok ? "var(--ok)" : "var(--line-2)"),
+      color: ok ? "var(--ok)" : "var(--text-faint)",
+    }}
+  >
+    <span
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: 999,
+        background: ok ? "var(--ok)" : "var(--text-faint)",
+      }}
+    />
+    {ok ? okLabel : offLabel}
+  </span>
+);
+
+const OrderScreen = ({ match }) => {
   const orderId = match.params.id;
   const dispatch = useDispatch();
 
@@ -26,248 +90,318 @@ const OrderScreen = ({ match, history }) => {
       dispatch({ type: actionTypes.ORDER_DELIVER_RESET });
       dispatch(getOrderDetails(orderId));
     }
-  }, [dispatch, orderId, order, successPay, successDeliver, history, userInfo]);
+  }, [dispatch, orderId, order, successPay, successDeliver]);
 
   const payHandler = () => {
-    dispatch(payOrder(order._id, { id: "manual", status: "COMPLETED", update_time: new Date().toISOString(), payer: { email_address: order.shippingAddress?.email || "" } }));
+    dispatch(
+      payOrder(order._id, {
+        id: "manual",
+        status: "COMPLETED",
+        update_time: new Date().toISOString(),
+        payer: { email_address: order.shippingAddress?.email || "" },
+      })
+    );
   };
 
-  const deliverHandler = () => {
-    dispatch(deliverOrder(order));
-  };
+  const deliverHandler = () => dispatch(deliverOrder(order));
 
-  if (loading) return <Loader />;
-  if (error) return <Message variant="danger">{error}</Message>;
+  if (loading)
+    return (
+      <main style={{ paddingTop: 160, minHeight: "70vh" }}>
+        <div className="b-container">
+          <Loader />
+        </div>
+      </main>
+    );
+  if (error)
+    return (
+      <main style={{ paddingTop: 160, minHeight: "70vh" }}>
+        <div className="b-container">
+          <Message variant="danger">{error}</Message>
+        </div>
+      </main>
+    );
   if (!order) return null;
 
-  const s = order.shippingAddress;
+  const s = order.shippingAddress || {};
+  const eta =
+    (s.deliveryDate
+      ? new Date(s.deliveryDate).toLocaleDateString("it-IT", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        })
+      : "—") + (s.deliverySlot ? " · " + s.deliverySlot : "");
 
   return (
-    <>
-      <h1 className="mb-1">Order</h1>
-      <p className="text-muted mb-4" style={{ fontSize: "0.85rem" }}>
-        #{order._id}
-      </p>
+    <main style={{ paddingTop: 130, paddingBottom: 100, minHeight: "100vh" }}>
+      <div className="b-container">
+        <div
+          className="b-rise"
+          style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}
+        >
+          <div
+            style={{
+              width: 88,
+              height: 88,
+              borderRadius: 999,
+              background: "var(--bg-2)",
+              border: "1px solid var(--gold-deep)",
+              margin: "0 auto 32px",
+              display: "grid",
+              placeItems: "center",
+              color: "var(--gold)",
+            }}
+          >
+            <Icon.check style={{ width: 32, height: 32 }} />
+          </div>
 
-      <Row>
-        {/* ── LEFT ─────────────────────────────────────────────── */}
-        <Col md={8}>
-          <ListGroup variant="flush">
+          <p className="it" style={{ fontSize: 24, color: "var(--text-dim)" }}>
+            Grazie, {s.name || order.user?.name || "amico"}.
+          </p>
 
-            {/* Contact */}
-            <ListGroup.Item className="pb-4">
-              <h5 className="mb-3">Contact</h5>
-              <Row>
-                <Col sm={4} className="text-muted">Name</Col>
-                <Col>{s.name || order.user?.name || "—"}</Col>
-              </Row>
-              <Row className="mt-1">
-                <Col sm={4} className="text-muted">Phone</Col>
-                <Col>{s.phone || "—"}</Col>
-              </Row>
-              <Row className="mt-1">
-                <Col sm={4} className="text-muted">Email</Col>
-                <Col>
-                  <a href={`mailto:${s.email || order.user?.email}`}>
-                    {s.email || order.user?.email || "—"}
-                  </a>
-                </Col>
-              </Row>
-            </ListGroup.Item>
+          <div className="eyebrow" style={{ marginTop: 36, marginBottom: 12 }}>
+            Ordine
+          </div>
+          <div
+            className="display"
+            style={{ fontSize: 44, letterSpacing: "0.04em", wordBreak: "break-all" }}
+          >
+            {order._id}
+          </div>
 
-            {/* Order Type & Address */}
-            <ListGroup.Item className="pb-4">
-              <h5 className="mb-3">
-                Delivery
-                <Badge
-                  bg={s.orderType === "pickup" ? "secondary" : "danger"}
-                  className="ms-2"
-                  style={{ fontSize: "0.75rem" }}
+          {/* status pills */}
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              justifyContent: "center",
+              marginTop: 28,
+            }}
+          >
+            <Pill ok={order.isPaid} okLabel="Pagato" offLabel="Da pagare" />
+            <Pill
+              ok={order.isDelivered}
+              okLabel="Consegnato"
+              offLabel={s.orderType === "pickup" ? "Da ritirare" : "In consegna"}
+            />
+          </div>
+
+          {/* info cells */}
+          <div
+            style={{
+              marginTop: 44,
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 1,
+              background: "var(--line)",
+              border: "1px solid var(--line)",
+              textAlign: "left",
+            }}
+          >
+            <Cell
+              k={s.orderType === "pickup" ? "Ritiro previsto" : "Consegna prevista"}
+              v={eta}
+              sub={
+                s.orderType === "pickup"
+                  ? "Pizzeria BRÀCE"
+                  : s.city || "Mogliano Veneto"
+              }
+            />
+            <Cell
+              k="Totale"
+              v={fmt(order.totalPrice)}
+              sub={
+                order.paymentMethod +
+                " · " +
+                (Number(order.shippingPrice) === 0
+                  ? "consegna gratis"
+                  : "consegna " + fmt(order.shippingPrice))
+              }
+            />
+            <Cell
+              k={s.orderType === "pickup" ? "Punto di ritiro" : "Indirizzo"}
+              v={
+                s.orderType === "pickup"
+                  ? "In pizzeria"
+                  : [s.street, s.buildingNumber].filter(Boolean).join(" ") || "—"
+              }
+              sub={
+                s.orderType === "pickup"
+                  ? "Mogliano Veneto"
+                  : [s.city, s.floor && "piano " + s.floor]
+                      .filter(Boolean)
+                      .join(" · ")
+              }
+            />
+          </div>
+
+          {/* items */}
+          <div style={{ marginTop: 48, textAlign: "left" }}>
+            <div className="eyebrow" style={{ marginBottom: 18 }}>
+              Il tuo ordine
+            </div>
+            <div style={{ border: "1px solid var(--line)" }}>
+              {order.orderItems.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr auto",
+                    gap: 16,
+                    alignItems: "center",
+                    padding: "16px 20px",
+                    borderBottom:
+                      i < order.orderItems.length - 1
+                        ? "1px solid var(--line)"
+                        : "none",
+                    background: "var(--bg-2)",
+                  }}
                 >
-                  {s.orderType === "pickup" ? "Pickup" : "Delivery"}
-                </Badge>
-              </h5>
+                  <span
+                    className="mono"
+                    style={{ fontSize: 12, color: "var(--gold)" }}
+                  >
+                    {item.qty}×
+                  </span>
+                  <div>
+                    <Link
+                      to={`/product/${item.product}`}
+                      style={{ color: "var(--text)", fontSize: 15 }}
+                    >
+                      {item.name}
+                    </Link>
+                    {item.toppings && item.toppings.length > 0 && (
+                      <div
+                        className="mono"
+                        style={{
+                          fontSize: 11,
+                          color: "var(--text-faint)",
+                          letterSpacing: "0.06em",
+                          marginTop: 4,
+                        }}
+                      >
+                        {item.toppings
+                          .map((t) => t.name + (t.price ? ` (${fmt(t.price)})` : ""))
+                          .join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className="mono"
+                    style={{ fontSize: 13, color: "var(--text)" }}
+                  >
+                    {fmt(item.qty * item.price)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-              {s.orderType === "pickup" ? (
-                <p className="text-muted mb-0">Customer will pick up from the restaurant.</p>
-              ) : (
-                <>
-                  <Row>
-                    <Col sm={4} className="text-muted">City</Col>
-                    <Col>{s.city || "—"}</Col>
-                  </Row>
-                  <Row className="mt-1">
-                    <Col sm={4} className="text-muted">Street</Col>
-                    <Col>{s.street || "—"}</Col>
-                  </Row>
-                  <Row className="mt-1">
-                    <Col sm={4} className="text-muted">Number</Col>
-                    <Col>{s.buildingNumber || "—"}</Col>
-                  </Row>
-                  {s.floor && (
-                    <Row className="mt-1">
-                      <Col sm={4} className="text-muted">Floor</Col>
-                      <Col>{s.floor}</Col>
-                    </Row>
+          {/* notes */}
+          {s.notes && (
+            <div style={{ marginTop: 28, textAlign: "left" }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>
+                Note
+              </div>
+              <p style={{ color: "var(--text-dim)", margin: 0 }}>{s.notes}</p>
+            </div>
+          )}
+
+          {/* totals */}
+          <div
+            style={{
+              marginTop: 32,
+              paddingTop: 20,
+              borderTop: "1px solid var(--line)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+            }}
+          >
+            <span className="eyebrow">Totale pagato</span>
+            <span className="display" style={{ fontSize: 36, color: "var(--gold)" }}>
+              {fmt(order.totalPrice)}
+            </span>
+          </div>
+
+          {/* admin actions */}
+          {userInfo?.isAdmin &&
+            (!order.isPaid || !order.isDelivered) && (
+              <div
+                style={{
+                  marginTop: 40,
+                  paddingTop: 28,
+                  borderTop: "1px solid var(--line)",
+                }}
+              >
+                <div className="eyebrow" style={{ marginBottom: 16 }}>
+                  Amministrazione
+                </div>
+                {(loadingPay || loadingDeliver) && <Loader />}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {!order.isPaid && (
+                    <button
+                      type="button"
+                      className="b-btn"
+                      onClick={payHandler}
+                    >
+                      Segna come pagato
+                    </button>
                   )}
-                </>
-              )}
-
-              <Row className="mt-1">
-                <Col sm={4} className="text-muted">Date</Col>
-                <Col>{s.deliveryDate || "—"}</Col>
-              </Row>
-              <Row className="mt-1">
-                <Col sm={4} className="text-muted">Time slot</Col>
-                <Col>{s.deliverySlot || "—"}</Col>
-              </Row>
-
-              <div className="mt-3">
-                {order.isDelivered ? (
-                  <Message variant="success">
-                    Delivered on {new Date(order.deliveredAt).toLocaleString()}
-                  </Message>
-                ) : (
-                  <Message variant="warning">Not yet delivered</Message>
-                )}
+                  {!order.isDelivered && (
+                    <button
+                      type="button"
+                      className="b-btn ember"
+                      onClick={deliverHandler}
+                    >
+                      Segna come consegnato
+                    </button>
+                  )}
+                </div>
               </div>
-            </ListGroup.Item>
-
-            {/* Payment */}
-            <ListGroup.Item className="pb-4">
-              <h5 className="mb-3">Payment</h5>
-              <Row>
-                <Col sm={4} className="text-muted">Method</Col>
-                <Col>{order.paymentMethod || "—"}</Col>
-              </Row>
-              <div className="mt-3">
-                {order.isPaid ? (
-                  <Message variant="success">
-                    Paid on {new Date(order.paidAt).toLocaleString()}
-                  </Message>
-                ) : (
-                  <Message variant="warning">Not yet paid</Message>
-                )}
-              </div>
-            </ListGroup.Item>
-
-            {/* Notes */}
-            {s.notes && (
-              <ListGroup.Item className="pb-4">
-                <h5 className="mb-3">Notes</h5>
-                <p className="mb-0">{s.notes}</p>
-              </ListGroup.Item>
             )}
 
-            {/* Items */}
-            <ListGroup.Item className="pb-4">
-              <h5 className="mb-3">Order Items</h5>
-              {order.orderItems.length === 0 ? (
-                <Message>Order is empty</Message>
-              ) : (
-                <ListGroup variant="flush">
-                  {order.orderItems.map((item, i) => (
-                    <ListGroup.Item key={i}>
-                      <Row className="align-items-center">
-                        <Col md={1}>
-                          <Image src={item.image} alt={item.name} fluid rounded />
-                        </Col>
-                        <Col>
-                          <Link to={`/product/${item.product}`}>{item.name}</Link>
-                          {item.toppings && item.toppings.length > 0 && (
-                            <div>
-                              {item.toppings.map((t) => (
-                                <small key={t.name} className="d-block text-muted">
-                                  + {t.name} (€{t.price?.toFixed(2)})
-                                </small>
-                              ))}
-                            </div>
-                          )}
-                        </Col>
-                        <Col md={4} className="text-end">
-                          {item.qty} × €{Number(item.price).toFixed(2)} ={" "}
-                          <strong>€{(item.qty * item.price).toFixed(2)}</strong>
-                        </Col>
-                      </Row>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              )}
-            </ListGroup.Item>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              justifyContent: "center",
+              marginTop: 48,
+            }}
+          >
+            <Link to="/profile" className="b-btn">
+              I miei ordini
+            </Link>
+            <Link to="/" className="b-btn ember">
+              Torna alla casa <Icon.arrow className="arrow" />
+            </Link>
+          </div>
 
-          </ListGroup>
-        </Col>
-
-        {/* ── RIGHT: Summary ───────────────────────────────────── */}
-        <Col md={4}>
-          <Card>
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                <h5 className="mb-0">Order Summary</h5>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <Row>
-                  <Col className="text-muted">Items ({order.itemsNum})</Col>
-                  <Col className="text-end">€{Number(order.itemsPrice).toFixed(2)}</Col>
-                </Row>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <Row>
-                  <Col className="text-muted">Delivery</Col>
-                  <Col className="text-end">
-                    {Number(order.shippingPrice) === 0
-                      ? "Free"
-                      : `€${Number(order.shippingPrice).toFixed(2)}`}
-                  </Col>
-                </Row>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <Row>
-                  <Col>
-                    <strong>Total</strong>
-                  </Col>
-                  <Col className="text-end">
-                    <strong>€{Number(order.totalPrice).toFixed(2)}</strong>
-                  </Col>
-                </Row>
-              </ListGroup.Item>
-
-              {(loadingPay || loadingDeliver) && (
-                <ListGroup.Item>
-                  <Loader />
-                </ListGroup.Item>
-              )}
-
-              {userInfo?.isAdmin && !order.isPaid && (
-                <ListGroup.Item>
-                  <Button
-                    type="button"
-                    className="btn-block w-100"
-                    variant="warning"
-                    onClick={payHandler}
-                  >
-                    Mark As Paid
-                  </Button>
-                </ListGroup.Item>
-              )}
-
-              {userInfo?.isAdmin && !order.isDelivered && (
-                <ListGroup.Item>
-                  <Button
-                    type="button"
-                    className="btn-block w-100"
-                    variant="success"
-                    onClick={deliverHandler}
-                  >
-                    Mark As Delivered
-                  </Button>
-                </ListGroup.Item>
-              )}
-            </ListGroup>
-          </Card>
-        </Col>
-      </Row>
-    </>
+          {(s.email || order.user?.email) && (
+            <p
+              className="mono"
+              style={{
+                fontSize: 11,
+                color: "var(--text-faint)",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                marginTop: 56,
+              }}
+            >
+              Conferma inviata a {s.email || order.user?.email}
+            </p>
+          )}
+        </div>
+      </div>
+    </main>
   );
 };
 

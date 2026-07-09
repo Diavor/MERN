@@ -52,6 +52,12 @@ const reducer = combineReducers({
   orderDeliver: orderDeliverReducer,
 });
 
+// Cart item shape changed (composite line keys); drop carts saved by older versions.
+if (localStorage.getItem("cartVersion") !== "2") {
+  localStorage.removeItem("cartItems");
+  localStorage.setItem("cartVersion", "2");
+}
+
 const cartItemsFromStorage = localStorage.getItem("cartItems")
   ? JSON.parse(localStorage.getItem("cartItems"))
   : [];

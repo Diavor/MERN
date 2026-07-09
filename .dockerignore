@@ -1,0 +1,14 @@
+**/node_modules
+frontend/build
+.git
+.github
+.env
+.env.*
+!.env.example
+design
+docs
+uploads
+coverage
+*.log
+.DS_Store
+npm-debug.log*

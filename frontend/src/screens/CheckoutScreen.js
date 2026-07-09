@@ -1,42 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Row,
-  Col,
-  Form,
-  Button,
-  Card,
-  ListGroup,
-  Image,
-  Alert,
-  Spinner,
-} from "react-bootstrap";
+import { Link } from "react-router-dom";
 import axios from "axios";
+import Icon from "../brace/ui/Icon";
+import fmt from "../brace/ui/fmt";
+import Field from "../brace/ui/Field";
+import Message from "../brace/ui/Message";
+import ZoneSelector from "../brace/checkout/ZoneSelector";
+import DatePicker from "../brace/checkout/DatePicker";
+import TimeSlotPicker from "../brace/checkout/TimeSlotPicker";
+import OrderSummary from "../brace/checkout/OrderSummary";
 import { createOrder } from "../store/actions/order";
+import { clearCart } from "../store/actions/cart";
+import { DELIVERY_ZONES, FREE_DELIVERY_THRESHOLD } from "../brace/content";
 
-const DELIVERY_ZONES = [
-  { city: "Mogliano Veneto", price: 2.5 },
-  { city: "Zerman", price: 2.5 },
-  { city: "Preganziol", price: 3.0 },
-  { city: "Campocroce", price: 3.0 },
-  { city: "Conscio", price: 3.0 },
-  { city: "Gaggio", price: 3.0 },
-  { city: "Marcon", price: 3.0 },
-  { city: "Lughignano", price: 3.0 },
-  { city: "San Liberale", price: 3.0 },
-];
+const STEP_LABELS = ["Contatti", "Pagamento", "Conferma"];
+
+const SectionLabel = ({ n, label, span, top }) => (
+  <div
+    style={{
+      gridColumn: span ? "span " + span : "auto",
+      marginTop: top ? 40 : 32,
+      marginBottom: 14,
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+    }}
+  >
+    <span
+      className="mono"
+      style={{ fontSize: 10, color: "var(--gold)", letterSpacing: "0.2em" }}
+    >
+      · {n}
+    </span>
+    <span
+      style={{
+        fontFamily: "var(--mono)",
+        fontSize: 12,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+        color: "var(--text)",
+      }}
+    >
+      {label}
+    </span>
+    <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+  </div>
+);
 
 const CheckoutScreen = ({ history }) => {
   const dispatch = useDispatch();
 
   const { cartItems } = useSelector((state) => state.cart);
   const { userInfo } = useSelector((state) => state.userLogin);
-  const {
-    success,
-    order,
-    error,
-    loading,
-  } = useSelector((state) => state.orderCreate);
+  const { success, order, error, loading } = useSelector(
+    (state) => state.orderCreate
+  );
+
+  const [step, setStep] = useState(1);
+  const [mode, setMode] = useState("guest"); // guest | login (visual)
 
   // Contact
   const [name, setName] = useState(userInfo?.name || "");
@@ -57,7 +79,6 @@ const CheckoutScreen = ({ history }) => {
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [slotError, setSlotError] = useState(false);
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState("Contanti");
@@ -65,17 +86,21 @@ const CheckoutScreen = ({ history }) => {
   // Notes
   const [notes, setNotes] = useState("");
 
-  useEffect(() => {
-    if (!cartItems || cartItems.length === 0) {
-      history.push("/");
-    }
-  }, [cartItems, history]);
+  // Validation message
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    if (success) {
+    if (!success && (!cartItems || cartItems.length === 0)) {
+      history.push("/menu");
+    }
+  }, [cartItems, history, success]);
+
+  useEffect(() => {
+    if (success && order) {
+      dispatch(clearCart());
       history.push(`/order/${order._id}`);
     }
-  }, [success, order, history]);
+  }, [success, order, history, dispatch]);
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -95,23 +120,55 @@ const CheckoutScreen = ({ history }) => {
   );
 
   const deliveryFee =
-    orderType === "pickup" || itemsPrice >= 39
+    orderType === "pickup" || itemsPrice >= FREE_DELIVERY_THRESHOLD
       ? 0
       : DELIVERY_ZONES.find((z) => z.city === city)?.price || 0;
 
   const totalPrice = (itemsPrice + deliveryFee).toFixed(2);
-  const today = new Date().toISOString().split("T")[0];
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    if (!selectedSlot) {
-      setSlotError(true);
+  const validateStep1 = () => {
+    if (!name.trim() || !phone.trim() || !email.trim())
+      return "Inserisci nome, telefono ed email.";
+    if (orderType === "delivery" && (!city || !street.trim() || !buildingNumber.trim()))
+      return "Completa l'indirizzo di consegna (zona, via e numero civico).";
+    if (!selectedDate) return "Scegli una data.";
+    if (!selectedSlot) return "Scegli un orario.";
+    return "";
+  };
+
+  const goToPayment = () => {
+    const err = validateStep1();
+    if (err) {
+      setFormError(err);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    setSlotError(false);
+    setFormError("");
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const placeOrder = () => {
     dispatch(
       createOrder({
-        orderItems: cartItems,
+        orderItems: cartItems.map((item) => ({
+          name: item.name,
+          qty: item.qty,
+          image: item.image,
+          price: item.price,
+          toppings: [
+            ...(item.toppings || []),
+            ...(item.selectedDough
+              ? [
+                  {
+                    name: "Impasto: " + item.selectedDough.name,
+                    price: item.selectedDough.price,
+                  },
+                ]
+              : []),
+          ],
+          product: item.product,
+        })),
         shippingAddress: {
           name,
           phone,
@@ -137,373 +194,652 @@ const CheckoutScreen = ({ history }) => {
     );
   };
 
+  if (!cartItems || cartItems.length === 0) return null;
+
   return (
-    <Row>
-      {/* ── LEFT: Form ─────────────────────────────────────────── */}
-      <Col md={8}>
-        <h1 className="mb-4">Checkout</h1>
-
-        <Form onSubmit={submitHandler}>
-          {/* Contact */}
-          <Card className="mb-4">
-            <Card.Header>
-              <strong>Contact Information</strong>
-            </Card.Header>
-            <Card.Body>
-              <Form.Group controlId="name" className="mb-3">
-                <Form.Label>Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </Form.Group>
-              <Row>
-                <Col md={6}>
-                  <Form.Group controlId="phone" className="mb-3">
-                    <Form.Label>Phone Number</Form.Label>
-                    <Form.Control
-                      type="tel"
-                      placeholder="+39 000 000 0000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group controlId="email" className="mb-0">
-                    <Form.Label>Email Address</Form.Label>
-                    <Form.Control
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Order Type */}
-          <Card className="mb-4">
-            <Card.Header>
-              <strong>Order Type</strong>
-            </Card.Header>
-            <Card.Body className="d-flex gap-4">
-              <Form.Check
-                type="radio"
-                id="delivery"
-                label="Delivery"
-                name="orderType"
-                checked={orderType === "delivery"}
-                onChange={() => setOrderType("delivery")}
-              />
-              <Form.Check
-                type="radio"
-                id="pickup"
-                label="Pick up from restaurant"
-                name="orderType"
-                checked={orderType === "pickup"}
-                onChange={() => setOrderType("pickup")}
-              />
-            </Card.Body>
-          </Card>
-
-          {/* Delivery Address */}
-          {orderType === "delivery" && (
-            <Card className="mb-4">
-              <Card.Header>
-                <strong>Delivery Address</strong>
-              </Card.Header>
-              <Card.Body>
-                <Form.Group controlId="city" className="mb-3">
-                  <Form.Label>City</Form.Label>
-                  <Form.Control
-                    as="select"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    required={orderType === "delivery"}
-                  >
-                    <option value="">-- Select delivery city --</option>
-                    <optgroup label="Delivery €2.50">
-                      {DELIVERY_ZONES.filter((z) => z.price === 2.5).map(
-                        (z) => (
-                          <option key={z.city} value={z.city}>
-                            {z.city}
-                          </option>
-                        )
-                      )}
-                    </optgroup>
-                    <optgroup label="Delivery €3.00">
-                      {DELIVERY_ZONES.filter((z) => z.price === 3.0).map(
-                        (z) => (
-                          <option key={z.city} value={z.city}>
-                            {z.city}
-                          </option>
-                        )
-                      )}
-                    </optgroup>
-                  </Form.Control>
-                </Form.Group>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group controlId="street" className="mb-3">
-                      <Form.Label>Street</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="Street name"
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        required={orderType === "delivery"}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group controlId="buildingNumber" className="mb-3">
-                      <Form.Label>Number</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="No."
-                        value={buildingNumber}
-                        onChange={(e) => setBuildingNumber(e.target.value)}
-                        required={orderType === "delivery"}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group controlId="floor" className="mb-0">
-                      <Form.Label>Floor</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="Optional"
-                        value={floor}
-                        onChange={(e) => setFloor(e.target.value)}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          )}
-
-          {/* Schedule */}
-          <Card className="mb-4">
-            <Card.Header>
-              <strong>Schedule</strong>
-            </Card.Header>
-            <Card.Body>
-              <Form.Group controlId="date" className="mb-3">
-                <Form.Label>Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  min={today}
-                  value={selectedDate}
-                  onChange={(e) => {
-                    setSelectedDate(e.target.value);
-                    setSlotError(false);
-                  }}
-                  required
-                />
-              </Form.Group>
-
-              {selectedDate && (
-                <Form.Group>
-                  <Form.Label>Time Slot</Form.Label>
-                  {loadingSlots ? (
-                    <div>
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Loading available slots...
-                    </div>
-                  ) : (
-                    <div className="d-flex flex-wrap gap-1">
-                      {slots.map((slot) => (
-                        <Button
-                          key={slot.time}
-                          type="button"
-                          size="sm"
-                          variant={
-                            slot.available === 0
-                              ? "danger"
-                              : selectedSlot === slot.time
-                              ? slot.available >= 6 ? "success" : "warning"
-                              : slot.available >= 6 ? "outline-success" : "outline-warning"
-                          }
-                          disabled={slot.available === 0}
-                          onClick={() => {
-                            setSelectedSlot(slot.time);
-                            setSlotError(false);
-                          }}
-                        >
-                          {slot.time}
-                          {slot.available < 10 && slot.available > 0 && (
-                            <span
-                              className="ms-1"
-                              style={{ fontSize: "0.7rem" }}
-                            >
-                              ({slot.available})
-                            </span>
-                          )}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                  {slotError && (
-                    <div className="text-danger mt-1" style={{ fontSize: "0.875rem" }}>
-                      Please select a time slot.
-                    </div>
-                  )}
-                </Form.Group>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Payment Method */}
-          <Card className="mb-4">
-            <Card.Header>
-              <strong>Payment Method</strong>
-            </Card.Header>
-            <Card.Body className="d-flex gap-4">
-              <Form.Check
-                type="radio"
-                id="contanti"
-                label="Contanti (Cash)"
-                name="paymentMethod"
-                checked={paymentMethod === "Contanti"}
-                onChange={() => setPaymentMethod("Contanti")}
-              />
-              <Form.Check
-                type="radio"
-                id="bancomat"
-                label="Bancomat (Card)"
-                name="paymentMethod"
-                checked={paymentMethod === "Bancomat"}
-                onChange={() => setPaymentMethod("Bancomat")}
-              />
-            </Card.Body>
-          </Card>
-
-          {/* Additional Info */}
-          <Card className="mb-4">
-            <Card.Header>
-              <strong>Additional Info</strong>
-            </Card.Header>
-            <Card.Body>
-              <Form.Group controlId="notes">
-                <Form.Label>Notes about your order</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  placeholder="Allergies, special requests, gate code..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </Form.Group>
-            </Card.Body>
-          </Card>
-
-          {error && <Alert variant="danger">{error}</Alert>}
-
-          <Button
-            type="submit"
-            variant="danger"
-            size="lg"
-            className="w-100 mb-5"
-            disabled={loading}
+    <main style={{ paddingTop: 130, paddingBottom: 80, minHeight: "100vh" }}>
+      <div className="b-container">
+        {/* progress */}
+        <div style={{ marginBottom: 60 }}>
+          <div className="eyebrow" style={{ marginBottom: 18 }}>
+            Checkout · Passo {step} di 3
+          </div>
+          <h1
+            className="display"
+            style={{ fontSize: 72, lineHeight: 0.98, margin: 0 }}
           >
-            {loading ? (
+            {step === 1 ? (
               <>
-                <Spinner animation="border" size="sm" className="me-2" />
-                Placing Order...
+                Dove ti
+                <br />
+                <span
+                  className="it"
+                  style={{ color: "var(--gold)", fontWeight: 300 }}
+                >
+                  troviamo?
+                </span>
               </>
             ) : (
-              "Place Order"
+              <>
+                Come
+                <br />
+                <span
+                  className="it"
+                  style={{ color: "var(--gold)", fontWeight: 300 }}
+                >
+                  vuoi pagare?
+                </span>
+              </>
             )}
-          </Button>
-        </Form>
-      </Col>
+          </h1>
 
-      {/* ── RIGHT: Order Summary ────────────────────────────────── */}
-      <Col md={4}>
-        <Card style={{ position: "sticky", top: "20px" }}>
-          <Card.Header>
-            <strong>Order Summary</strong>
-          </Card.Header>
-          <ListGroup variant="flush">
-            {cartItems.map((item, i) => (
-              <ListGroup.Item key={i}>
-                <Row className="align-items-center">
-                  <Col xs={2}>
-                    <Image src={item.image} alt={item.name} fluid rounded />
-                  </Col>
-                  <Col>
-                    <div style={{ fontSize: "0.9rem" }}>
-                      {item.name}{" "}
-                      <span className="text-muted">× {item.qty}</span>
-                    </div>
-                    {item.toppings && item.toppings.length > 0 && (
-                      <small className="text-muted">
-                        + {item.toppings.map((t) => t.name).join(", ")}
-                      </small>
-                    )}
-                  </Col>
-                  <Col xs={3} className="text-end" style={{ fontSize: "0.9rem" }}>
-                    €{(item.qty * item.price).toFixed(2)}
-                  </Col>
-                </Row>
-              </ListGroup.Item>
+          <div style={{ display: "flex", gap: 4, marginTop: 40 }}>
+            {STEP_LABELS.map((l, i) => (
+              <div
+                key={l}
+                style={{
+                  flex: 1,
+                  paddingTop: 14,
+                  borderTop:
+                    "2px solid " +
+                    (i + 1 <= step ? "var(--gold)" : "var(--line-2)"),
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    color: i + 1 <= step ? "var(--gold)" : "var(--text-faint)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <span>0{i + 1}</span>
+                  <span>{l}</span>
+                  {i + 1 < step && <Icon.check style={{ color: "var(--gold)" }} />}
+                </div>
+              </div>
             ))}
+          </div>
+        </div>
 
-            <ListGroup.Item>
-              <Row>
-                <Col className="text-muted">Subtotal</Col>
-                <Col className="text-end">€{itemsPrice.toFixed(2)}</Col>
-              </Row>
-            </ListGroup.Item>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.4fr 1fr",
+            gap: 80,
+            alignItems: "start",
+          }}
+        >
+          <div>
+            {formError && (
+              <div style={{ marginBottom: 24 }}>
+                <Message variant="danger">{formError}</Message>
+              </div>
+            )}
+            {error && (
+              <div style={{ marginBottom: 24 }}>
+                <Message variant="danger">{error}</Message>
+              </div>
+            )}
 
-            <ListGroup.Item>
-              <Row>
-                <Col className="text-muted">Delivery</Col>
-                <Col className="text-end">
-                  {orderType === "pickup"
-                    ? "Free (pickup)"
-                    : itemsPrice >= 39
-                    ? "Free (order ≥ €39)"
-                    : deliveryFee > 0
-                    ? `€${deliveryFee.toFixed(2)}`
-                    : city
-                    ? "—"
-                    : "Select city"}
-                </Col>
-              </Row>
-            </ListGroup.Item>
+            {step === 1 ? (
+              <Step1
+                mode={mode}
+                setMode={setMode}
+                userInfo={userInfo}
+                name={name}
+                setName={setName}
+                phone={phone}
+                setPhone={setPhone}
+                email={email}
+                setEmail={setEmail}
+                orderType={orderType}
+                setOrderType={setOrderType}
+                city={city}
+                setCity={setCity}
+                street={street}
+                setStreet={setStreet}
+                buildingNumber={buildingNumber}
+                setBuildingNumber={setBuildingNumber}
+                floor={floor}
+                setFloor={setFloor}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                slots={slots}
+                selectedSlot={selectedSlot}
+                setSelectedSlot={setSelectedSlot}
+                loadingSlots={loadingSlots}
+                notes={notes}
+                setNotes={setNotes}
+                itemsPrice={itemsPrice}
+              />
+            ) : (
+              <Step2
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                name={name}
+              />
+            )}
 
-            <ListGroup.Item>
-              <Row>
-                <Col className="text-muted">Payment</Col>
-                <Col className="text-end">{paymentMethod}</Col>
-              </Row>
-            </ListGroup.Item>
+            <div
+              style={{
+                marginTop: 48,
+                display: "flex",
+                justifyContent: "space-between",
+                paddingTop: 32,
+                borderTop: "1px solid var(--line)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => (step > 1 ? setStep(1) : history.push("/menu"))}
+                className="b-btn ghost"
+              >
+                <Icon.arrow style={{ transform: "rotate(180deg)" }} />{" "}
+                {step === 1 ? "Continua a comprare" : "Indietro"}
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => (step === 1 ? goToPayment() : placeOrder())}
+                className="b-btn ember"
+              >
+                {step === 1 ? (
+                  <>
+                    Continua al pagamento <Icon.arrow className="arrow" />
+                  </>
+                ) : loading ? (
+                  "Invio ordine…"
+                ) : (
+                  <>
+                    Ordina · paga {paymentMethod === "Contanti" ? "alla consegna" : "al POS"}{" "}
+                    {fmt(totalPrice)} <Icon.arrow className="arrow" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
 
-            <ListGroup.Item>
-              <Row>
-                <Col>
-                  <strong>Total</strong>
-                </Col>
-                <Col className="text-end">
-                  <strong>€{totalPrice}</strong>
-                </Col>
-              </Row>
-            </ListGroup.Item>
-          </ListGroup>
-        </Card>
-      </Col>
-    </Row>
+          <OrderSummary
+            cartItems={cartItems}
+            itemsPrice={itemsPrice}
+            deliveryFee={deliveryFee}
+            orderType={orderType}
+            city={city}
+            freeThreshold={FREE_DELIVERY_THRESHOLD}
+            total={itemsPrice + deliveryFee}
+          />
+        </div>
+      </div>
+    </main>
+  );
+};
+
+// ---- STEP 1: contact + address + schedule ----
+const Step1 = ({
+  mode,
+  setMode,
+  userInfo,
+  name,
+  setName,
+  phone,
+  setPhone,
+  email,
+  setEmail,
+  orderType,
+  setOrderType,
+  city,
+  setCity,
+  street,
+  setStreet,
+  buildingNumber,
+  setBuildingNumber,
+  floor,
+  setFloor,
+  selectedDate,
+  setSelectedDate,
+  slots,
+  selectedSlot,
+  setSelectedSlot,
+  loadingSlots,
+  notes,
+  setNotes,
+  itemsPrice,
+}) => {
+  return (
+    <div>
+      {/* guest / login toggle (only for anonymous visitors) */}
+      {!userInfo && (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 0,
+              background: "var(--bg-2)",
+              border: "1px solid var(--line)",
+              padding: 4,
+              borderRadius: 999,
+              maxWidth: 380,
+            }}
+          >
+            {["guest", "login"].map((k) => (
+              <button
+                type="button"
+                key={k}
+                onClick={() => setMode(k)}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 999,
+                  border: "none",
+                  background: mode === k ? "var(--text)" : "transparent",
+                  color: mode === k ? "var(--bg)" : "var(--text-dim)",
+                  cursor: "pointer",
+                  fontFamily: "var(--mono)",
+                  fontSize: 11,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {k === "guest" ? "Continua come ospite" : "Accedi"}
+              </button>
+            ))}
+          </div>
+          {mode === "login" && (
+            <div
+              style={{
+                marginTop: 16,
+                fontSize: 14,
+                color: "var(--text-dim)",
+              }}
+            >
+              Hai già un account?{" "}
+              <Link
+                to="/login?redirect=/checkout"
+                style={{ color: "var(--gold)" }}
+              >
+                Accedi
+              </Link>{" "}
+              per ritrovare i tuoi dati — oppure continua come ospite.
+            </div>
+          )}
+        </>
+      )}
+
+      {/* delivery toggle */}
+      <SectionLabel
+        n="01"
+        label={orderType === "delivery" ? "Consegna o ritiro" : "Consegna o ritiro"}
+      />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 12,
+          marginBottom: 28,
+        }}
+      >
+        {[
+          ["delivery", "Consegna a casa", "Mogliano Veneto e dintorni"],
+          ["pickup", "Ritiro in pizzeria", "Nessun costo di consegna"],
+        ].map(([k, l, sub]) => (
+          <button
+            type="button"
+            key={k}
+            onClick={() => setOrderType(k)}
+            style={{
+              padding: 20,
+              textAlign: "left",
+              cursor: "pointer",
+              color: "var(--text)",
+              background: orderType === k ? "var(--bg-3)" : "var(--bg-2)",
+              border:
+                "1px solid " +
+                (orderType === k ? "var(--gold-deep)" : "var(--line)"),
+            }}
+          >
+            <div style={{ fontWeight: 500, marginBottom: 6 }}>{l}</div>
+            <div
+              className="mono"
+              style={{
+                fontSize: 11,
+                color: "var(--text-faint)",
+                letterSpacing: "0.1em",
+              }}
+            >
+              {sub}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* contact fields */}
+      <SectionLabel n="02" label="I tuoi contatti" top />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 16,
+        }}
+      >
+        <Field label="Nome e cognome" value={name} onChange={setName} span={2} required />
+        <Field label="Telefono" value={phone} onChange={setPhone} type="tel" required />
+        <Field label="Email" value={email} onChange={setEmail} type="email" required />
+
+        {orderType === "delivery" && (
+          <>
+            <SectionLabel n="03" label="Indirizzo di consegna" span={2} top />
+            <div style={{ gridColumn: "1/-1" }}>
+              <ZoneSelector
+                zones={DELIVERY_ZONES}
+                value={city}
+                onChange={setCity}
+                subtotal={itemsPrice}
+                freeThreshold={FREE_DELIVERY_THRESHOLD}
+              />
+            </div>
+            <Field
+              label="Via"
+              value={street}
+              onChange={setStreet}
+              span={2}
+              icon="📍"
+              required
+            />
+            <Field
+              label="Numero civico"
+              value={buildingNumber}
+              onChange={setBuildingNumber}
+              required
+            />
+            <Field label="Piano · interno" value={floor} onChange={setFloor} />
+          </>
+        )}
+
+        <SectionLabel
+          n={orderType === "delivery" ? "04" : "03"}
+          label="Quando ti serviamo"
+          span={2}
+          top
+        />
+        <div
+          style={{
+            gridColumn: "1/-1",
+            display: "grid",
+            gridTemplateColumns: "1.1fr 1fr",
+            gap: 24,
+          }}
+        >
+          <DatePicker value={selectedDate} onChange={setSelectedDate} />
+          <TimeSlotPicker
+            slots={slots}
+            value={selectedSlot}
+            onChange={setSelectedSlot}
+            loading={loadingSlots}
+            date={selectedDate}
+          />
+        </div>
+
+        <SectionLabel
+          n={orderType === "delivery" ? "05" : "04"}
+          label="Note per la cucina"
+          span={2}
+          top
+        />
+        <Field
+          label="Allergie, citofono, richieste particolari…"
+          value={notes}
+          onChange={setNotes}
+          span={2}
+          multiline
+        />
+      </div>
+    </div>
+  );
+};
+
+// ---- STEP 2: payment method ----
+const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
+  const methods = [
+    {
+      id: "Contanti",
+      label: "Contanti",
+      sub: "Paghi alla consegna o al ritiro",
+      icon: "€",
+    },
+    {
+      id: "Bancomat",
+      label: "Bancomat / Carta",
+      sub: "POS a bordo · Visa · Mastercard",
+      icon: "💳",
+    },
+  ];
+
+  return (
+    <div>
+      <SectionLabel n="01" label="Come vuoi pagare" />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: 12,
+        }}
+      >
+        {methods.map((opt) => (
+          <button
+            type="button"
+            key={opt.id}
+            onClick={() => setPaymentMethod(opt.id)}
+            style={{
+              padding: 20,
+              textAlign: "left",
+              cursor: "pointer",
+              color: "var(--text)",
+              background:
+                paymentMethod === opt.id ? "var(--bg-3)" : "var(--bg-2)",
+              border:
+                "1px solid " +
+                (paymentMethod === opt.id ? "var(--gold-deep)" : "var(--line)"),
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}
+          >
+            <span
+              style={{
+                width: 44,
+                height: 30,
+                display: "grid",
+                placeItems: "center",
+                background: "var(--bg)",
+                border: "1px solid var(--line-2)",
+                fontFamily: "var(--mono)",
+                fontSize: 14,
+                color: "var(--gold)",
+              }}
+            >
+              {opt.icon}
+            </span>
+            <div>
+              <div style={{ fontWeight: 500 }}>{opt.label}</div>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-faint)",
+                  letterSpacing: "0.1em",
+                  marginTop: 4,
+                }}
+              >
+                {opt.sub}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Decorative "POS a bordo" card visual for Bancomat */}
+      {paymentMethod === "Bancomat" && (
+        <div style={{ marginTop: 36 }}>
+          <SectionLabel n="02" label="Pagamento alla consegna" />
+          <div
+            style={{
+              background: "var(--feature-card)",
+              border: "1px solid var(--line-2)",
+              padding: 32,
+              position: "relative",
+              overflow: "hidden",
+              color: "#f3ece2",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "radial-gradient(400px 200px at 80% 30%, rgba(212,163,115,0.18), transparent 70%)",
+              }}
+            />
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  className="display"
+                  style={{
+                    fontSize: 22,
+                    letterSpacing: "0.3em",
+                    color: "#d4a373",
+                  }}
+                >
+                  BRÀCE
+                </span>
+                <span
+                  className="mono"
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(243,236,226,0.5)",
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  POS a bordo
+                </span>
+              </div>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 22,
+                  letterSpacing: "0.12em",
+                  marginTop: 60,
+                  color: "#f3ece2",
+                }}
+              >
+                •••• •••• •••• ••••
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: 28,
+                }}
+              >
+                <div>
+                  <div
+                    className="mono"
+                    style={{
+                      fontSize: 9,
+                      color: "rgba(243,236,226,0.5)",
+                      letterSpacing: "0.18em",
+                    }}
+                  >
+                    TITOLARE
+                  </div>
+                  <div
+                    className="mono"
+                    style={{ fontSize: 12, marginTop: 4, textTransform: "uppercase" }}
+                  >
+                    {name || "—"}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    className="mono"
+                    style={{
+                      fontSize: 9,
+                      color: "rgba(243,236,226,0.5)",
+                      letterSpacing: "0.18em",
+                    }}
+                  >
+                    PAGAMENTO
+                  </div>
+                  <div className="mono" style={{ fontSize: 12, marginTop: 4 }}>
+                    Alla consegna
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              marginTop: 24,
+              padding: "14px 18px",
+              background: "var(--bg-2)",
+              border: "1px solid var(--line)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: "var(--ok)",
+              }}
+            />
+            <span
+              className="mono"
+              style={{
+                fontSize: 11,
+                color: "var(--text-dim)",
+                letterSpacing: "0.1em",
+              }}
+            >
+              Il rider porta il POS · paghi con carta o bancomat alla consegna
+            </span>
+          </div>
+        </div>
+      )}
+
+      {paymentMethod === "Contanti" && (
+        <div
+          style={{
+            marginTop: 36,
+            padding: 40,
+            background: "var(--bg-2)",
+            border: "1px solid var(--line)",
+          }}
+        >
+          <div className="display" style={{ fontSize: 28, marginBottom: 12 }}>
+            Contanti
+          </div>
+          <p style={{ color: "var(--text-dim)", margin: 0, maxWidth: 500 }}>
+            Paghi in contanti direttamente al rider (o al banco, se ritiri).
+            Tieni pronto l'importo — il resto lo portiamo noi.
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 

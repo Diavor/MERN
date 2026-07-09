@@ -1,11 +1,11 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Form, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import Message from "../components/Message";
-import Loader from "../components/Loader";
-import FormContainer from "../components/FormContainer";
+import Message from "../brace/ui/Message";
+import Loader from "../brace/ui/Loader";
+import Icon from "../brace/ui/Icon";
+import { AdminFieldText, AdminFieldArea } from "../brace/admin/kit";
 import { listProductDetails, updateProduct } from "../store/actions/product";
 import { PRODUCT_UPDATE_RESET } from "../store/actionTypes";
 
@@ -31,6 +31,10 @@ const ProductEditScreen = ({ match, history }) => {
     success: successUpdate,
     loading: loadingUpdate,
   } = useSelector((state) => state.productUpdate);
+
+  const {
+    userLogin: { userInfo },
+  } = useSelector((state) => state);
 
   useEffect(() => {
     if (successUpdate) {
@@ -60,12 +64,14 @@ const ProductEditScreen = ({ match, history }) => {
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${userInfo?.token}`,
         },
       };
 
       const { data } = await axios.post("/api/upload", formData, config);
 
-      setImg(data);
+      // Upload route now returns { url }; keep back-compat with the old bare-string body.
+      setImg(typeof data === "string" ? data : data.url);
       setUploading(false);
     } catch (error) {
       console.error(error);
@@ -90,104 +96,98 @@ const ProductEditScreen = ({ match, history }) => {
   };
 
   return (
-    <>
-      <Link to="/admin/productlist" className="btn btn-light my-3">
-        Go Back
+    <div className="b-rise" style={{ maxWidth: 760 }}>
+      <Link
+        to="/admin/productlist"
+        className="mono"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          color: "var(--text-dim)",
+          textDecoration: "none",
+          fontSize: 11,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          marginBottom: 28,
+        }}
+      >
+        ← Torna al catalogo
       </Link>
-      <FormContainer>
-        <h1> Edit Product</h1>
-        {loadingUpdate && <Loader />}
-        {errorUpdate && <Message variant="danger">{errorUpdate}</Message>}
-        {loading ? (
-          <Loader />
-        ) : error ? (
-          <Message variant="danger">{error}</Message>
-        ) : (
-          <Form onSubmit={submitHandler}>
-            <Form.Group controlId="name">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="name"
-                placeholder="Enter name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
 
-            <Form.Group controlId="price">
-              <Form.Label>Price</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
+      {loadingUpdate && <Loader />}
+      {errorUpdate && <Message variant="danger">{errorUpdate}</Message>}
 
-            <Form.Group controlId="image">
-              <Form.Label>Image</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter image url"
-                value={img}
-                onChange={(e) => setImg(e.target.value)}
-              ></Form.Control>
-              <Form.File
-                id="image-file"
-                label="Choose File"
-                custom
-                onChange={uploadFileHandler}
-              ></Form.File>
+      {loading ? (
+        <Loader />
+      ) : error ? (
+        <Message variant="danger">{error}</Message>
+      ) : (
+        <form onSubmit={submitHandler}>
+          <div
+            style={{
+              background: "var(--bg-2)",
+              border: "1px solid var(--line)",
+              padding: 32,
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 20,
+            }}
+          >
+            <div style={{ gridColumn: "span 2" }}>
+              <AdminFieldText label="Nome" value={name} onChange={setName} placeholder="Nome prodotto" />
+            </div>
+            <AdminFieldText label="Prezzo" type="number" value={price} onChange={setPrice} prefix="€" mono />
+            <AdminFieldText
+              label="Scorte"
+              type="number"
+              value={countInStock}
+              onChange={setCountInStock}
+              mono
+            />
+            <AdminFieldText label="Brand" value={brand} onChange={setBrand} placeholder="Brand" />
+            <AdminFieldText label="Categoria" value={category} onChange={setCategory} placeholder="Categoria" />
+
+            <div style={{ gridColumn: "span 2" }}>
+              <AdminFieldText label="Immagine (URL)" value={img} onChange={setImg} placeholder="/images/..." mono />
+              <label
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginTop: 12,
+                  cursor: "pointer",
+                }}
+                className="b-btn sm ghost"
+              >
+                <Icon.plus /> Carica file
+                <input type="file" onChange={uploadFileHandler} style={{ display: "none" }} />
+              </label>
               {uploading && <Loader />}
-            </Form.Group>
+            </div>
 
-            <Form.Group controlId="brand">
-              <Form.Label>Brand</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Brand"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
-
-            <Form.Group controlId="category">
-              <Form.Label>Category</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
-
-            <Form.Group controlId="countInStock">
-              <Form.Label>Count In Stock</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter CountInStock"
-                value={countInStock}
-                onChange={(e) => setCountInStock(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
-
-            <Form.Group controlId="description">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Description"
+            <div style={{ gridColumn: "span 2" }}>
+              <AdminFieldArea
+                label="Descrizione"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
+                onChange={setDescription}
+                rows={4}
+                placeholder="Descrizione del prodotto"
+              />
+            </div>
+          </div>
 
-            <Button type="submit" variant="primary">
-              Update
-            </Button>
-          </Form>
-        )}
-      </FormContainer>
-    </>
+          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+            <button type="submit" className="b-btn ember">
+              <Icon.check /> Salva modifiche
+            </button>
+            <Link to="/admin/productlist" className="b-btn ghost">
+              Annulla
+            </Link>
+          </div>
+        </form>
+      )}
+    </div>
   );
 };
 

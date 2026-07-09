@@ -1,5 +1,4 @@
 import express from "express";
-const router = express.Router();
 import {
   getProducts,
   getProductById,
@@ -8,15 +7,29 @@ import {
   updateProduct,
   createProductReview,
   getTopProducts,
-} from "../controlers/productController.js";
+} from "../controllers/productController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
+import validate from "../middleware/validate.js";
+import {
+  listProductsQuery,
+  updateProductSchema,
+  createReviewSchema,
+} from "../validators/product.schema.js";
 
-router.route("/").get(getProducts).post(protect, admin, createProduct);
-router.route("/:id/reviews").post(protect, createProductReview);
+const router = express.Router();
+
+router
+  .route("/")
+  .get(validate({ query: listProductsQuery }), getProducts)
+  .post(protect, admin, createProduct);
+router
+  .route("/:id/reviews")
+  .post(protect, validate({ body: createReviewSchema }), createProductReview);
 router.get("/top", getTopProducts);
 router
   .route("/:id")
   .get(getProductById)
   .delete(protect, admin, deleteProduct)
-  .put(protect, admin, updateProduct);
+  .put(protect, admin, validate({ body: updateProductSchema }), updateProduct);
+
 export default router;

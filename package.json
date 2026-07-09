@@ -11,6 +11,10 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "data:import": "node backend/seeder",
     "data:destroy": "node backend/seeder -d",
+    "test": "node --test --test-concurrency=1 \"backend/__tests__/*.test.js\"",
+    "lint": "eslint backend",
+    "format": "prettier --write \"backend/**/*.js\"",
+    "format:check": "prettier --check \"backend/**/*.js\"",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend"
   },
   "repository": {
@@ -26,15 +30,34 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
+    "compression": "^1.8.1",
     "concurrently": "^5.3.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
     "mongoose": "^9.3.1",
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.7.0",
+    "mongodb-memory-server": "^11.2.0",
+    "pino-pretty": "^13.1.3",
+    "prettier": "^3.9.4",
+    "supertest": "^7.2.2"
   }
 }

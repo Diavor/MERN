@@ -1,6 +1,11 @@
 import express from "express";
 import { admin, protect, optionalAuth } from "../middleware/authMiddleware.js";
-const router = express.Router();
+import validate from "../middleware/validate.js";
+import {
+  createOrderSchema,
+  orderIdParams,
+  payOrderSchema,
+} from "../validators/order.schema.js";
 import {
   addOrderItems,
   getOrderById,
@@ -8,12 +13,25 @@ import {
   getMyOrders,
   getOrders,
   updateOrderToDelivered,
-} from "../controlers/orderController.js";
+} from "../controllers/orderController.js";
 
-router.route("/").post(optionalAuth, addOrderItems).get(protect, admin, getOrders);
+const router = express.Router();
+
+router
+  .route("/")
+  .post(optionalAuth, validate({ body: createOrderSchema }), addOrderItems)
+  .get(protect, admin, getOrders);
 router.route("/myorders").get(protect, getMyOrders);
-router.route("/:id").get(optionalAuth, getOrderById);
-router.route("/:id/pay").put(protect, updateOrderToPaid);
+router
+  .route("/:id")
+  .get(optionalAuth, validate({ params: orderIdParams }), getOrderById);
+router
+  .route("/:id/pay")
+  .put(
+    protect,
+    validate({ params: orderIdParams, body: payOrderSchema }),
+    updateOrderToPaid
+  );
 router.route("/:id/deliver").put(protect, admin, updateOrderToDelivered);
 
 export default router;

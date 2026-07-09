@@ -1,8 +1,8 @@
-import express from 'express'
-import { createPizzaOrder } from '../controllers/slotController.js'
+import express from "express";
+import { createPizzaOrder } from "../controllers/slotController.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/', createPizzaOrder)
+router.post("/", createPizzaOrder);
 
-export default router
+export default router;
