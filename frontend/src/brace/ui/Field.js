@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
+import "./Field.scss";
 
-// BRÀCE text field with an uppercase mono label that turns gold on focus.
+// Grani Antichi text field with an uppercase mono label that turns gold on focus.
 // `onChange` receives the raw value (not the event).
 const Field = ({
   label,
@@ -14,77 +15,34 @@ const Field = ({
   required,
   autoComplete,
 }) => {
-  const [focus, setFocus] = useState(false);
   return (
     <label
-      style={{ gridColumn: span ? "span " + span : "auto", display: "block" }}
+      className="field"
+      style={{ gridColumn: span ? "span " + span : "auto" }}
     >
-      <div
-        className="mono"
-        style={{
-          fontSize: 10,
-          color: focus ? "var(--gold)" : "var(--text-faint)",
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          marginBottom: 8,
-          transition: "color .2s ease",
-        }}
-      >
+      <div className="field__label mono">
         {label}
-        {required && <span style={{ color: "var(--gold)" }}> ·</span>}
+        {required && <span className="field__required"> ·</span>}
       </div>
-      <div
-        style={{
-          background: "var(--bg-2)",
-          border:
-            "1px solid " + (focus ? "var(--gold-deep)" : "var(--line)"),
-          padding: multiline ? 14 : "0 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          transition: "border-color .2s ease",
-        }}
-      >
-        {icon && <span style={{ color: "var(--gold)" }}>{icon}</span>}
+      <div className={"field__box" + (multiline ? " is-multiline" : "")}>
+        {icon && <span className="field__icon">{icon}</span>}
         {multiline ? (
           <textarea
+            className="field__control field__textarea"
             value={value}
             placeholder={placeholder}
             onChange={(e) => onChange(e.target.value)}
-            onFocus={() => setFocus(true)}
-            onBlur={() => setFocus(false)}
             rows={3}
-            style={{
-              width: "100%",
-              background: "none",
-              border: "none",
-              outline: "none",
-              color: "var(--text)",
-              fontFamily: "var(--sans)",
-              fontSize: 14,
-              resize: "vertical",
-            }}
           />
         ) : (
           <input
+            className="field__control field__input"
             type={type}
             value={value}
             placeholder={placeholder}
             required={required}
             autoComplete={autoComplete}
             onChange={(e) => onChange(e.target.value)}
-            onFocus={() => setFocus(true)}
-            onBlur={() => setFocus(false)}
-            style={{
-              width: "100%",
-              padding: "14px 0",
-              background: "none",
-              border: "none",
-              outline: "none",
-              color: "var(--text)",
-              fontFamily: "var(--sans)",
-              fontSize: 14,
-            }}
           />
         )}
       </div>

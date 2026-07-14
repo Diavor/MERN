@@ -1,0 +1,113 @@
+// ProductListScreen — admin products catalogue table.
+// Faithful port of the former inline styles. All values 1:1 with the original.
+// The adminTh/adminTd style-object cells stay inline (shared admin kit); only
+// the screen's own literal inline styles become BEM classes here.
+@reference "../styles/theme.css";
+
+.product-list {
+  // ── toolbar ──────────────────────────────────────────────────────────────
+  &__toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__filter {
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+
+    &.is-active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+  }
+
+  // ── table ───────────────────────────────────────────────────────────────
+  &__table-wrap {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+  }
+
+  &__head-row {
+    @apply uppercase;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--text-faint);
+  }
+
+  &__row {
+    border-top: 1px solid var(--line);
+  }
+
+  // ── product cell ─────────────────────────────────────────────────────────
+  &__cell-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  &__plate {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-size: 15px;
+  }
+
+  &__id {
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    margin-top: 3px;
+  }
+
+  // ── row actions ──────────────────────────────────────────────────────────
+  &__actions {
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  &__btn {
+    padding: 6px 12px;
+
+    &--del {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+  }
+
+  // ── pagination ───────────────────────────────────────────────────────────
+  &__pagination {
+    margin-top: 28px;
+  }
+}

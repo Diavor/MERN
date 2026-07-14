@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import "./OrderScreen.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import Icon from "../brace/ui/Icon";
@@ -9,64 +10,16 @@ import { getOrderDetails, payOrder, deliverOrder } from "../store/actions/order"
 import * as actionTypes from "../store/actionTypes";
 
 const Cell = ({ k, v, sub }) => (
-  <div style={{ background: "var(--bg)", padding: "26px 24px", textAlign: "left" }}>
-    <div
-      className="mono"
-      style={{
-        fontSize: 10,
-        color: "var(--text-faint)",
-        letterSpacing: "0.16em",
-        textTransform: "uppercase",
-      }}
-    >
-      {k}
-    </div>
-    <div
-      className="display"
-      style={{ fontSize: 22, marginTop: 10, color: "var(--gold)" }}
-    >
-      {v}
-    </div>
-    {sub && (
-      <div
-        className="mono"
-        style={{
-          fontSize: 11,
-          color: "var(--text-dim)",
-          marginTop: 6,
-          letterSpacing: "0.08em",
-        }}
-      >
-        {sub}
-      </div>
-    )}
+  <div className="order__cell">
+    <div className="mono order__cell-key">{k}</div>
+    <div className="display order__cell-value">{v}</div>
+    {sub && <div className="mono order__cell-sub">{sub}</div>}
   </div>
 );
 
 const Pill = ({ ok, okLabel, offLabel }) => (
-  <span
-    className="mono"
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 8,
-      padding: "8px 14px",
-      fontSize: 11,
-      letterSpacing: "0.12em",
-      textTransform: "uppercase",
-      background: ok ? "rgba(93,138,74,0.14)" : "var(--bg-2)",
-      border: "1px solid " + (ok ? "var(--ok)" : "var(--line-2)"),
-      color: ok ? "var(--ok)" : "var(--text-faint)",
-    }}
-  >
-    <span
-      style={{
-        width: 6,
-        height: 6,
-        borderRadius: 999,
-        background: ok ? "var(--ok)" : "var(--text-faint)",
-      }}
-    />
+  <span className={"mono order__pill" + (ok ? " is-ok" : "")}>
+    <span className="order__pill-dot" />
     {ok ? okLabel : offLabel}
   </span>
 );
@@ -107,7 +60,7 @@ const OrderScreen = ({ match }) => {
 
   if (loading)
     return (
-      <main style={{ paddingTop: 160, minHeight: "70vh" }}>
+      <main className="order order--pending">
         <div className="b-container">
           <Loader />
         </div>
@@ -115,7 +68,7 @@ const OrderScreen = ({ match }) => {
     );
   if (error)
     return (
-      <main style={{ paddingTop: 160, minHeight: "70vh" }}>
+      <main className="order order--pending">
         <div className="b-container">
           <Message variant="danger">{error}</Message>
         </div>
@@ -124,6 +77,14 @@ const OrderScreen = ({ match }) => {
   if (!order) return null;
 
   const s = order.shippingAddress || {};
+  // Prefer the stored discount; for orders placed before it was persisted,
+  // derive it from the totals (items + shipping − total).
+  const discount =
+    Number(order.discountPrice) ||
+    Math.max(
+      0,
+      Number(order.itemsPrice) + Number(order.shippingPrice) - Number(order.totalPrice)
+    );
   const eta =
     (s.deliveryDate
       ? new Date(s.deliveryDate).toLocaleDateString("it-IT", {
@@ -134,51 +95,22 @@ const OrderScreen = ({ match }) => {
       : "—") + (s.deliverySlot ? " · " + s.deliverySlot : "");
 
   return (
-    <main style={{ paddingTop: 130, paddingBottom: 100, minHeight: "100vh" }}>
+    <main className="order">
       <div className="b-container">
-        <div
-          className="b-rise"
-          style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}
-        >
-          <div
-            style={{
-              width: 88,
-              height: 88,
-              borderRadius: 999,
-              background: "var(--bg-2)",
-              border: "1px solid var(--gold-deep)",
-              margin: "0 auto 32px",
-              display: "grid",
-              placeItems: "center",
-              color: "var(--gold)",
-            }}
-          >
+        <div className="b-rise order__card">
+          <div className="order__badge">
             <Icon.check style={{ width: 32, height: 32 }} />
           </div>
 
-          <p className="it" style={{ fontSize: 24, color: "var(--text-dim)" }}>
+          <p className="it order__thanks">
             Grazie, {s.name || order.user?.name || "amico"}.
           </p>
 
-          <div className="eyebrow" style={{ marginTop: 36, marginBottom: 12 }}>
-            Ordine
-          </div>
-          <div
-            className="display"
-            style={{ fontSize: 44, letterSpacing: "0.04em", wordBreak: "break-all" }}
-          >
-            {order._id}
-          </div>
+          <div className="eyebrow order__eyebrow">Ordine</div>
+          <div className="display order__id">{order._id}</div>
 
           {/* status pills */}
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              justifyContent: "center",
-              marginTop: 28,
-            }}
-          >
+          <div className="order__pills">
             <Pill ok={order.isPaid} okLabel="Pagato" offLabel="Da pagare" />
             <Pill
               ok={order.isDelivered}
@@ -188,23 +120,13 @@ const OrderScreen = ({ match }) => {
           </div>
 
           {/* info cells */}
-          <div
-            style={{
-              marginTop: 44,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 1,
-              background: "var(--line)",
-              border: "1px solid var(--line)",
-              textAlign: "left",
-            }}
-          >
+          <div className="order__cells">
             <Cell
               k={s.orderType === "pickup" ? "Ritiro previsto" : "Consegna prevista"}
               v={eta}
               sub={
                 s.orderType === "pickup"
-                  ? "Pizzeria BRÀCE"
+                  ? "Pizzeria Grani Antichi"
                   : s.city || "Mogliano Veneto"
               }
             />
@@ -237,60 +159,34 @@ const OrderScreen = ({ match }) => {
           </div>
 
           {/* items */}
-          <div style={{ marginTop: 48, textAlign: "left" }}>
-            <div className="eyebrow" style={{ marginBottom: 18 }}>
-              Il tuo ordine
-            </div>
-            <div style={{ border: "1px solid var(--line)" }}>
+          <div className="order__items">
+            <div className="eyebrow order__items-label">Il tuo ordine</div>
+            <div className="order__list">
               {order.orderItems.map((item, i) => (
                 <div
                   key={i}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto",
-                    gap: 16,
-                    alignItems: "center",
-                    padding: "16px 20px",
-                    borderBottom:
-                      i < order.orderItems.length - 1
-                        ? "1px solid var(--line)"
-                        : "none",
-                    background: "var(--bg-2)",
-                  }}
+                  className={
+                    "order__item" +
+                    (i < order.orderItems.length - 1 ? "" : " order__item--last")
+                  }
                 >
-                  <span
-                    className="mono"
-                    style={{ fontSize: 12, color: "var(--gold)" }}
-                  >
-                    {item.qty}×
-                  </span>
+                  <span className="mono order__item-qty">{item.qty}×</span>
                   <div>
                     <Link
                       to={`/product/${item.product}`}
-                      style={{ color: "var(--text)", fontSize: 15 }}
+                      className="order__item-name"
                     >
                       {item.name}
                     </Link>
                     {item.toppings && item.toppings.length > 0 && (
-                      <div
-                        className="mono"
-                        style={{
-                          fontSize: 11,
-                          color: "var(--text-faint)",
-                          letterSpacing: "0.06em",
-                          marginTop: 4,
-                        }}
-                      >
+                      <div className="mono order__item-toppings">
                         {item.toppings
                           .map((t) => t.name + (t.price ? ` (${fmt(t.price)})` : ""))
                           .join(" · ")}
                       </div>
                     )}
                   </div>
-                  <span
-                    className="mono"
-                    style={{ fontSize: 13, color: "var(--text)" }}
-                  >
+                  <span className="mono order__item-total">
                     {fmt(item.qty * item.price)}
                   </span>
                 </div>
@@ -300,27 +196,38 @@ const OrderScreen = ({ match }) => {
 
           {/* notes */}
           {s.notes && (
-            <div style={{ marginTop: 28, textAlign: "left" }}>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>
-                Note
-              </div>
-              <p style={{ color: "var(--text-dim)", margin: 0 }}>{s.notes}</p>
+            <div className="order__notes">
+              <div className="eyebrow order__notes-label">Note</div>
+              <p className="order__notes-text">{s.notes}</p>
             </div>
           )}
 
           {/* totals */}
-          <div
-            style={{
-              marginTop: 32,
-              paddingTop: 20,
-              borderTop: "1px solid var(--line)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-            }}
-          >
+          {discount > 0 && (
+            <div className="order__breakdown">
+              <div className="order__breakdown-row">
+                <span>Subtotale</span>
+                <span>{fmt(order.itemsPrice)}</span>
+              </div>
+              <div className="order__breakdown-row is-discount">
+                <span>
+                  Sconto{order.couponCode ? ` · ${order.couponCode}` : ""}
+                </span>
+                <span>−{fmt(discount)}</span>
+              </div>
+              <div className="order__breakdown-row">
+                <span>Consegna</span>
+                <span>
+                  {Number(order.shippingPrice) === 0
+                    ? "Gratis"
+                    : fmt(order.shippingPrice)}
+                </span>
+              </div>
+            </div>
+          )}
+          <div className="order__totals">
             <span className="eyebrow">Totale pagato</span>
-            <span className="display" style={{ fontSize: 36, color: "var(--gold)" }}>
+            <span className="display order__totals-value">
               {fmt(order.totalPrice)}
             </span>
           </div>
@@ -328,25 +235,10 @@ const OrderScreen = ({ match }) => {
           {/* admin actions */}
           {userInfo?.isAdmin &&
             (!order.isPaid || !order.isDelivered) && (
-              <div
-                style={{
-                  marginTop: 40,
-                  paddingTop: 28,
-                  borderTop: "1px solid var(--line)",
-                }}
-              >
-                <div className="eyebrow" style={{ marginBottom: 16 }}>
-                  Amministrazione
-                </div>
+              <div className="order__admin">
+                <div className="eyebrow order__admin-label">Amministrazione</div>
                 {(loadingPay || loadingDeliver) && <Loader />}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    justifyContent: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
+                <div className="order__admin-actions">
                   {!order.isPaid && (
                     <button
                       type="button"
@@ -369,14 +261,7 @@ const OrderScreen = ({ match }) => {
               </div>
             )}
 
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              justifyContent: "center",
-              marginTop: 48,
-            }}
-          >
+          <div className="order__actions">
             <Link to="/profile" className="b-btn">
               I miei ordini
             </Link>
@@ -386,16 +271,7 @@ const OrderScreen = ({ match }) => {
           </div>
 
           {(s.email || order.user?.email) && (
-            <p
-              className="mono"
-              style={{
-                fontSize: 11,
-                color: "var(--text-faint)",
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                marginTop: 56,
-              }}
-            >
+            <p className="mono order__confirm">
               Conferma inviata a {s.email || order.user?.email}
             </p>
           )}

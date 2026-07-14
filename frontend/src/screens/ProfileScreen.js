@@ -1,3 +1,4 @@
+import "./ProfileScreen.scss";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,39 +16,14 @@ const Tab = ({ active, onClick, children }) => (
   <button
     type="button"
     onClick={onClick}
-    className="mono"
-    style={{
-      padding: "12px 20px",
-      background: active ? "var(--text)" : "transparent",
-      color: active ? "var(--bg)" : "var(--text-dim)",
-      border: "1px solid " + (active ? "var(--text)" : "var(--line)"),
-      borderRadius: 999,
-      cursor: "pointer",
-      fontSize: 11,
-      letterSpacing: "0.14em",
-      textTransform: "uppercase",
-    }}
+    className={`mono profile__tab${active ? " profile__tab--active" : ""}`}
   >
     {children}
   </button>
 );
 
 const Pill = ({ ok, okLabel, offLabel }) => (
-  <span
-    className="mono"
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 6,
-      padding: "5px 10px",
-      fontSize: 10,
-      letterSpacing: "0.1em",
-      textTransform: "uppercase",
-      background: ok ? "rgba(93,138,74,0.14)" : "var(--bg-2)",
-      border: "1px solid " + (ok ? "var(--ok)" : "var(--line-2)"),
-      color: ok ? "var(--ok)" : "var(--text-faint)",
-    }}
-  >
+  <span className={`mono profile__pill${ok ? " profile__pill--active" : ""}`}>
     {ok ? okLabel : offLabel}
   </span>
 );
@@ -95,28 +71,19 @@ const ProfileScreen = ({ history }) => {
   };
 
   return (
-    <main style={{ paddingTop: 130, paddingBottom: 100, minHeight: "100vh" }}>
-      <Meta title="Il mio account · BRÀCE" />
+    <main className="profile">
+      <Meta title="Il mio account · Grani Antichi" />
       <div className="b-container">
         {/* header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            flexWrap: "wrap",
-            gap: 20,
-            marginBottom: 40,
-          }}
-        >
+        <div className="profile__header">
           <div>
-            <div className="eyebrow" style={{ marginBottom: 16 }}>
+            <div className="eyebrow profile__eyebrow">
               Il mio account
             </div>
-            <h1 className="display" style={{ fontSize: 72, lineHeight: 0.95, margin: 0 }}>
+            <h1 className="display profile__title">
               Ciao,
               <br />
-              <span className="it" style={{ color: "var(--gold)", fontWeight: 300 }}>
+              <span className="it profile__name">
                 {(userInfo?.name || "").split(" ")[0] || "amico"}.
               </span>
             </h1>
@@ -134,7 +101,7 @@ const ProfileScreen = ({ history }) => {
         </div>
 
         {/* tabs */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 40 }}>
+        <div className="profile__tabs">
           <Tab active={tab === "orders"} onClick={() => setTab("orders")}>
             Ordini
           </Tab>
@@ -142,7 +109,7 @@ const ProfileScreen = ({ history }) => {
             Profilo
           </Tab>
           {userInfo?.isAdmin && (
-            <Link to="/admin/orderlist" style={{ textDecoration: "none" }}>
+            <Link to="/admin/orderlist" className="profile__admin-link">
               <Tab active={false} onClick={() => {}}>
                 Amministrazione ↗
               </Tab>
@@ -157,18 +124,11 @@ const ProfileScreen = ({ history }) => {
             ) : errorOrders ? (
               <Message variant="danger">{errorOrders}</Message>
             ) : !orders || orders.length === 0 ? (
-              <div
-                style={{
-                  padding: "80px 40px",
-                  textAlign: "center",
-                  border: "1px solid var(--line)",
-                  background: "var(--bg-2)",
-                }}
-              >
-                <div className="display" style={{ fontSize: 28, marginBottom: 12 }}>
+              <div className="profile__empty">
+                <div className="display profile__empty-title">
                   Nessun ordine, ancora.
                 </div>
-                <p style={{ color: "var(--text-dim)", marginBottom: 24 }}>
+                <p className="profile__empty-text">
                   Quando ordini una pizza, la ritrovi qui.
                 </p>
                 <Link to="/menu" className="b-btn ember">
@@ -176,43 +136,18 @@ const ProfileScreen = ({ history }) => {
                 </Link>
               </div>
             ) : (
-              <div style={{ border: "1px solid var(--line)" }}>
-                {orders.map((order, i) => (
+              <div className="profile__orders">
+                {orders.map((order) => (
                   <Link
                     key={order._id}
                     to={`/order/${order._id}`}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1.4fr 1fr auto auto",
-                      gap: 16,
-                      alignItems: "center",
-                      padding: "18px 22px",
-                      borderBottom:
-                        i < orders.length - 1 ? "1px solid var(--line)" : "none",
-                      background: "var(--bg-2)",
-                      color: "var(--text)",
-                      textDecoration: "none",
-                    }}
+                    className="profile__order"
                   >
                     <div>
-                      <div
-                        className="mono"
-                        style={{
-                          fontSize: 11,
-                          color: "var(--gold)",
-                          letterSpacing: "0.06em",
-                        }}
-                      >
+                      <div className="mono profile__order-id">
                         #{order._id.slice(-8).toUpperCase()}
                       </div>
-                      <div
-                        className="mono"
-                        style={{
-                          fontSize: 11,
-                          color: "var(--text-faint)",
-                          marginTop: 4,
-                        }}
-                      >
+                      <div className="mono profile__order-date">
                         {order.createdAt
                           ? new Date(order.createdAt).toLocaleDateString("it-IT", {
                               day: "numeric",
@@ -222,7 +157,7 @@ const ProfileScreen = ({ history }) => {
                           : "—"}
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div className="profile__order-status">
                       <Pill ok={order.isPaid} okLabel="Pagato" offLabel="Da pagare" />
                       <Pill
                         ok={order.isDelivered}
@@ -230,13 +165,10 @@ const ProfileScreen = ({ history }) => {
                         offLabel="In attesa"
                       />
                     </div>
-                    <div
-                      className="display"
-                      style={{ fontSize: 22, color: "var(--gold)" }}
-                    >
+                    <div className="display profile__order-total">
                       {fmt(order.totalPrice)}
                     </div>
-                    <Icon.arrow style={{ color: "var(--text-faint)" }} />
+                    <Icon.arrow className="profile__order-arrow" />
                   </Link>
                 ))}
               </div>
@@ -245,30 +177,30 @@ const ProfileScreen = ({ history }) => {
         )}
 
         {tab === "profile" && (
-          <div style={{ maxWidth: 480 }}>
+          <div className="profile__form-wrap">
             {message && (
-              <div style={{ marginBottom: 20 }}>
+              <div className="profile__alert">
                 <Message variant="danger">{message}</Message>
               </div>
             )}
             {error && (
-              <div style={{ marginBottom: 20 }}>
+              <div className="profile__alert">
                 <Message variant="danger">{error}</Message>
               </div>
             )}
             {success && (
-              <div style={{ marginBottom: 20 }}>
+              <div className="profile__alert">
                 <Message variant="success">Profilo aggiornato</Message>
               </div>
             )}
             {loading && (
-              <div style={{ marginBottom: 20 }}>
+              <div className="profile__alert">
                 <Loader />
               </div>
             )}
 
             <form onSubmit={submitHandler}>
-              <div style={{ display: "grid", gap: 16 }}>
+              <div className="profile__fields">
                 <Field label="Nome e cognome" value={name} onChange={setName} />
                 <Field label="Email" value={email} onChange={setEmail} type="email" />
                 <Field
@@ -288,8 +220,7 @@ const ProfileScreen = ({ history }) => {
               </div>
               <button
                 type="submit"
-                className="b-btn ember"
-                style={{ marginTop: 28 }}
+                className="b-btn ember profile__submit"
               >
                 Aggiorna profilo <Icon.arrow className="arrow" />
               </button>

@@ -7,6 +7,7 @@ import {
   updateProduct,
   createProductReview,
   getTopProducts,
+  getProductCategories,
 } from "../controllers/productController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import validate from "../middleware/validate.js";
@@ -26,6 +27,7 @@ router
   .route("/:id/reviews")
   .post(protect, validate({ body: createReviewSchema }), createProductReview);
 router.get("/top", getTopProducts);
+router.get("/categories", getProductCategories);
 router
   .route("/:id")
   .get(getProductById)

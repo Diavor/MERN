@@ -1,0 +1,162 @@
+// ProfileScreen — account page. Faithful port of the former inline styles.
+// Tab active state and Pill ok state are toggled modifier classes; the order
+// row divider is pure CSS (:not(:last-child)) instead of an index check.
+@reference "../styles/theme.css";
+
+.profile {
+  padding-top: 130px;
+  padding-bottom: 100px;
+  min-height: 100vh;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  &__eyebrow {
+    margin-bottom: 16px;
+  }
+
+  &__title {
+    font-size: 72px;
+    line-height: 0.95;
+    margin: 0;
+  }
+
+  &__name {
+    color: var(--gold);
+    font-weight: 300;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  &__admin-link {
+    text-decoration: none;
+  }
+
+  &__tab {
+    @apply uppercase;
+    padding: 12px 20px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+
+    &--active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+  }
+
+  &__empty {
+    padding: 80px 40px;
+    text-align: center;
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+  }
+
+  &__empty-title {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  &__empty-text {
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  &__orders {
+    border: 1px solid var(--line);
+  }
+
+  &__order {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr auto auto;
+    gap: 16px;
+    align-items: center;
+    padding: 18px 22px;
+    background: var(--bg-2);
+    color: var(--text);
+    text-decoration: none;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--line);
+    }
+  }
+
+  &__order-id {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+
+  &__order-date {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 4px;
+  }
+
+  &__order-status {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__order-total {
+    font-size: 22px;
+    color: var(--gold);
+  }
+
+  &__order-arrow {
+    color: var(--text-faint);
+  }
+
+  &__pill {
+    @apply uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    color: var(--text-faint);
+
+    &--active {
+      background: rgba(93, 138, 74, 0.14);
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+  }
+
+  &__form-wrap {
+    max-width: 480px;
+  }
+
+  &__alert {
+    margin-bottom: 20px;
+  }
+
+  &__fields {
+    display: grid;
+    gap: 16px;
+  }
+
+  &__submit {
+    margin-top: 28px;
+  }
+}

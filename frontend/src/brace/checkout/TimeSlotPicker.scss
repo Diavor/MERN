@@ -1,0 +1,110 @@
+// TimeSlotPicker — slot grid. Per-slot state (selected / available / low / full)
+// is driven by props and expressed as is-* modifier classes; no hover state.
+@reference "../../styles/theme.css";
+
+.slot-picker {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  padding: 22px;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  &__cadence {
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__empty {
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    padding: 40px 0;
+    text-align: center;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  &__slot {
+    @apply font-mono;
+    position: relative;
+    padding: 14px 0;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    opacity: 1;
+    transition: all 0.15s ease;
+
+    &.is-available {
+      background: var(--bg-3);
+      color: var(--text);
+      border: 1px solid var(--line-2);
+    }
+
+    &.is-low {
+      border-color: var(--gold-deep);
+    }
+
+    &.is-selected {
+      background: var(--gold);
+      color: var(--bg);
+      border: 1px solid var(--gold);
+    }
+
+    &.is-full {
+      background: transparent;
+      color: var(--text-faint);
+      border: 1px solid var(--line);
+    }
+
+    &.is-disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+  }
+
+  &__count {
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    font-size: 8px;
+    color: var(--gold);
+    letter-spacing: 0;
+
+    .slot-picker__slot.is-selected & {
+      color: var(--bg);
+    }
+  }
+
+  &__footer {
+    @apply font-mono;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  &__footer-label {
+    color: var(--text-faint);
+  }
+
+  &__footer-value {
+    color: var(--gold);
+  }
+}

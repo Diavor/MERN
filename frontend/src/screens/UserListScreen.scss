@@ -1,0 +1,89 @@
+// UserListScreen — admin users table. Faithful port of the former inline styles.
+// The shared admin kit style-objects (adminTh / adminTd) stay inline on the
+// cells; only this screen's own literal styles move here. Cells that combined a
+// kit object with extra literals keep the object inline and gain a modifier
+// class carrying the extra declarations.
+@reference "../styles/theme.css";
+
+.user-list {
+  &__panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+  }
+
+  &__head-row {
+    @apply uppercase;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--text-faint);
+  }
+
+  &__th--action {
+    width: 120px;
+  }
+
+  &__row {
+    border-top: 1px solid var(--line);
+  }
+
+  &__cust {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: var(--bg-3);
+    color: var(--gold);
+    display: grid;
+    place-items: center;
+    font-family: var(--serif);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  // adminTd stays inline (padding / vertical-align); the font-size:12 override
+  // of adminTd's font-size:14 must remain inline to beat the style object, so
+  // only the non-conflicting literals live here.
+  &__td--email {
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+
+  &__email {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  &__td--actions {
+    text-align: right;
+  }
+
+  &__actions {
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  // Compound selectors so these beat .b-btn.sm / .b-btn.ghost (0,2,0),
+  // reproducing the former inline padding / colour overrides.
+  .b-btn.user-list__btn {
+    padding: 6px 12px;
+  }
+
+  .b-btn.user-list__btn--del {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}

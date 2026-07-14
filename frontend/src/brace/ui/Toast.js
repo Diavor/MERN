@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
+import "./Toast.scss";
 
 const ToastCtx = createContext(null);
 export const useToast = () => useContext(ToastCtx);
@@ -13,44 +14,13 @@ export function ToastProvider({ children }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 28,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          zIndex: 10000,
-          pointerEvents: "none",
-        }}
-      >
+      <div className="toast">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="b-rise"
-            style={{
-              background: t.kind === "ok" ? "rgba(20,30,18,0.95)" : "rgba(20,18,16,0.95)",
-              border: "1px solid " + (t.kind === "ok" ? "#3d5a32" : "var(--line-2)"),
-              color: t.kind === "ok" ? "#c9e2ba" : "var(--cream)",
-              padding: "12px 18px",
-              borderRadius: 999,
-              fontSize: 13,
-              backdropFilter: "blur(20px)",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-            }}
+            className={"b-rise toast__item" + (t.kind === "ok" ? " toast__item--ok" : "")}
           >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 999,
-                background: t.kind === "ok" ? "var(--ok)" : "var(--gold)",
-              }}
-            />
+            <span className="toast__dot" />
             {t.msg}
           </div>
         ))}

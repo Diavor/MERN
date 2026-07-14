@@ -1,0 +1,56 @@
+// ProductEditScreen — admin product editor: back link, two-column form card
+// (name / price / stock / brand / category / image + upload / description) and
+// the save / cancel action row. Faithful port of the former inline styles;
+// shared admin-kit fields and the b-btn / mono globals are reused as-is.
+
+.product-edit {
+  max-width: 760px;
+
+  // ── Back link ─────────────────────────────────────────────────────────────
+  &__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  // ── Form card ─────────────────────────────────────────────────────────────
+  &__card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 32px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  // full-width cell spanning both columns
+  &__col-full {
+    grid-column: span 2;
+  }
+
+  // ── Image upload ──────────────────────────────────────────────────────────
+  &__upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    cursor: pointer;
+  }
+
+  &__file-input {
+    display: none;
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  &__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+}

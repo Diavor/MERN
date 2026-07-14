@@ -1,0 +1,29 @@
+@reference "../../styles/theme.css";
+
+// Rating — fractional star fill. A base (empty) star row is overlaid by a
+// clipped fill row whose width is the value-driven percentage (kept inline as
+// it is a continuous runtime number). Star colour is a runtime prop → inline.
+.rating {
+  @apply inline-flex items-center gap-2; // 8px
+
+  &__track {
+    @apply relative inline-flex;
+    line-height: 0;
+  }
+
+  &__fill {
+    @apply absolute top-0 left-0 overflow-hidden whitespace-nowrap;
+    line-height: 0;
+  }
+
+  &__stars {
+    @apply inline-flex;
+    gap: 2px;
+  }
+
+  &__text {
+    @apply text-text-faint;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+}

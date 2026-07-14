@@ -1,18 +1,5 @@
 import React, { useState } from "react";
-
-const calNavBtn = (enabled) => ({
-  width: 32,
-  height: 32,
-  borderRadius: 999,
-  background: "transparent",
-  border: "1px solid var(--line-2)",
-  color: enabled ? "var(--text)" : "var(--text-faint)",
-  cursor: enabled ? "pointer" : "not-allowed",
-  fontSize: 16,
-  lineHeight: 1,
-  padding: 0,
-  opacity: enabled ? 1 : 0.4,
-});
+import "./DatePicker.scss";
 
 const fmtKey = (d) => {
   const y = d.getFullYear();
@@ -62,81 +49,42 @@ const DatePicker = ({ value, onChange }) => {
       view.getMonth() < maxDate.getMonth());
 
   return (
-    <div
-      style={{
-        background: "var(--bg-2)",
-        border: "1px solid var(--line)",
-        padding: 22,
-      }}
-    >
-      <div className="eyebrow" style={{ marginBottom: 14 }}>
-        Data
-      </div>
+    <div className="date-picker">
+      <div className="eyebrow date-picker__eyebrow">Data</div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 18,
-        }}
-      >
+      <div className="date-picker__nav">
         <button
           type="button"
+          className="date-picker__nav-btn"
           onClick={() =>
             canPrev &&
             setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))
           }
           disabled={!canPrev}
-          style={calNavBtn(canPrev)}
         >
           ‹
         </button>
-        <div
-          className="display"
-          style={{ fontSize: 20, textTransform: "capitalize", letterSpacing: 0 }}
-        >
-          {monthName}
-        </div>
+        <div className="display date-picker__month">{monthName}</div>
         <button
           type="button"
+          className="date-picker__nav-btn"
           onClick={() =>
             canNext &&
             setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))
           }
           disabled={!canNext}
-          style={calNavBtn(canNext)}
         >
           ›
         </button>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 4,
-          fontFamily: "var(--mono)",
-          fontSize: 10,
-          color: "var(--text-faint)",
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          textAlign: "center",
-          marginBottom: 8,
-        }}
-      >
+      <div className="date-picker__weekdays">
         {["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"].map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 4,
-        }}
-      >
+      <div className="date-picker__grid">
         {cells.map((d, i) => {
           if (!d) return <div key={i} />;
           const key = fmtKey(d);
@@ -147,33 +95,11 @@ const DatePicker = ({ value, onChange }) => {
             <button
               type="button"
               key={i}
+              className={`date-picker__day${isSelected ? " is-selected" : ""}${
+                isToday ? " is-today" : ""
+              }${disabled ? " is-disabled" : ""}`}
               disabled={disabled}
               onClick={() => onChange(key)}
-              style={{
-                aspectRatio: "1/1",
-                background: isSelected
-                  ? "var(--gold)"
-                  : isToday
-                  ? "var(--bg-3)"
-                  : "transparent",
-                color: disabled
-                  ? "var(--text-faint)"
-                  : isSelected
-                  ? "var(--bg)"
-                  : "var(--text)",
-                border:
-                  "1px solid " +
-                  (isSelected
-                    ? "var(--gold)"
-                    : isToday
-                    ? "var(--gold-deep)"
-                    : "transparent"),
-                cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.25 : 1,
-                fontFamily: "var(--mono)",
-                fontSize: 13,
-                transition: "all .15s ease",
-              }}
             >
               {d.getDate()}
             </button>
@@ -182,20 +108,9 @@ const DatePicker = ({ value, onChange }) => {
       </div>
 
       {value && (
-        <div
-          style={{
-            marginTop: 16,
-            paddingTop: 14,
-            borderTop: "1px solid var(--line)",
-            display: "flex",
-            justifyContent: "space-between",
-            fontFamily: "var(--mono)",
-            fontSize: 11,
-            letterSpacing: "0.08em",
-          }}
-        >
-          <span style={{ color: "var(--text-faint)" }}>Selezionato</span>
-          <span style={{ color: "var(--gold)" }}>
+        <div className="date-picker__summary">
+          <span className="date-picker__summary-label">Selezionato</span>
+          <span className="date-picker__summary-value">
             {new Date(value).toLocaleDateString("it-IT", {
               weekday: "long",
               day: "numeric",

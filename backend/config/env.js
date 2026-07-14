@@ -40,6 +40,12 @@ const schema = z
     RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),
 
     PAYPAL_CLIENT_ID: z.string().optional(),
+
+    // Social login. Each provider is optional — its button only appears when the
+    // corresponding client id is configured. GOOGLE_CLIENT_ID is the OAuth 2.0
+    // Web client id; APPLE_CLIENT_ID is the Sign in with Apple *Service ID*.
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    APPLE_CLIENT_ID: z.string().optional(),
   })
   // In production, a dedicated refresh secret is mandatory.
   .superRefine((val, ctx) => {

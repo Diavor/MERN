@@ -26,6 +26,7 @@ import {
   orderListMyReducer,
   orderListReducer,
   orderDeliverReducer,
+  orderStatusReducer,
 } from "./reducers/order";
 
 const reducer = combineReducers({
@@ -50,6 +51,7 @@ const reducer = combineReducers({
   orderListMy: orderListMyReducer,
   orderList: orderListReducer,
   orderDeliver: orderDeliverReducer,
+  orderStatus: orderStatusReducer,
 });
 
 // Cart item shape changed (composite line keys); drop carts saved by older versions.

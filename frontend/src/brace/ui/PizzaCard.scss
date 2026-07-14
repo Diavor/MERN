@@ -1,0 +1,106 @@
+// PizzaCard — product card. Hover (lift, image tilt, add-button fill) is pure
+// CSS now, so the component no longer needs a hover state / re-render.
+@reference "../../styles/theme.css";
+
+.pizza-card {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: all 0.35s ease;
+
+  &:hover {
+    border-color: var(--line-2);
+    transform: translateY(-4px);
+  }
+
+  &__media {
+    position: relative;
+    margin-bottom: 22px;
+  }
+
+  &__media-inner {
+    max-width: 220px;
+    margin: 0 auto;
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    .pizza-card:hover & {
+      transform: rotate(6deg) scale(1.04);
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  &__price {
+    color: var(--gold);
+    font-size: 22px;
+    white-space: nowrap;
+  }
+
+  &__rating {
+    margin-bottom: 12px;
+  }
+
+  &__desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 44px;
+    margin: 0 0 14px;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  &__foot-label {
+    @apply font-mono uppercase;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+
+  &__add {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 999px;
+    background: var(--bg-3);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    .pizza-card:hover & {
+      background: var(--gold);
+      color: var(--bg);
+    }
+  }
+}

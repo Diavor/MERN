@@ -1,0 +1,73 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Grani Antichi — Tailwind v4 entry + design-token bridge
+   ---------------------------------------------------------------------------
+   This is the ONE place Tailwind is pulled in. It also declares the Grani Antichi
+   design tokens as CSS custom properties (the runtime source of truth, used by
+   ~600 component styles as var(--x)) and bridges them into Tailwind's @theme so
+   utilities resolve to the exact same values:  text-accent, bg-bg, border-line,
+   font-serif, font-mono, …  Authored component styles live in the .scss modules.
+   ───────────────────────────────────────────────────────────────────────── */
+@import "tailwindcss";
+
+/* Scan .js/.jsx for class names (Tailwind v4 auto-detects, but be explicit so
+   @apply in .scss modules and utilities used in markup are always generated). */
+@source "../**/*.{js,jsx}";
+
+:root {
+  /* ---- Carta (light/paper) surface + ember accent — locked handoff spec ---- */
+  --bg: #fafaf7;
+  --bg-2: #f1efe8;
+  --bg-3: #e3dfd2;
+  --line: #cfc8b5;
+  --line-2: #a89e85;
+  --text: #0e0e0e;
+  --text-dim: #52524e;
+  --text-faint: #8a8682;
+  --accent: #a83920; /* Ember — terracotta red */
+  --gold: #6e4920; /* wheat-brown gold */
+  --gold-deep: #4a2f10;
+  --cream: #f1e7d0; /* text-on-dark inside feature cards */
+  --ok: #5a7a3a;
+
+  /* surface-aware tokens */
+  --scrim-blur: rgba(250, 250, 247, 0.88);
+  --scrim-blur-strong: rgba(250, 250, 247, 0.94);
+  --scrim-overlay: rgba(0, 0, 0, 0.3);
+  --feature-card: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  --grid-line: rgba(0, 0, 0, 0.06);
+  --ph-stripe: rgba(0, 0, 0, 0.06);
+  --ph-bg-1: #ece8db;
+  --ph-bg-2: #d6d0bc;
+
+  --serif: "Italiana", "Cormorant Garamond", serif;
+  --serif-2: "Cormorant Garamond", serif;
+  --sans: "DM Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --maxw: 1440px;
+}
+
+/* Bridge the tokens into Tailwind's theme. `inline` makes the generated
+   utilities reference var(--token) directly, so runtime theming stays driven by
+   the :root block above — one source of truth. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-cream: var(--cream);
+  --color-ok: var(--ok);
+
+  --font-serif: var(--serif);
+  --font-serif2: var(--serif-2);
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+
+  --container-brace: var(--maxw);
+}

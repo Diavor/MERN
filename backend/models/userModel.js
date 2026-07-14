@@ -23,6 +23,13 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    // How the account authenticates. "local" = email+password; "google"/"apple"
+    // accounts are created via OAuth (with a random unusable password).
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "apple"],
+      default: "local",
+    },
     // sha256 of the user's current refresh token — enables rotation & revocation.
     refreshTokenHash: {
       type: String,

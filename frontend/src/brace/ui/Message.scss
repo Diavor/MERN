@@ -1,0 +1,37 @@
+.message {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--bg-2);
+  padding: 14px 18px;
+  margin: 12px 0;
+  font-size: 13px;
+
+  &__text {
+    color: var(--gold);
+    font-size: 12px;
+  }
+
+  &--info {
+    border-left-color: var(--gold);
+
+    .message__text {
+      color: var(--gold);
+    }
+  }
+
+  &--success {
+    border-left-color: var(--ok);
+
+    .message__text {
+      color: var(--ok);
+    }
+  }
+
+  &--danger {
+    border-left-color: var(--accent);
+
+    .message__text {
+      color: var(--accent);
+    }
+  }
+}

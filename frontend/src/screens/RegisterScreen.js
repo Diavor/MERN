@@ -5,8 +5,10 @@ import Icon from "../brace/ui/Icon";
 import Field from "../brace/ui/Field";
 import Loader from "../brace/ui/Loader";
 import Message from "../brace/ui/Message";
+import SocialAuth from "../brace/ui/SocialAuth";
 import Meta from "../components/Meta";
 import { register } from "../store/actions/user";
+import "./RegisterScreen.scss";
 
 const RegisterScreen = ({ location, history }) => {
   const [name, setName] = useState("");
@@ -37,42 +39,39 @@ const RegisterScreen = ({ location, history }) => {
   };
 
   return (
-    <main style={{ paddingTop: 150, paddingBottom: 120, minHeight: "100vh" }}>
-      <Meta title="Registrati · BRÀCE" />
+    <main className="register">
+      <Meta title="Registrati · Grani Antichi" />
       <div className="b-container">
-        <div style={{ maxWidth: 460, margin: "0 auto" }}>
-          <div className="eyebrow" style={{ marginBottom: 18 }}>
+        <div className="register__inner">
+          <div className="eyebrow register__eyebrow">
             Nuovo account
           </div>
-          <h1
-            className="display"
-            style={{ fontSize: 64, lineHeight: 0.95, margin: "0 0 36px" }}
-          >
+          <h1 className="display register__title">
             Unisciti
             <br />
-            <span className="it" style={{ color: "var(--gold)", fontWeight: 300 }}>
+            <span className="it register__title-it">
               a noi.
             </span>
           </h1>
 
           {message && (
-            <div style={{ marginBottom: 20 }}>
+            <div className="register__alert">
               <Message variant="danger">{message}</Message>
             </div>
           )}
           {error && (
-            <div style={{ marginBottom: 20 }}>
+            <div className="register__alert">
               <Message variant="danger">{error}</Message>
             </div>
           )}
           {loading && (
-            <div style={{ marginBottom: 20 }}>
+            <div className="register__alert">
               <Loader />
             </div>
           )}
 
           <form onSubmit={submitHandler}>
-            <div style={{ display: "grid", gap: 16 }}>
+            <div className="register__fields">
               <Field
                 label="Nome e cognome"
                 value={name}
@@ -108,27 +107,20 @@ const RegisterScreen = ({ location, history }) => {
 
             <button
               type="submit"
-              className="b-btn ember"
+              className="b-btn ember register__submit"
               disabled={loading}
-              style={{ marginTop: 28, width: "100%", justifyContent: "center" }}
             >
               Crea account <Icon.arrow className="arrow" />
             </button>
           </form>
 
-          <div
-            style={{
-              marginTop: 28,
-              paddingTop: 24,
-              borderTop: "1px solid var(--line)",
-              fontSize: 14,
-              color: "var(--text-dim)",
-            }}
-          >
+          <SocialAuth />
+
+          <div className="register__footer">
             Hai già un account?{" "}
             <Link
               to={redirect ? `/login?redirect=${redirect}` : "/login"}
-              style={{ color: "var(--gold)" }}
+              className="register__footer-link"
             >
               Accedi
             </Link>

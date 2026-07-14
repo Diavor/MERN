@@ -2,6 +2,8 @@ import express from "express";
 import {
   authUser,
   registerUser,
+  googleAuth,
+  appleAuth,
   refreshSession,
   logoutUser,
   getUserProfile,
@@ -29,6 +31,8 @@ router
   .get(protect, admin, getUsers);
 
 router.post("/login", authLimiter, validate({ body: loginSchema }), authUser);
+router.post("/google", authLimiter, googleAuth);
+router.post("/apple", authLimiter, appleAuth);
 router.post("/refresh", refreshSession);
 router.post("/logout", protect, logoutUser);
 

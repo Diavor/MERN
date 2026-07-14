@@ -1,0 +1,144 @@
+// AdminLayout — admin shell (sticky sidebar + content). The route-driven active
+// nav item is expressed via .is-active instead of inline style branching.
+// --nav-offset (the header clearance) is injected from JS as a CSS var so the
+// layout config stays in one place.
+@reference "../../styles/theme.css";
+
+.admin-layout {
+  padding-top: var(--nav-offset);
+  min-height: 100vh;
+  background: var(--bg);
+  display: grid;
+  grid-template-columns: 260px 1fr;
+
+  // ── SIDEBAR ──────────────────────────────────────────────────────────────
+  &__sidebar {
+    position: sticky;
+    top: var(--nav-offset);
+    height: calc(100vh - var(--nav-offset));
+    background: var(--bg-2);
+    padding: 30px 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--line);
+  }
+
+  &__head {
+    padding: 0 28px 28px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  &__head-eyebrow {
+    margin-bottom: 8px;
+  }
+
+  &__title {
+    font-size: 26px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  &__user {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  &__nav {
+    padding: 20px 12px;
+    flex: 1;
+  }
+
+  &__link {
+    @apply font-mono uppercase;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    margin-bottom: 2px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    transition: all 0.15s ease;
+
+    &.is-active {
+      background: var(--bg-3);
+      border-color: var(--line-2);
+      color: var(--gold);
+    }
+  }
+
+  &__link-icon {
+    width: 18px;
+    display: grid;
+    place-items: center;
+    color: var(--text-faint);
+
+    .admin-layout__link.is-active & {
+      color: var(--gold);
+    }
+  }
+
+  &__link-label {
+    flex: 1;
+  }
+
+  &__foot {
+    padding: 20px 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  &__foot-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  // ── CONTENT ──────────────────────────────────────────────────────────────
+  &__content {
+    min-width: 0;
+  }
+
+  &__header {
+    padding: 26px 48px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--scrim-blur);
+    backdrop-filter: blur(20px);
+    position: sticky;
+    top: var(--nav-offset);
+    z-index: 30;
+  }
+
+  &__header-eyebrow {
+    margin-bottom: 6px;
+  }
+
+  &__header-title {
+    font-size: 32px;
+    margin: 0;
+    line-height: 1;
+  }
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--gold);
+    color: var(--bg);
+    display: grid;
+    place-items: center;
+    font-family: var(--serif);
+    font-size: 18px;
+  }
+
+  &__body {
+    padding: 40px 48px;
+  }
+}

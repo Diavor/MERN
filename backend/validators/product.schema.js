@@ -7,6 +7,7 @@ export const productIdParams = z.object({ id: objectId });
 export const listProductsQuery = z.object({
   keyword: z.string().max(120).optional(),
   pageNumber: z.coerce.number().int().positive().optional(),
+  category: z.string().max(60).optional(),
 });
 
 export const updateProductSchema = z.object({

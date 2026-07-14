@@ -7,6 +7,7 @@ import Icon from "../brace/ui/Icon";
 import { AdminFieldText, AdminToggle } from "../brace/admin/kit";
 import { getUserDetails, updateUser } from "../store/actions/user";
 import { USER_UPDATE_ADMIN_RESET } from "../store/actionTypes";
+import "./UserEditScreen.scss";
 
 const UserEditScreen = ({ match, history }) => {
   const userId = match.params.id;
@@ -51,22 +52,8 @@ const UserEditScreen = ({ match, history }) => {
   };
 
   return (
-    <div className="b-rise" style={{ maxWidth: 620 }}>
-      <Link
-        to="/admin/userlist"
-        className="mono"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          color: "var(--text-dim)",
-          textDecoration: "none",
-          fontSize: 11,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          marginBottom: 28,
-        }}
-      >
+    <div className="b-rise user-edit">
+      <Link to="/admin/userlist" className="mono user-edit__back">
         ← Torna agli utenti
       </Link>
 
@@ -79,16 +66,7 @@ const UserEditScreen = ({ match, history }) => {
         <Message variant="danger">{error}</Message>
       ) : (
         <form onSubmit={submitHandler}>
-          <div
-            style={{
-              background: "var(--bg-2)",
-              border: "1px solid var(--line)",
-              padding: 32,
-              display: "flex",
-              flexDirection: "column",
-              gap: 20,
-            }}
-          >
+          <div className="user-edit__card">
             <AdminFieldText label="Nome" value={name} onChange={setName} placeholder="Nome" />
             <AdminFieldText label="Email" type="email" value={email} onChange={setEmail} placeholder="email@..." mono />
             <AdminToggle
@@ -99,7 +77,7 @@ const UserEditScreen = ({ match, history }) => {
             />
           </div>
 
-          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+          <div className="user-edit__actions">
             <button type="submit" className="b-btn ember">
               <Icon.check /> Salva modifiche
             </button>

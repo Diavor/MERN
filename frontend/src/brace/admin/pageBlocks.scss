@@ -1,0 +1,441 @@
+// ───────────────────────────────────────────────────────────────────────────
+// Grani Antichi Pages CMS — block editors & preview renderer styling.
+// Faithful port of the inline styles that lived in pageBlocks.js. Colours use
+// the runtime CSS custom properties (var(--x)) so live theming keeps working;
+// exact pixel/em values are preserved 1:1. Reuses the global classes
+// (.b-btn, .mono, .ph, .page-rt, .eyebrow, .display, .it) — never recreated.
+// ───────────────────────────────────────────────────────────────────────────
+
+.page-block {
+  // ── MediaThumb ──────────────────────────────────────────────────────────
+  &__thumb-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+  }
+  &__thumb-ph {
+    aspect-ratio: 4/3;
+  }
+
+  // ── Media Library ───────────────────────────────────────────────────────
+  &__ml-status {
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+
+    &.is-error {
+      color: var(--accent);
+    }
+  }
+  &__ml-actions {
+    display: flex;
+    gap: 10px;
+  }
+  &__ml-body {
+    display: grid;
+    gap: 18px;
+  }
+  &__ml-drop {
+    padding: 40px 20px;
+    border: 1px dashed var(--line-2);
+    background: var(--bg);
+    cursor: pointer;
+    color: var(--text-dim);
+    display: grid;
+    place-items: center;
+    gap: 8px;
+  }
+  &__ml-drop-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  &__ml-preview {
+    max-width: 220px;
+  }
+
+  // ── Autosave badge ──────────────────────────────────────────────────────
+  &__autosave {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  &__autosave-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+  }
+
+  // ── Mini rich text ──────────────────────────────────────────────────────
+  &__rt-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  &__rt-btn {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--serif-2);
+    font-size: 14px;
+  }
+  &__rt-underline {
+    text-decoration: underline;
+  }
+  &__rt-link {
+    min-width: 30px;
+    height: 30px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  &__rt-color {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  &__rt-editor {
+    min-height: 120px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    outline: none;
+  }
+
+  // ── Shared field label (was `lblStyle`) ─────────────────────────────────
+  &__label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  // ── Delete tile button (was `delTileBtn`) ───────────────────────────────
+  &__del-tile {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--cream);
+    border: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+
+  // ── Field row ───────────────────────────────────────────────────────────
+  &__field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  // ── Slider row ──────────────────────────────────────────────────────────
+  &__slider-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  &__slider-value {
+    font-size: 11px;
+    color: var(--gold);
+  }
+  &__slider-input {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  // ── Media pick row ──────────────────────────────────────────────────────
+  &__pick-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  &__pick-thumb {
+    width: 88px;
+    flex-shrink: 0;
+  }
+  &__pick-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  &__pick-name {
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  // ── Column editor ───────────────────────────────────────────────────────
+  &__col-editor {
+    display: grid;
+    gap: 12px;
+  }
+
+  // ── Block editor shared shells ──────────────────────────────────────────
+  &__editor {
+    display: grid;
+    gap: 14px;
+  }
+  &__editor-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  // ── Gallery editor ──────────────────────────────────────────────────────
+  &__gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  &__gallery-tile {
+    position: relative;
+  }
+  &__gallery-add {
+    aspect-ratio: 4/3;
+    border: 1px dashed var(--line-2);
+    background: var(--bg);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    color: var(--text-dim);
+  }
+
+  // ── Columns editor ──────────────────────────────────────────────────────
+  &__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  &__column {
+    border: 1px solid var(--line);
+    padding: 14px;
+  }
+  &__column-title {
+    margin-bottom: 12px;
+  }
+
+  // ── HTML editor ─────────────────────────────────────────────────────────
+  &__html-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 12px;
+    outline: none;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  // ── Column preview ──────────────────────────────────────────────────────
+  &__col-btn {
+    text-align: center;
+  }
+  &__col-text {
+    color: var(--text-dim);
+    margin: 0;
+    line-height: 1.6;
+  }
+  &__inline {
+    display: inline-flex;
+  }
+
+  // ── Shared preview padding wrapper ──────────────────────────────────────
+  &__pad {
+    padding: 28px;
+  }
+
+  // ── Hero preview ────────────────────────────────────────────────────────
+  &__hero {
+    position: relative;
+    min-height: 220px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  &__hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  &__hero-ph {
+    position: absolute;
+    inset: 0;
+  }
+  &__hero-overlay {
+    position: absolute;
+    inset: 0;
+  }
+  &__hero-content {
+    position: relative;
+    padding: 40px;
+    color: var(--cream);
+    width: 100%;
+  }
+  &__hero-title {
+    font-size: 42px;
+    line-height: 1;
+    color: #f1e7d0;
+  }
+  &__hero-subtitle {
+    font-size: 18px;
+    margin-top: 12px;
+    color: rgba(241, 231, 208, 0.85);
+  }
+  &__hero-cta {
+    margin-top: 18px;
+    display: inline-flex;
+  }
+
+  // ── Text preview ────────────────────────────────────────────────────────
+  &__text {
+    padding: 28px;
+    color: var(--text);
+  }
+
+  // ── Image preview ───────────────────────────────────────────────────────
+  &__image-inner {
+    display: inline-block;
+  }
+  &__image-img {
+    width: 100%;
+    display: block;
+  }
+  &__image-caption {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    letter-spacing: 0.06em;
+  }
+  &__ph-16-9 {
+    aspect-ratio: 16/9;
+  }
+  &__ph-21-9 {
+    aspect-ratio: 21/9;
+  }
+
+  // ── Gallery preview ─────────────────────────────────────────────────────
+  &__gallery-preview {
+    display: grid;
+    gap: 10px;
+  }
+
+  // ── Columns preview ─────────────────────────────────────────────────────
+  &__columns-preview {
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+
+  // ── Video preview ───────────────────────────────────────────────────────
+  &__video-ph {
+    aspect-ratio: 16/9;
+    flex-direction: column;
+    gap: 10px;
+  }
+  &__video-play {
+    width: 54px;
+    height: 54px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+  }
+
+  // ── Button preview ──────────────────────────────────────────────────────
+  &__button-preview {
+    padding: 28px;
+    text-align: center;
+  }
+
+  // ── Map preview ─────────────────────────────────────────────────────────
+  &__map {
+    aspect-ratio: 21/9;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line-2);
+    background:
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      var(--bg-3);
+  }
+  &__map-pin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  &__map-label {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  // ── Divider preview ─────────────────────────────────────────────────────
+  &__divider {
+    padding: 8px 28px;
+  }
+  &__divider-line {
+    border-top: 1px solid var(--line-2);
+  }
+
+  // ── Spacer preview ──────────────────────────────────────────────────────
+  &__spacer {
+    display: grid;
+    place-items: center;
+  }
+  &__spacer-label {
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+  }
+
+  // ── HTML preview ────────────────────────────────────────────────────────
+  &__html-pre {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 16px;
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    margin: 0;
+  }
+}

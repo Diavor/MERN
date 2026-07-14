@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import {
@@ -7,6 +8,7 @@ import {
   clearRefreshCookie,
   rotateRefreshToken,
 } from "../services/token.service.js";
+import { verifyGoogleToken, verifyAppleToken } from "../services/oauth.service.js";
 
 // Shape returned to the client for a user identity.
 const publicUser = (user, token) => ({
@@ -47,6 +49,55 @@ export const registerUser = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await issueTokens(user);
   setRefreshCookie(res, refreshToken);
   res.status(201).json(publicUser(user, accessToken));
+});
+
+// Find an existing user by email (linking social login to an existing account)
+// or create a new one. OAuth users get a random, unusable password so the
+// password-required schema + hashing hook stay unchanged.
+const findOrCreateOAuthUser = async ({ email, name, provider }) => {
+  let user = await User.findOne({ email });
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      password: crypto.randomBytes(32).toString("hex"),
+      authProvider: provider,
+    });
+  }
+  return user;
+};
+
+const completeOAuthLogin = async (res, identity) => {
+  const user = await findOrCreateOAuthUser(identity);
+  const { accessToken, refreshToken } = await issueTokens(user);
+  setRefreshCookie(res, refreshToken);
+  res.json(publicUser(user, accessToken));
+};
+
+// @desc     Sign in with Google (verifies the GSI id token)
+// @route    POST /api/users/google
+// @access   Public
+export const googleAuth = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    res.status(400);
+    throw new Error("Credenziale Google mancante");
+  }
+  const identity = await verifyGoogleToken(credential);
+  await completeOAuthLogin(res, identity);
+});
+
+// @desc     Sign in with Apple (verifies the identity token)
+// @route    POST /api/users/apple
+// @access   Public
+export const appleAuth = asyncHandler(async (req, res) => {
+  const { identityToken, name } = req.body;
+  if (!identityToken) {
+    res.status(400);
+    throw new Error("Token Apple mancante");
+  }
+  const identity = await verifyAppleToken(identityToken, name);
+  await completeOAuthLogin(res, identity);
 });
 
 // @desc     Rotate refresh token → new access token

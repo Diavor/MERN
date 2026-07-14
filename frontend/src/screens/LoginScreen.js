@@ -5,8 +5,10 @@ import Icon from "../brace/ui/Icon";
 import Field from "../brace/ui/Field";
 import Loader from "../brace/ui/Loader";
 import Message from "../brace/ui/Message";
+import SocialAuth from "../brace/ui/SocialAuth";
 import Meta from "../components/Meta";
 import { login } from "../store/actions/user";
+import "./LoginScreen.scss";
 
 const LoginScreen = ({ location, history }) => {
   const [email, setEmail] = useState("");
@@ -27,33 +29,30 @@ const LoginScreen = ({ location, history }) => {
   };
 
   return (
-    <main style={{ paddingTop: 150, paddingBottom: 120, minHeight: "100vh" }}>
-      <Meta title="Accedi · BRÀCE" />
+    <main className="login">
+      <Meta title="Accedi · Grani Antichi" />
       <div className="b-container">
-        <div style={{ maxWidth: 460, margin: "0 auto" }}>
-          <div className="eyebrow" style={{ marginBottom: 18 }}>
+        <div className="login__inner">
+          <div className="eyebrow login__eyebrow">
             Il tuo account
           </div>
-          <h1
-            className="display"
-            style={{ fontSize: 64, lineHeight: 0.95, margin: "0 0 36px" }}
-          >
+          <h1 className="display login__title">
             Bentornato.
           </h1>
 
           {error && (
-            <div style={{ marginBottom: 20 }}>
+            <div className="login__alert">
               <Message variant="danger">{error}</Message>
             </div>
           )}
           {loading && (
-            <div style={{ marginBottom: 20 }}>
+            <div className="login__alert">
               <Loader />
             </div>
           )}
 
           <form onSubmit={submitHandler}>
-            <div style={{ display: "grid", gap: 16 }}>
+            <div className="login__fields">
               <Field
                 label="Email"
                 value={email}
@@ -74,27 +73,20 @@ const LoginScreen = ({ location, history }) => {
 
             <button
               type="submit"
-              className="b-btn ember"
+              className="b-btn ember login__submit"
               disabled={loading}
-              style={{ marginTop: 28, width: "100%", justifyContent: "center" }}
             >
               Accedi <Icon.arrow className="arrow" />
             </button>
           </form>
 
-          <div
-            style={{
-              marginTop: 28,
-              paddingTop: 24,
-              borderTop: "1px solid var(--line)",
-              fontSize: 14,
-              color: "var(--text-dim)",
-            }}
-          >
+          <SocialAuth />
+
+          <div className="login__footer">
             Non hai un account?{" "}
             <Link
               to={redirect ? `/register?redirect=${redirect}` : "/register"}
-              style={{ color: "var(--gold)" }}
+              className="login__register"
             >
               Registrati
             </Link>

@@ -1,0 +1,32 @@
+// SectionHead — eyebrow + display title + italic kicker. `align` → .is-center.
+.section-head {
+  text-align: left;
+  margin-bottom: 56px;
+
+  &.is-center {
+    text-align: center;
+  }
+
+  &__eyebrow {
+    margin-bottom: 18px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 1;
+    letter-spacing: -0.005em;
+  }
+
+  &__kicker {
+    max-width: 620px;
+    margin-top: 20px;
+    color: var(--text-dim);
+    font-size: 22px;
+    line-height: 1.4;
+  }
+
+  &.is-center &__kicker {
+    margin-inline: auto;
+  }
+}

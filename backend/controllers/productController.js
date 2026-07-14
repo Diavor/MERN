@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/productModel.js";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 12;
 
 // @desc     Fetch all products
 // @route    GET /api/products
@@ -17,12 +17,29 @@ export const getProducts = asyncHandler(async (req, res) => {
       }
     : {};
 
-  const count = await Product.countDocuments({ ...keyword });
-  const products = await Product.find({ ...keyword })
+  // Optional exact-category filter (e.g. "Bevande") used by the menu tabs and
+  // the admin catalog filter.
+  const category =
+    req.query.category && req.query.category !== "all"
+      ? { category: req.query.category }
+      : {};
+
+  const filter = { ...keyword, ...category };
+
+  const count = await Product.countDocuments(filter);
+  const products = await Product.find(filter)
     .limit(PAGE_SIZE)
     .skip(PAGE_SIZE * (page - 1));
 
   res.json({ products, page, pages: Math.ceil(count / PAGE_SIZE) });
+});
+
+// @desc     Distinct product categories (for menu tabs + admin filter)
+// @route    GET /api/products/categories
+// @access   Public
+export const getProductCategories = asyncHandler(async (req, res) => {
+  const categories = await Product.distinct("category");
+  res.json(categories.filter(Boolean).sort());
 });
 
 // @desc     Fetch single product

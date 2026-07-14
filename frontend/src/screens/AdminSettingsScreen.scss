@@ -1,0 +1,142 @@
+// AdminSettingsScreen — read-only settings overview (Impostazioni). Faithful
+// port of the former inline styles across the four info panels. No @apply or
+// Sass vars needed here, so no theme.css @reference / tokens @use.
+
+.admin-settings {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+
+  &__panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 28px;
+  }
+
+  &__panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  &__title {
+    margin-bottom: 0;
+  }
+
+  // The edit affordance stays quiet until the card is hovered, keeping the
+  // read-only overview visually calm.
+  &__edit-btn {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &__panel:hover &__edit-btn,
+  &__edit-btn:focus-visible {
+    opacity: 1;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  &__key {
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+
+  &__value {
+    color: var(--text);
+    text-align: right;
+  }
+
+  // ── Edit modal internals ──────────────────────────────────────────────────
+
+  // Vertical stack of fields used by the Restaurant / Payments / Notifications
+  // modals. Toggles and labelled fields share the same rhythm.
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  // Opening-hours editor: one row per day.
+  &__hours {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__hours-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__hours-day {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    min-width: 90px;
+  }
+
+  &__hours-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  &__hours-times {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 0.15s ease;
+
+    &.is-disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+  }
+
+  &__time-input {
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  &__time-arrow {
+    color: var(--text-faint);
+  }
+
+  // Shared modal footer (mirrors the zones modal footer treatment).
+  &__footer-status {
+    font-size: 11px;
+    color: var(--text-dim);
+
+    &.is-error {
+      color: var(--danger, #c0392b);
+    }
+  }
+
+  &__footer-actions {
+    display: flex;
+    gap: 10px;
+  }
+}

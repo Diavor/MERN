@@ -12,7 +12,7 @@ import CartDrawer from "./brace/ui/CartDrawer";
 import FloatingCart from "./brace/ui/FloatingCart";
 import { ToastProvider } from "./brace/ui/Toast";
 import { CartUIProvider } from "./brace/ui/CartUI";
-import HomeScreen from "./screens/HomeScreen";
+import HomeCmsScreen from "./screens/HomeCmsScreen";
 import MenuScreen from "./screens/MenuScreen";
 import StoryScreen from "./screens/StoryScreen";
 import CartScreen from "./screens/CartScreen";
@@ -27,11 +27,21 @@ import UserEditScreen from "./screens/UserEditScreen";
 import ProductListScreen from "./screens/ProductListScreen";
 import ProductEditScreen from "./screens/ProductEditScreen";
 import AdminDashboardScreen from "./screens/AdminDashboardScreen";
+import AdminOrderDetailScreen from "./screens/AdminOrderDetailScreen";
+import KitchenScreen from "./screens/KitchenScreen";
+import DeliveryScreen from "./screens/DeliveryScreen";
+import AdminZonesScreen from "./screens/AdminZonesScreen";
+import AdminCouponsScreen from "./screens/AdminCouponsScreen";
+import AdminPagesScreen from "./screens/AdminPagesScreen";
+import AdminCustomersScreen from "./screens/AdminCustomersScreen";
+import AdminSettingsScreen from "./screens/AdminSettingsScreen";
 import CheckoutScreen from "./screens/CheckoutScreen";
+import PageScreen from "./screens/PageScreen";
 import AdminRoute from "./brace/admin/AdminRoute";
 
 // The embeddable /order-pizza widget still uses react-bootstrap. It is lazily
-// loaded so its bootstrap.min.css only enters that chunk, never the main bundle.
+// loaded, and injects its vendored Bootswatch theme from /vendor as a <link> on
+// mount, so that CSS never enters the main bundle or the Tailwind pipeline.
 const PizzaOrderStandalone = lazy(() =>
   import("./screens/PizzaOrderStandalone")
 );
@@ -62,8 +72,40 @@ const Chrome = () => {
             render={(props) => <AdminRoute component={AdminDashboardScreen} {...props} />}
           />
           <Route
+            path="/admin/kitchen"
+            render={(props) => <AdminRoute component={KitchenScreen} {...props} />}
+          />
+          <Route
+            path="/admin/delivery"
+            render={(props) => <AdminRoute component={DeliveryScreen} {...props} />}
+          />
+          <Route
+            path="/admin/orders/:id"
+            render={(props) => <AdminRoute component={AdminOrderDetailScreen} {...props} />}
+          />
+          <Route
             path="/admin/orderlist"
             render={(props) => <AdminRoute component={OrderListScreen} {...props} />}
+          />
+          <Route
+            path="/admin/zones"
+            render={(props) => <AdminRoute component={AdminZonesScreen} {...props} />}
+          />
+          <Route
+            path="/admin/coupons"
+            render={(props) => <AdminRoute component={AdminCouponsScreen} {...props} />}
+          />
+          <Route
+            path="/admin/pages"
+            render={(props) => <AdminRoute component={AdminPagesScreen} {...props} />}
+          />
+          <Route
+            path="/admin/customers"
+            render={(props) => <AdminRoute component={AdminCustomersScreen} {...props} />}
+          />
+          <Route
+            path="/admin/settings"
+            render={(props) => <AdminRoute component={AdminSettingsScreen} {...props} />}
           />
           <Route
             path="/admin/productlist/:pageNumber"
@@ -90,7 +132,7 @@ const Chrome = () => {
 
           <Route path="/cart/:id?" component={CartScreen} />
 
-          {/* Storefront catalog (BRÀCE) */}
+          {/* Storefront catalog (Grani Antichi) */}
           <Route
             path="/menu/search/:keyword/page/:pageNumber"
             exact
@@ -111,7 +153,12 @@ const Chrome = () => {
 
           <Route path="/order-pizza" component={PizzaOrderStandalone} />
           <Route path="/checkout" component={CheckoutScreen} />
-          <Route path="/" exact component={HomeScreen} />
+          <Route path="/" exact component={HomeCmsScreen} />
+
+          {/* Catch-all: CMS pages authored in the admin Pages module, matched by
+              slug. Kept LAST so every known route above wins first; only an
+              otherwise-unmatched single-segment path is treated as a page slug. */}
+          <Route path="/:slug" component={PageScreen} />
         </Switch>
         </Suspense>
       </main>

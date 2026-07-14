@@ -1,0 +1,98 @@
+// AdminCustomersScreen — admin customers table. Faithful port of the former
+// inline styles. The shared admin kit style-objects (adminTh / adminTd) stay
+// inline on the cells; only this screen's own literal styles move here. Cells
+// that combined a kit object with extra literals keep the object inline and
+// gain a modifier class carrying the extra declarations. The per-row tier
+// colour (formerly the tierColor map) becomes is-* tier modifiers.
+@reference "../styles/theme.css";
+
+.admin-customers {
+  &__panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 820px;
+  }
+
+  &__head-row {
+    @apply uppercase;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--text-faint);
+  }
+
+  &__row {
+    border-top: 1px solid var(--line);
+  }
+
+  &__cust {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: var(--bg-3);
+    color: var(--gold);
+    display: grid;
+    place-items: center;
+    font-family: var(--serif);
+    font-size: 14px;
+  }
+
+  // Tier pill. Border tracks the text colour (formerly both driven by the same
+  // tierColor value), so the modifiers only set `color`.
+  &__tier {
+    @apply uppercase;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    border: 1px solid currentColor;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  &__tier--maestra {
+    color: var(--accent);
+  }
+
+  &__tier--antica {
+    color: var(--gold);
+  }
+
+  &__tier--tavola {
+    color: var(--text-dim);
+  }
+
+  // adminTd stays inline (padding / vertical-align); its font-size:14 override
+  // to 12 must remain inline to beat the style object, so only the
+  // non-conflicting literals live in these classes.
+  &__td--email {
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+
+  &__td--num {
+    font-family: var(--mono);
+  }
+
+  &__td--spend {
+    font-family: var(--mono);
+    color: var(--gold);
+  }
+
+  &__td--last {
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+}

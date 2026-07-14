@@ -1,0 +1,14 @@
+.loader {
+  display: grid;
+  place-items: center;
+  padding: 60px 0;
+
+  &__spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    animation: spinSlow 0.9s linear infinite;
+  }
+}

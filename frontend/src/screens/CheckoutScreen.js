@@ -13,38 +13,37 @@ import OrderSummary from "../brace/checkout/OrderSummary";
 import { createOrder } from "../store/actions/order";
 import { clearCart } from "../store/actions/cart";
 import { DELIVERY_ZONES, FREE_DELIVERY_THRESHOLD } from "../brace/content";
+import { fetchActiveZones, validateCoupon } from "../brace/admin/api";
+import "./CheckoutScreen.scss";
 
 const STEP_LABELS = ["Contatti", "Pagamento", "Conferma"];
 
+// Round a currency amount to cents as a Number (avoids float noise like 8.499999
+// while keeping the value numeric, which the order validator requires).
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// If the zones API is unreachable, fall back to the static list so checkout
+// still works — mapped into the same shape the live zones use.
+const FALLBACK_ZONES = DELIVERY_ZONES.map((z) => ({
+  _id: z.city,
+  name: z.city,
+  fee: z.price,
+  freeThreshold: FREE_DELIVERY_THRESHOLD,
+  minOrder: 0,
+  eta: "20–30 min",
+}));
+
 const SectionLabel = ({ n, label, span, top }) => (
   <div
-    style={{
-      gridColumn: span ? "span " + span : "auto",
-      marginTop: top ? 40 : 32,
-      marginBottom: 14,
-      display: "flex",
-      alignItems: "center",
-      gap: 14,
-    }}
+    className={
+      "checkout__section-label" +
+      (span ? " is-span" : "") +
+      (top ? " is-top" : "")
+    }
   >
-    <span
-      className="mono"
-      style={{ fontSize: 10, color: "var(--gold)", letterSpacing: "0.2em" }}
-    >
-      · {n}
-    </span>
-    <span
-      style={{
-        fontFamily: "var(--mono)",
-        fontSize: 12,
-        letterSpacing: "0.16em",
-        textTransform: "uppercase",
-        color: "var(--text)",
-      }}
-    >
-      {label}
-    </span>
-    <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+    <span className="mono checkout__section-n">· {n}</span>
+    <span className="checkout__section-title">{label}</span>
+    <span className="checkout__section-rule" />
   </div>
 );
 
@@ -73,6 +72,16 @@ const CheckoutScreen = ({ history }) => {
   const [street, setStreet] = useState("");
   const [buildingNumber, setBuildingNumber] = useState("");
   const [floor, setFloor] = useState("");
+
+  // Delivery zones (live, admin-managed)
+  const [zones, setZones] = useState(FALLBACK_ZONES);
+  const [zonesLoading, setZonesLoading] = useState(true);
+
+  // Promo code
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // {code,type,value,discount}
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
 
   // Schedule
   const [selectedDate, setSelectedDate] = useState("");
@@ -114,26 +123,79 @@ const CheckoutScreen = ({ history }) => {
       .finally(() => setLoadingSlots(false));
   }, [selectedDate]);
 
+  // Load the live, admin-managed delivery zones. Keep the static fallback if the
+  // request fails or returns nothing, so delivery never becomes unselectable.
+  useEffect(() => {
+    let alive = true;
+    fetchActiveZones()
+      .then((data) => {
+        if (alive && Array.isArray(data) && data.length) setZones(data);
+      })
+      .catch(() => {})
+      .finally(() => alive && setZonesLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const itemsPrice = cartItems.reduce(
     (acc, item) => acc + item.qty * item.price,
     0
   );
 
-  const deliveryFee =
-    orderType === "pickup" || itemsPrice >= FREE_DELIVERY_THRESHOLD
-      ? 0
-      : DELIVERY_ZONES.find((z) => z.city === city)?.price || 0;
+  const selectedZone = zones.find((z) => z.name === city);
+  const zoneThreshold = selectedZone?.freeThreshold ?? FREE_DELIVERY_THRESHOLD;
 
-  const totalPrice = (itemsPrice + deliveryFee).toFixed(2);
+  const deliveryFee =
+    orderType === "pickup" || !selectedZone || itemsPrice >= selectedZone.freeThreshold
+      ? 0
+      : selectedZone.fee;
+
+  // Coupon discount is computed server-side against the items subtotal; clamp so
+  // it can never exceed the subtotal.
+  const discount = appliedCoupon
+    ? Math.min(appliedCoupon.discount, itemsPrice)
+    : 0;
+
+  const totalPrice = Math.max(0, itemsPrice + deliveryFee - discount);
 
   const validateStep1 = () => {
     if (!name.trim() || !phone.trim() || !email.trim())
       return "Inserisci nome, telefono ed email.";
     if (orderType === "delivery" && (!city || !street.trim() || !buildingNumber.trim()))
       return "Completa l'indirizzo di consegna (zona, via e numero civico).";
+    if (
+      orderType === "delivery" &&
+      selectedZone &&
+      selectedZone.minOrder > 0 &&
+      itemsPrice < selectedZone.minOrder
+    )
+      return `Ordine minimo ${fmt(selectedZone.minOrder)} per la zona ${city}.`;
     if (!selectedDate) return "Scegli una data.";
     if (!selectedSlot) return "Scegli un orario.";
     return "";
+  };
+
+  const applyPromo = async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    setPromoLoading(true);
+    setPromoError("");
+    try {
+      const res = await validateCoupon(code, itemsPrice);
+      setAppliedCoupon(res); // { code, type, value, discount }
+    } catch (e) {
+      setAppliedCoupon(null);
+      setPromoError(e.message || "Codice non valido");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromo = () => {
+    setAppliedCoupon(null);
+    setPromoCode("");
+    setPromoError("");
   };
 
   const goToPayment = () => {
@@ -186,10 +248,14 @@ const CheckoutScreen = ({ history }) => {
         },
         paymentMethod,
         itemsNum: cartItems.reduce((acc, item) => acc + item.qty, 0),
-        itemsPrice: itemsPrice.toFixed(2),
-        shippingPrice: deliveryFee.toFixed(2),
-        taxPrice: "0.00",
-        totalPrice,
+        // Money fields must be numbers (rounded to cents), not toFixed strings —
+        // the order validator rejects strings.
+        itemsPrice: round2(itemsPrice),
+        shippingPrice: round2(deliveryFee),
+        discountPrice: round2(discount),
+        couponCode: appliedCoupon?.code || "",
+        taxPrice: 0,
+        totalPrice: round2(totalPrice),
       })
     );
   };
@@ -197,25 +263,19 @@ const CheckoutScreen = ({ history }) => {
   if (!cartItems || cartItems.length === 0) return null;
 
   return (
-    <main style={{ paddingTop: 130, paddingBottom: 80, minHeight: "100vh" }}>
+    <main className="checkout">
       <div className="b-container">
         {/* progress */}
-        <div style={{ marginBottom: 60 }}>
-          <div className="eyebrow" style={{ marginBottom: 18 }}>
+        <div className="checkout__progress">
+          <div className="eyebrow checkout__eyebrow">
             Checkout · Passo {step} di 3
           </div>
-          <h1
-            className="display"
-            style={{ fontSize: 72, lineHeight: 0.98, margin: 0 }}
-          >
+          <h1 className="display checkout__title">
             {step === 1 ? (
               <>
                 Dove ti
                 <br />
-                <span
-                  className="it"
-                  style={{ color: "var(--gold)", fontWeight: 300 }}
-                >
+                <span className="it checkout__title-kicker">
                   troviamo?
                 </span>
               </>
@@ -223,65 +283,43 @@ const CheckoutScreen = ({ history }) => {
               <>
                 Come
                 <br />
-                <span
-                  className="it"
-                  style={{ color: "var(--gold)", fontWeight: 300 }}
-                >
+                <span className="it checkout__title-kicker">
                   vuoi pagare?
                 </span>
               </>
             )}
           </h1>
 
-          <div style={{ display: "flex", gap: 4, marginTop: 40 }}>
+          <div className="checkout__steps">
             {STEP_LABELS.map((l, i) => (
               <div
                 key={l}
-                style={{
-                  flex: 1,
-                  paddingTop: 14,
-                  borderTop:
-                    "2px solid " +
-                    (i + 1 <= step ? "var(--gold)" : "var(--line-2)"),
-                }}
+                className={"checkout__step" + (i + 1 <= step ? " is-active" : "")}
               >
                 <div
-                  style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: 10,
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                    color: i + 1 <= step ? "var(--gold)" : "var(--text-faint)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
+                  className={
+                    "checkout__step-label" +
+                    (i + 1 <= step ? " is-active" : "")
+                  }
                 >
                   <span>0{i + 1}</span>
                   <span>{l}</span>
-                  {i + 1 < step && <Icon.check style={{ color: "var(--gold)" }} />}
+                  {i + 1 < step && <Icon.check className="checkout__step-check" />}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.4fr 1fr",
-            gap: 80,
-            alignItems: "start",
-          }}
-        >
+        <div className="checkout__layout">
           <div>
             {formError && (
-              <div style={{ marginBottom: 24 }}>
+              <div className="checkout__alert">
                 <Message variant="danger">{formError}</Message>
               </div>
             )}
             {error && (
-              <div style={{ marginBottom: 24 }}>
+              <div className="checkout__alert">
                 <Message variant="danger">{error}</Message>
               </div>
             )}
@@ -316,6 +354,8 @@ const CheckoutScreen = ({ history }) => {
                 notes={notes}
                 setNotes={setNotes}
                 itemsPrice={itemsPrice}
+                zones={zones}
+                zonesLoading={zonesLoading}
               />
             ) : (
               <Step2
@@ -325,21 +365,13 @@ const CheckoutScreen = ({ history }) => {
               />
             )}
 
-            <div
-              style={{
-                marginTop: 48,
-                display: "flex",
-                justifyContent: "space-between",
-                paddingTop: 32,
-                borderTop: "1px solid var(--line)",
-              }}
-            >
+            <div className="checkout__nav">
               <button
                 type="button"
                 onClick={() => (step > 1 ? setStep(1) : history.push("/menu"))}
                 className="b-btn ghost"
               >
-                <Icon.arrow style={{ transform: "rotate(180deg)" }} />{" "}
+                <Icon.arrow className="checkout__back-arrow" />{" "}
                 {step === 1 ? "Continua a comprare" : "Indietro"}
               </button>
               <button
@@ -370,8 +402,16 @@ const CheckoutScreen = ({ history }) => {
             deliveryFee={deliveryFee}
             orderType={orderType}
             city={city}
-            freeThreshold={FREE_DELIVERY_THRESHOLD}
-            total={itemsPrice + deliveryFee}
+            freeThreshold={zoneThreshold}
+            discount={discount}
+            total={itemsPrice + deliveryFee - discount}
+            promoCode={promoCode}
+            setPromoCode={setPromoCode}
+            appliedCoupon={appliedCoupon}
+            onApplyPromo={applyPromo}
+            onRemovePromo={removePromo}
+            promoError={promoError}
+            promoLoading={promoLoading}
           />
         </div>
       </div>
@@ -409,58 +449,34 @@ const Step1 = ({
   notes,
   setNotes,
   itemsPrice,
+  zones,
+  zonesLoading,
 }) => {
   return (
     <div>
       {/* guest / login toggle (only for anonymous visitors) */}
       {!userInfo && (
         <>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 0,
-              background: "var(--bg-2)",
-              border: "1px solid var(--line)",
-              padding: 4,
-              borderRadius: 999,
-              maxWidth: 380,
-            }}
-          >
+          <div className="checkout__auth">
             {["guest", "login"].map((k) => (
               <button
                 type="button"
                 key={k}
                 onClick={() => setMode(k)}
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 999,
-                  border: "none",
-                  background: mode === k ? "var(--text)" : "transparent",
-                  color: mode === k ? "var(--bg)" : "var(--text-dim)",
-                  cursor: "pointer",
-                  fontFamily: "var(--mono)",
-                  fontSize: 11,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                }}
+                className={
+                  "checkout__auth-btn" + (mode === k ? " is-active" : "")
+                }
               >
                 {k === "guest" ? "Continua come ospite" : "Accedi"}
               </button>
             ))}
           </div>
           {mode === "login" && (
-            <div
-              style={{
-                marginTop: 16,
-                fontSize: 14,
-                color: "var(--text-dim)",
-              }}
-            >
+            <div className="checkout__auth-hint">
               Hai già un account?{" "}
               <Link
                 to="/login?redirect=/checkout"
-                style={{ color: "var(--gold)" }}
+                className="checkout__auth-link"
               >
                 Accedi
               </Link>{" "}
@@ -475,14 +491,7 @@ const Step1 = ({
         n="01"
         label={orderType === "delivery" ? "Consegna o ritiro" : "Consegna o ritiro"}
       />
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-          marginBottom: 28,
-        }}
-      >
+      <div className="checkout__options">
         {[
           ["delivery", "Consegna a casa", "Mogliano Veneto e dintorni"],
           ["pickup", "Ritiro in pizzeria", "Nessun costo di consegna"],
@@ -491,41 +500,17 @@ const Step1 = ({
             type="button"
             key={k}
             onClick={() => setOrderType(k)}
-            style={{
-              padding: 20,
-              textAlign: "left",
-              cursor: "pointer",
-              color: "var(--text)",
-              background: orderType === k ? "var(--bg-3)" : "var(--bg-2)",
-              border:
-                "1px solid " +
-                (orderType === k ? "var(--gold-deep)" : "var(--line)"),
-            }}
+            className={"checkout__option" + (orderType === k ? " is-active" : "")}
           >
-            <div style={{ fontWeight: 500, marginBottom: 6 }}>{l}</div>
-            <div
-              className="mono"
-              style={{
-                fontSize: 11,
-                color: "var(--text-faint)",
-                letterSpacing: "0.1em",
-              }}
-            >
-              {sub}
-            </div>
+            <div className="checkout__option-title">{l}</div>
+            <div className="mono checkout__option-sub">{sub}</div>
           </button>
         ))}
       </div>
 
       {/* contact fields */}
       <SectionLabel n="02" label="I tuoi contatti" top />
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 16,
-        }}
-      >
+      <div className="checkout__grid">
         <Field label="Nome e cognome" value={name} onChange={setName} span={2} required />
         <Field label="Telefono" value={phone} onChange={setPhone} type="tel" required />
         <Field label="Email" value={email} onChange={setEmail} type="email" required />
@@ -533,13 +518,13 @@ const Step1 = ({
         {orderType === "delivery" && (
           <>
             <SectionLabel n="03" label="Indirizzo di consegna" span={2} top />
-            <div style={{ gridColumn: "1/-1" }}>
+            <div className="checkout__span-full">
               <ZoneSelector
-                zones={DELIVERY_ZONES}
+                zones={zones}
                 value={city}
                 onChange={setCity}
                 subtotal={itemsPrice}
-                freeThreshold={FREE_DELIVERY_THRESHOLD}
+                loading={zonesLoading}
               />
             </div>
             <Field
@@ -566,14 +551,7 @@ const Step1 = ({
           span={2}
           top
         />
-        <div
-          style={{
-            gridColumn: "1/-1",
-            display: "grid",
-            gridTemplateColumns: "1.1fr 1fr",
-            gap: 24,
-          }}
-        >
+        <div className="checkout__schedule">
           <DatePicker value={selectedDate} onChange={setSelectedDate} />
           <TimeSlotPicker
             slots={slots}
@@ -622,61 +600,21 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
   return (
     <div>
       <SectionLabel n="01" label="Come vuoi pagare" />
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: 12,
-        }}
-      >
+      <div className="checkout__methods">
         {methods.map((opt) => (
           <button
             type="button"
             key={opt.id}
             onClick={() => setPaymentMethod(opt.id)}
-            style={{
-              padding: 20,
-              textAlign: "left",
-              cursor: "pointer",
-              color: "var(--text)",
-              background:
-                paymentMethod === opt.id ? "var(--bg-3)" : "var(--bg-2)",
-              border:
-                "1px solid " +
-                (paymentMethod === opt.id ? "var(--gold-deep)" : "var(--line)"),
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-            }}
+            className={
+              "checkout__method" +
+              (paymentMethod === opt.id ? " is-active" : "")
+            }
           >
-            <span
-              style={{
-                width: 44,
-                height: 30,
-                display: "grid",
-                placeItems: "center",
-                background: "var(--bg)",
-                border: "1px solid var(--line-2)",
-                fontFamily: "var(--mono)",
-                fontSize: 14,
-                color: "var(--gold)",
-              }}
-            >
-              {opt.icon}
-            </span>
+            <span className="checkout__method-icon">{opt.icon}</span>
             <div>
-              <div style={{ fontWeight: 500 }}>{opt.label}</div>
-              <div
-                className="mono"
-                style={{
-                  fontSize: 11,
-                  color: "var(--text-faint)",
-                  letterSpacing: "0.1em",
-                  marginTop: 4,
-                }}
-              >
-                {opt.sub}
-              </div>
+              <div className="checkout__method-label">{opt.label}</div>
+              <div className="mono checkout__method-sub">{opt.sub}</div>
             </div>
           </button>
         ))}
@@ -684,137 +622,45 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
 
       {/* Decorative "POS a bordo" card visual for Bancomat */}
       {paymentMethod === "Bancomat" && (
-        <div style={{ marginTop: 36 }}>
+        <div className="checkout__pos">
           <SectionLabel n="02" label="Pagamento alla consegna" />
-          <div
-            style={{
-              background: "var(--feature-card)",
-              border: "1px solid var(--line-2)",
-              padding: 32,
-              position: "relative",
-              overflow: "hidden",
-              color: "#f3ece2",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "radial-gradient(400px 200px at 80% 30%, rgba(212,163,115,0.18), transparent 70%)",
-              }}
-            />
-            <div style={{ position: "relative" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span
-                  className="display"
-                  style={{
-                    fontSize: 22,
-                    letterSpacing: "0.3em",
-                    color: "#d4a373",
-                  }}
-                >
-                  BRÀCE
+          <div className="checkout__card">
+            <div className="checkout__card-glow" />
+            <div className="checkout__card-inner">
+              <div className="checkout__card-head">
+                <span className="display checkout__card-brand">
+                  Grani Antichi
                 </span>
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 11,
-                    color: "rgba(243,236,226,0.5)",
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <span className="mono checkout__card-tag">
                   POS a bordo
                 </span>
               </div>
-              <div
-                className="mono"
-                style={{
-                  fontSize: 22,
-                  letterSpacing: "0.12em",
-                  marginTop: 60,
-                  color: "#f3ece2",
-                }}
-              >
+              <div className="mono checkout__card-number">
                 •••• •••• •••• ••••
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: 28,
-                }}
-              >
+              <div className="checkout__card-foot">
                 <div>
-                  <div
-                    className="mono"
-                    style={{
-                      fontSize: 9,
-                      color: "rgba(243,236,226,0.5)",
-                      letterSpacing: "0.18em",
-                    }}
-                  >
+                  <div className="mono checkout__card-caption">
                     TITOLARE
                   </div>
-                  <div
-                    className="mono"
-                    style={{ fontSize: 12, marginTop: 4, textTransform: "uppercase" }}
-                  >
+                  <div className="mono checkout__card-value is-upper">
                     {name || "—"}
                   </div>
                 </div>
                 <div>
-                  <div
-                    className="mono"
-                    style={{
-                      fontSize: 9,
-                      color: "rgba(243,236,226,0.5)",
-                      letterSpacing: "0.18em",
-                    }}
-                  >
+                  <div className="mono checkout__card-caption">
                     PAGAMENTO
                   </div>
-                  <div className="mono" style={{ fontSize: 12, marginTop: 4 }}>
+                  <div className="mono checkout__card-value">
                     Alla consegna
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div
-            style={{
-              marginTop: 24,
-              padding: "14px 18px",
-              background: "var(--bg-2)",
-              border: "1px solid var(--line)",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 999,
-                background: "var(--ok)",
-              }}
-            />
-            <span
-              className="mono"
-              style={{
-                fontSize: 11,
-                color: "var(--text-dim)",
-                letterSpacing: "0.1em",
-              }}
-            >
+          <div className="checkout__rider">
+            <span className="checkout__rider-dot" />
+            <span className="mono checkout__rider-text">
               Il rider porta il POS · paghi con carta o bancomat alla consegna
             </span>
           </div>
@@ -822,18 +668,11 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
       )}
 
       {paymentMethod === "Contanti" && (
-        <div
-          style={{
-            marginTop: 36,
-            padding: 40,
-            background: "var(--bg-2)",
-            border: "1px solid var(--line)",
-          }}
-        >
-          <div className="display" style={{ fontSize: 28, marginBottom: 12 }}>
+        <div className="checkout__cash">
+          <div className="display checkout__cash-title">
             Contanti
           </div>
-          <p style={{ color: "var(--text-dim)", margin: 0, maxWidth: 500 }}>
+          <p className="checkout__cash-text">
             Paghi in contanti direttamente al rider (o al banco, se ritiri).
             Tieni pronto l'importo — il resto lo portiamo noi.
           </p>

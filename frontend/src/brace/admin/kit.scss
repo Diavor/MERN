@@ -1,0 +1,428 @@
+// Grani Antichi — shared admin UI kit styles. Ported 1:1 from the inline styles that
+// used to live in kit.js. Prop/state-dependent values become is-* modifiers;
+// dynamic sizing/colour props (modal width, pill colour, skeleton bar width)
+// stay inline on the JSX. Keyframes `fade` + `shimmer` are global (brace.scss).
+@reference "../../styles/theme.css";
+
+// ---------------- SHARED DATA TABLE ----------------
+// Replaces the old `adminTh` / `adminTd` JS style objects. Put `admin-table` on
+// the <table>; th/td get their padding via element selectors, and per-cell
+// overrides compose as scoped .is-* modifier classes.
+.admin-table {
+  th {
+    padding: 16px 24px;
+    font-weight: 400;
+  }
+  td {
+    padding: 18px 24px;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  .is-right {
+    text-align: right;
+  }
+  .is-mono {
+    font-family: var(--mono);
+  }
+  .is-dim {
+    color: var(--text-dim);
+  }
+  .is-gold {
+    color: var(--gold);
+  }
+  .is-sm {
+    font-size: 12px;
+  }
+  .is-nowrap {
+    white-space: nowrap;
+  }
+  .is-spaced {
+    letter-spacing: 0.12em;
+  }
+  .is-w90 {
+    width: 90px;
+  }
+  .is-w120 {
+    width: 120px;
+  }
+}
+
+// ---------------- MODAL ----------------
+.akit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 24px;
+  overflow-y: auto;
+
+  &__scrim {
+    position: fixed;
+    inset: 0;
+    background: var(--scrim-overlay);
+    backdrop-filter: blur(4px);
+    animation: fade 0.2s ease both;
+  }
+
+  &__panel {
+    position: relative;
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    box-shadow: 0 30px 80px rgba(40, 28, 10, 0.35);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 120px);
+  }
+
+  &__header {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    background: var(--bg-2);
+    z-index: 2;
+  }
+
+  &__subtitle {
+    margin-bottom: 8px;
+  }
+
+  &__title {
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  &__close {
+    background: none;
+    border: 1px solid var(--line-2);
+    color: var(--text);
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  &__body {
+    padding: 28px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__footer {
+    padding: 18px 28px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-2);
+  }
+}
+
+// ---------------- FORM FIELDS ----------------
+.akit-field {
+  display: block;
+
+  &__label {
+    @apply font-mono uppercase;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    margin-bottom: 8px;
+    transition: color 0.15s ease;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+
+    // error wins over focus — keep is-error last so it overrides.
+    &.is-focus {
+      color: var(--gold);
+    }
+    &.is-error {
+      color: var(--accent);
+    }
+  }
+
+  &__hint {
+    color: var(--text-faint);
+
+    &--spaced {
+      letter-spacing: 0.08em;
+    }
+  }
+
+  &__box {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.15s ease;
+
+    &.is-focus {
+      border-color: var(--gold-deep);
+    }
+    &.is-error {
+      border-color: var(--accent);
+    }
+
+    &--inline {
+      padding: 0 14px;
+    }
+    &--block {
+      padding: 12px;
+    }
+  }
+
+  &__prefix {
+    color: var(--text-faint);
+    font-size: 13px;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 13px 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+
+    &.is-mono {
+      font-family: var(--mono);
+    }
+  }
+
+  &__area {
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    resize: vertical;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  &__select {
+    width: 100%;
+    padding: 13px 14px;
+    padding-right: 44px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+      linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+    background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+
+    &.is-error {
+      border-color: var(--accent);
+    }
+  }
+
+  &__error {
+    font-size: 10px;
+    color: var(--accent);
+    margin-top: 6px;
+
+    &--spaced {
+      letter-spacing: 0.06em;
+    }
+  }
+}
+
+// ---------------- TOGGLE ----------------
+.akit-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+
+  &__text {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  &__hint {
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  &__switch {
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    background: var(--line-2);
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+
+    &.is-on {
+      background: var(--accent);
+    }
+  }
+
+  &__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--cream);
+    transition: left 0.2s ease;
+  }
+
+  &__switch.is-on &__knob {
+    left: 23px;
+  }
+}
+
+// ---------------- SEGMENTED ----------------
+.akit-segmented {
+  display: inline-flex;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 3px;
+  border-radius: 4px;
+
+  &__btn {
+    @apply font-mono uppercase;
+    padding: 9px 16px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    transition: all 0.15s ease;
+    border-radius: 2px;
+
+    &.is-sm {
+      padding: 6px 12px;
+    }
+    &.is-active {
+      background: var(--text);
+      color: var(--bg);
+    }
+  }
+}
+
+// ---------------- STATUS PILL ----------------
+// `--pill-color` is set inline from the `color` prop so the chip tints to any
+// runtime colour. Soft pills declare an rgba() fallback before the color-mix
+// line so engines without color-mix still render a visible chip.
+.akit-pill {
+  @apply font-mono uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--pill-color);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+
+  &.is-solid {
+    background: transparent;
+    border: 1px solid var(--pill-color);
+  }
+
+  &.is-soft {
+    background-color: rgba(110, 73, 32, 0.12);
+    background: color-mix(in srgb, var(--pill-color) 14%, transparent);
+    border: none;
+  }
+
+  &__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--pill-color);
+  }
+}
+
+// ---------------- SKELETON ----------------
+.akit-skel {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+
+  &__row {
+    display: flex;
+    gap: 24px;
+    padding: 20px 24px;
+    align-items: center;
+
+    &:not(:first-child) {
+      border-top: 1px solid var(--line);
+    }
+  }
+
+  &__bar {
+    height: 12px;
+    flex: none;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--bg-3) 0%, var(--line) 50%, var(--bg-3) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease infinite;
+
+    &.is-flex {
+      flex: 1;
+    }
+  }
+}
+
+// ---------------- EMPTY STATE ----------------
+.akit-empty {
+  padding: 80px 40px;
+  text-align: center;
+  background: var(--bg-2);
+  border: 1px dashed var(--line-2);
+
+  &__icon {
+    font-size: 40px;
+    color: var(--text-faint);
+    line-height: 1;
+  }
+
+  &__title {
+    font-size: 30px;
+    margin-top: 18px;
+  }
+
+  &__body {
+    color: var(--text-dim);
+    max-width: 420px;
+    margin: 12px auto 0;
+  }
+
+  &__action {
+    margin-top: 24px;
+  }
+}

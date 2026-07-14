@@ -1,10 +1,11 @@
+import "./UserListScreen.scss";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Message from "../brace/ui/Message";
 import Loader from "../brace/ui/Loader";
 import Icon from "../brace/ui/Icon";
-import { AdminStatusPill, adminTh, adminTd, AdminEmptyState } from "../brace/admin/kit";
+import { AdminStatusPill, AdminEmptyState } from "../brace/admin/kit";
 import { listUsers, deleteUser } from "../store/actions/user";
 
 const UserListScreen = ({ history }) => {
@@ -28,7 +29,7 @@ const UserListScreen = ({ history }) => {
   };
 
   return (
-    <div className="b-rise">
+    <div className="b-rise user-list">
       {loading ? (
         <Loader />
       ) : error ? (
@@ -36,74 +37,50 @@ const UserListScreen = ({ history }) => {
       ) : !users || users.length === 0 ? (
         <AdminEmptyState icon="◉" title="Nessun utente" body="Gli account registrati compariranno qui." />
       ) : (
-        <div style={{ background: "var(--bg-2)", border: "1px solid var(--line)", overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 720 }}>
+        <div className="user-list__panel">
+          <table className="user-list__table admin-table">
             <thead>
-              <tr
-                style={{
-                  textAlign: "left",
-                  fontFamily: "var(--mono)",
-                  fontSize: 10,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  color: "var(--text-faint)",
-                }}
-              >
-                <th style={adminTh}>Cliente</th>
-                <th style={adminTh}>Email</th>
-                <th style={adminTh}>Ruolo</th>
-                <th style={{ ...adminTh, width: 120 }}></th>
+              <tr className="user-list__head-row">
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Ruolo</th>
+                <th className="user-list__th--action"></th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user._id} style={{ borderTop: "1px solid var(--line)" }}>
-                  <td style={adminTd}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 999,
-                          background: "var(--bg-3)",
-                          color: "var(--gold)",
-                          display: "grid",
-                          placeItems: "center",
-                          fontFamily: "var(--serif)",
-                          fontSize: 14,
-                          flexShrink: 0,
-                        }}
-                      >
+                <tr key={user._id} className="user-list__row">
+                  <td>
+                    <div className="user-list__cust">
+                      <div className="user-list__avatar">
                         {(user.name || "?").charAt(0).toUpperCase()}
                       </div>
                       <span>{user.name}</span>
                     </div>
                   </td>
-                  <td style={{ ...adminTd, fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)" }}>
-                    <a href={`mailto:${user.email}`} style={{ color: "var(--text-dim)", textDecoration: "none" }}>
+                  <td className="user-list__td--email is-sm">
+                    <a href={`mailto:${user.email}`} className="user-list__email">
                       {user.email}
                     </a>
                   </td>
-                  <td style={adminTd}>
+                  <td>
                     {user.isAdmin ? (
                       <AdminStatusPill label="Admin" color="var(--gold)" soft />
                     ) : (
                       <AdminStatusPill label="Cliente" color="var(--text-dim)" soft />
                     )}
                   </td>
-                  <td style={{ ...adminTd, textAlign: "right" }}>
-                    <div style={{ display: "inline-flex", gap: 8 }}>
+                  <td className="user-list__td--actions">
+                    <div className="user-list__actions">
                       <Link
                         to={`/admin/user/${user._id}/edit`}
-                        className="b-btn sm ghost"
-                        style={{ padding: "6px 12px" }}
+                        className="b-btn sm ghost user-list__btn"
                       >
                         Modifica
                       </Link>
                       <button
                         onClick={() => deleteHandler(user._id)}
-                        className="b-btn sm ghost"
-                        style={{ padding: "6px 12px", color: "var(--accent)", borderColor: "var(--accent)" }}
+                        className="b-btn sm ghost user-list__btn user-list__btn--del"
                         aria-label="Elimina"
                       >
                         <Icon.close />

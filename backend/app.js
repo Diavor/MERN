@@ -20,6 +20,10 @@ import orderRoutes from "./routes/orderRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import slotRoutes from "./routes/slotRoutes.js";
 import pizzaOrderRoutes from "./routes/pizzaOrderRoutes.js";
+import zoneRoutes from "./routes/zoneRoutes.js";
+import couponRoutes from "./routes/couponRoutes.js";
+import pageRoutes from "./routes/pageRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js";
 
 const app = express();
 
@@ -44,7 +48,34 @@ app.use(
 );
 
 // --- Security & parsing ------------------------------------------------------
-app.use(helmet());
+// Extend the default CSP so the Google Identity Services and Sign in with Apple
+// SDKs (scripts, iframes, XHRs) load when the SPA is served from this origin in
+// production. In dev the SPA is served by Vite, where this CSP doesn't apply.
+const cspDefaults = helmet.contentSecurityPolicy.getDefaultDirectives();
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...cspDefaults,
+        "script-src": [
+          ...(cspDefaults["script-src"] || ["'self'"]),
+          "https://accounts.google.com",
+          "https://appleid.cdn-apple.com",
+        ],
+        "frame-src": ["'self'", "https://accounts.google.com", "https://appleid.apple.com"],
+        "connect-src": [
+          ...(cspDefaults["connect-src"] || ["'self'"]),
+          "https://accounts.google.com",
+          "https://appleid.apple.com",
+        ],
+        "style-src": [
+          ...(cspDefaults["style-src"] || ["'self'", "'unsafe-inline'"]),
+          "https://accounts.google.com",
+        ],
+      },
+    },
+  })
+);
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
@@ -86,8 +117,21 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/pizza-orders", pizzaOrderRoutes);
+app.use("/api/zones", zoneRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/pages", pageRoutes);
+app.use("/api/settings", settingRoutes);
 
 app.get("/api/config/paypal", (req, res) => res.send(env.PAYPAL_CLIENT_ID || ""));
+
+// Public client ids for social login. The frontend shows a provider's button
+// only when its id is returned here, so unconfigured providers stay hidden.
+app.get("/api/config/auth", (req, res) =>
+  res.json({
+    googleClientId: env.GOOGLE_CLIENT_ID || "",
+    appleClientId: env.APPLE_CLIENT_ID || "",
+  })
+);
 
 // --- Static assets -----------------------------------------------------------
 const __dirname = path.resolve();

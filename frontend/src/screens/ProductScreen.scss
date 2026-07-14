@@ -1,0 +1,505 @@
+// ProductScreen — product detail: gallery, sticky configurator (dough / toppings
+// / qty), tabs (description + reviews), related strip, sticky quick-add bar.
+// Faithful port of the former inline styles. Selection/tab/hover states are
+// modifier classes (.is-selected, .is-active) toggled from component state.
+@reference "../styles/theme.css";
+
+@mixin mono-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+}
+
+.product {
+  padding-top: 120px;
+  padding-bottom: 140px;
+  min-height: 70vh;
+
+  // loading / error states
+  &--pending {
+    padding-top: 140px;
+    padding-bottom: 0;
+  }
+
+  // ── Breadcrumb ────────────────────────────────────────────────────────────
+  &__breadcrumb {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  &__breadcrumb-link {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  &__breadcrumb-current {
+    color: var(--gold);
+  }
+
+  // ── Layout ────────────────────────────────────────────────────────────────
+  &__layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 60px;
+    align-items: start;
+  }
+
+  // ── Gallery ───────────────────────────────────────────────────────────────
+  &__gallery {
+    aspect-ratio: 1/1;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+
+  &__gallery-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      500px 400px at 60% 30%,
+      rgba(192, 57, 43, 0.14),
+      transparent 60%
+    );
+  }
+
+  &__gallery-media {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  &__tag {
+    position: absolute;
+    top: 24px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+
+    &--code {
+      left: 24px;
+      color: var(--text-faint);
+    }
+
+    &--category {
+      right: 24px;
+      color: var(--gold);
+    }
+  }
+
+  // ── Configurator ──────────────────────────────────────────────────────────
+  &__config {
+    position: sticky;
+    top: 120px;
+  }
+
+  &__title {
+    font-size: clamp(48px, 6vw, 76px);
+    line-height: 0.98;
+    margin: 14px 0 18px;
+  }
+
+  &__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  &__price {
+    font-size: 56px;
+    color: var(--gold);
+  }
+
+  &__price-old {
+    font-size: 12px;
+    color: var(--text-faint);
+    text-decoration: line-through;
+  }
+
+  &__rating {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+  }
+
+  // ── Field group ───────────────────────────────────────────────────────────
+  &__field {
+    margin-top: 28px;
+  }
+
+  &__field-label {
+    margin-bottom: 14px;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__toppings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+
+  // option card (dough + toppings)
+  &__option {
+    padding: 14px 16px;
+    background: transparent;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    transition: all 0.2s ease;
+
+    &.is-selected {
+      background: var(--bg-3);
+      border-color: var(--gold-deep);
+    }
+  }
+
+  &__radio {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+
+    .product__option.is-selected & {
+      border-color: var(--gold);
+    }
+  }
+
+  &__radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--gold);
+  }
+
+  &__check {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--line-2);
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+    flex-shrink: 0;
+
+    .product__option.is-selected & {
+      border-color: var(--gold);
+    }
+  }
+
+  &__option-body {
+    flex: 1;
+
+    &--tight {
+      min-width: 0;
+    }
+  }
+
+  &__option-name {
+    font-weight: 500;
+
+    &--sm {
+      font-size: 14px;
+    }
+  }
+
+  &__option-meta {
+    @include mono-label;
+    margin-top: 4px;
+  }
+
+  // ── Qty + add ─────────────────────────────────────────────────────────────
+  &__actions {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    margin-top: 32px;
+    padding: 20px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  &__qty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line-2);
+    padding: 0 16px;
+    border-radius: 999px;
+  }
+
+  &__qty-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+
+  &__qty-value {
+    min-width: 24px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  &__add-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 16px 22px;
+  }
+
+  // ── Availability ──────────────────────────────────────────────────────────
+  &__availability {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 18px;
+  }
+
+  &__availability-status {
+    &--ok {
+      color: var(--ok);
+    }
+
+    &--out {
+      color: var(--accent);
+    }
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  &__tabs {
+    margin-top: 100px;
+    border-top: 1px solid var(--line);
+  }
+
+  &__tab-list {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  &__tab {
+    padding: 20px 28px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+
+    &.is-active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+  }
+
+  &__tab-panel {
+    padding: 48px 0;
+    min-height: 240px;
+  }
+
+  &__desc {
+    font-size: 24px;
+    line-height: 1.5;
+    max-width: 760px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  // ── Reviews ───────────────────────────────────────────────────────────────
+  &__reviews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 60px;
+    align-items: start;
+  }
+
+  &__review {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  &__review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  &__review-name {
+    font-size: 20px;
+  }
+
+  &__review-date {
+    @include mono-label;
+  }
+
+  &__review-rating {
+    margin: 8px 0;
+  }
+
+  &__review-comment {
+    margin: 0;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  &__form-title {
+    margin-bottom: 18px;
+  }
+
+  &__form-error {
+    margin-bottom: 16px;
+  }
+
+  &__form-label {
+    @include mono-label;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  &__select {
+    background-color: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 40px 10px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    width: 100%;
+    margin-bottom: 18px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+      linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    transition: border-color 0.15s ease;
+
+    &:hover,
+    &:focus {
+      border-color: var(--gold-deep);
+      outline: none;
+    }
+  }
+
+  &__textarea {
+    width: 100%;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.5;
+    resize: vertical;
+    margin-bottom: 18px;
+  }
+
+  // ── Related ───────────────────────────────────────────────────────────────
+  &__related {
+    margin-top: 80px;
+  }
+
+  &__related-title {
+    margin-bottom: 24px;
+  }
+
+  &__related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  // ── Sticky quick-add bar ──────────────────────────────────────────────────
+  &__bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: var(--scrim-blur-strong);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--line);
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+  }
+
+  &__bar-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  &__bar-thumb {
+    width: 38px;
+    flex-shrink: 0;
+  }
+
+  &__bar-text {
+    min-width: 0;
+  }
+
+  &__bar-category {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__bar-name {
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

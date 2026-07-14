@@ -1,0 +1,85 @@
+// ZoneSelector — delivery-zone picker. Prop-driven states become modifiers:
+// no `value` yet → select .is-placeholder; free delivery (subtotal ≥ threshold)
+// → cost value .is-free.
+@reference "../../styles/theme.css";
+
+.zone-selector {
+  &__select {
+    @apply w-full bg-bg-2 border border-line font-mono text-text;
+    padding: 16px 44px 16px 18px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+      linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+    background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+    outline: none;
+
+    &.is-placeholder {
+      @apply text-text-faint;
+    }
+  }
+
+  &__card {
+    margin-top: 14px;
+    padding: 18px 20px;
+    background: var(--bg-2);
+    border: 1px solid var(--gold-deep);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+  }
+
+  &__eyebrow {
+    margin-bottom: 8px;
+  }
+
+  &__city {
+    font-size: 22px;
+    line-height: 1.1;
+  }
+
+  &__eta {
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+  }
+
+  &__cost {
+    text-align: right;
+  }
+
+  &__cost-label {
+    @apply uppercase text-text-faint;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  &__cost-value {
+    margin-top: 4px;
+    font-size: 32px;
+    color: var(--gold);
+
+    &.is-free {
+      color: var(--ok);
+    }
+  }
+
+  &__free-note {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--ok);
+    letter-spacing: 0.1em;
+  }
+
+  &__min-note {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+}

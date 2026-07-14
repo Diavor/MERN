@@ -1,0 +1,135 @@
+// Footer — brand blurb, hours, contact, newsletter, legal row.
+@reference "../../styles/theme.css";
+
+.footer {
+  margin-top: 120px;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 56px;
+    margin-bottom: 80px;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  &__brand-word {
+    font-size: 28px;
+    letter-spacing: 0.34em;
+  }
+
+  &__logo {
+    display: block;
+    height: 60px;
+    width: auto;
+  }
+
+  &__blurb {
+    max-width: 360px;
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 22px;
+    line-height: 1.4;
+  }
+
+  &__col-title {
+    margin-bottom: 18px;
+  }
+
+  &__hours {
+    @apply font-mono;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  &__hours-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+
+    span:first-child {
+      color: var(--text);
+    }
+  }
+
+  &__contact {
+    @apply font-mono;
+    color: var(--text-dim);
+    font-size: 12px;
+    line-height: 2;
+  }
+
+  &__contact-strong {
+    color: var(--text);
+  }
+
+  &__contact-gap {
+    margin-top: 14px;
+  }
+
+  &__contact-social {
+    margin-top: 14px;
+    color: var(--gold);
+  }
+
+  &__news-copy {
+    margin-top: 0;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  &__news-form {
+    display: flex;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  &__news-input {
+    @apply font-mono;
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    outline: none;
+    background: none;
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  &__news-submit {
+    border: none;
+    background: none;
+    color: var(--gold);
+    cursor: pointer;
+  }
+
+  &__legal {
+    @apply font-mono;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 28px;
+    color: var(--text-faint);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  &__legal-links {
+    display: flex;
+    gap: 24px;
+  }
+}

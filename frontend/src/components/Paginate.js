@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-// Pagination in the BRÀCE design language: mono pill numbers, plain Links.
+// Pagination in the Grani Antichi design language: mono pill numbers, plain Links.
 const Paginate = ({ pages, page, isAdmin = false, keyword = "" }) => {
   if (!pages || pages <= 1) return null;
 

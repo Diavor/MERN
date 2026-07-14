@@ -1,0 +1,348 @@
+// AdminZonesScreen — admin delivery-zones manager (zone-card grid + full
+// create/edit modal). Faithful port of the former inline styles. Active-zone
+// borders, accent stats, payment toggles and the error/saving footer states
+// become is-* modifiers. Shared admin-kit components (AdminModal, AdminField*,
+// AdminSegmented, …) and global classes (b-btn, mono, display, eyebrow) are
+// kept as-is.
+@reference "../styles/theme.css";
+
+.admin-zones {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  &__count {
+    margin-bottom: 6px;
+  }
+
+  &__intro {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  &__card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &.is-active {
+      border-color: var(--gold-deep);
+    }
+  }
+
+  &__card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__card-name {
+    font-size: 26px;
+    line-height: 1;
+  }
+
+  &__card-desc {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 6px;
+    letter-spacing: 0.06em;
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  &__stat-label {
+    @apply uppercase;
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  &__stat-value {
+    color: var(--text);
+    margin-top: 3px;
+    font-size: 13px;
+
+    &.is-accent {
+      color: var(--gold);
+    }
+  }
+
+  &__card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 8px;
+  }
+
+  &__add {
+    min-height: 240px;
+    border: 1px dashed var(--line-2);
+    background: transparent;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    color: var(--text-dim);
+  }
+
+  &__add-inner {
+    text-align: center;
+  }
+
+  &__add-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  &__add-label {
+    @apply uppercase;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    margin-top: 10px;
+  }
+
+  // ── modal ─────────────────────────────────────────────────────────────
+  &__footer-status {
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+
+    &.is-error {
+      color: var(--accent);
+    }
+  }
+
+  &__footer-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  &__grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+
+    &--start {
+      align-items: start;
+    }
+  }
+
+  &__grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+
+  &__grid-stack {
+    display: grid;
+    gap: 14px;
+  }
+
+  &__field-row {
+    margin-top: 14px;
+  }
+
+  &__segmented-wrap {
+    margin-bottom: 14px;
+  }
+
+  &__field-label {
+    @apply uppercase;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    margin-bottom: 8px;
+
+    &--flush {
+      margin-bottom: 0;
+    }
+  }
+
+  &__radius-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  &__radius-value {
+    font-size: 11px;
+    color: var(--gold);
+  }
+
+  &__range {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  &__map {
+    aspect-ratio: 21 / 9;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line-2);
+    background:
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      var(--bg-3);
+  }
+
+  &__map-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__map-caption {
+    @apply uppercase;
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+  }
+
+  &__pay-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &__pay-btn {
+    padding: 9px 14px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+
+    &.is-on {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+  }
+
+  &__section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 28px 0 16px;
+  }
+
+  &__section-num {
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+  }
+
+  &__section-label {
+    @apply uppercase;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: var(--text);
+  }
+
+  &__section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  &__time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__time-arrow {
+    color: var(--text-faint);
+  }
+
+  &__time-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 11px 12px;
+    outline: none;
+  }
+
+  // Read-only restaurant hours shown when a zone follows global opening hours.
+  &__global-hours {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 8px 14px;
+  }
+
+  &__global-hours-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  &__global-hours-day {
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  &__global-hours-range {
+    color: var(--text);
+  }
+
+  &__global-hours-empty {
+    padding: 12px 0;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  &__global-hours-note {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+}
+
+// Compound selectors so these win over `.b-btn.sm` / `.b-btn.ghost`.
+.b-btn.admin-zones__edit-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.b-btn.admin-zones__save-btn {
+  min-width: 130px;
+  justify-content: center;
+
+  &.is-saving {
+    opacity: 0.6;
+  }
+}

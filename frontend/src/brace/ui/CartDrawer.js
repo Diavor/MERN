@@ -1,41 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "./Icon";
 import fmt from "./fmt";
 import ProductImage from "./ProductImage";
 import { useCartUI } from "./CartUI";
+import { useToast } from "./Toast";
+import Portal from "./Portal";
 import { updateCartQty, removeCart } from "../../store/actions/cart";
-import { FREE_DELIVERY_THRESHOLD } from "../content";
+import { validateCoupon } from "../admin/api";
+import { DELIVERY_ZONES, FREE_DELIVERY_THRESHOLD } from "../content";
+import "./CartDrawer.scss";
 
-const qtyBtn = {
-  width: 24,
-  height: 24,
-  borderRadius: 999,
-  border: "1px solid var(--line-2)",
-  background: "transparent",
-  color: "var(--text)",
-  cursor: "pointer",
-  display: "grid",
-  placeItems: "center",
-};
+const round2 = (n) => Math.round(n * 100) / 100;
+// Cheapest zone fee — shown as the delivery estimate before a zone is chosen at
+// checkout (the final fee is set per-zone there).
+const MIN_ZONE_FEE = Math.min(...DELIVERY_ZONES.map((z) => z.price));
 
 export function TotalRow({ label, value, muted, accent }) {
+  const cls =
+    "total-row" + (muted ? " is-muted" : "") + (accent ? " is-accent" : "");
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        fontFamily: "var(--mono)",
-        fontSize: 12,
-        padding: "6px 0",
-        color: muted ? "var(--text-faint)" : accent ? "var(--gold)" : "var(--text-dim)",
-      }}
-    >
+    <div className={cls}>
       <span>{label}</span>
-      <span style={{ color: accent ? "var(--gold)" : muted ? "var(--text-faint)" : "var(--text)" }}>
-        {value}
-      </span>
+      <span className="total-row__value">{value}</span>
     </div>
   );
 }
@@ -52,157 +40,159 @@ const CartDrawer = () => {
   const { open, setOpen } = useCartUI();
   const history = useHistory();
   const dispatch = useDispatch();
+  const toast = useToast();
   const { cartItems } = useSelector((s) => s.cart);
+
+  const [delivery, setDelivery] = useState("delivery"); // "delivery" | "pickup"
+  const [promo, setPromo] = useState("");
+  const [coupon, setCoupon] = useState(null); // { code, type, value, discount }
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const subtotal = cartItems.reduce((sum, i) => sum + i.qty * i.price, 0);
   const count = cartItems.reduce((sum, i) => sum + i.qty, 0);
+
+  // Recompute the discount from the coupon rule so it stays correct as the cart
+  // changes after the code was applied.
+  const discount = coupon
+    ? coupon.type === "percent"
+      ? round2((subtotal * coupon.value) / 100)
+      : Math.min(coupon.value, subtotal)
+    : 0;
+
+  const deliveryFee =
+    delivery === "pickup" || subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : MIN_ZONE_FEE;
+  const total = Math.max(0, subtotal - discount + deliveryFee);
+  // Italian prices are VAT-inclusive — shown for information, not added.
+  const vatIncluded = round2((total * 10) / 110);
 
   const goTo = (path) => {
     setOpen(false);
     history.push(path);
   };
 
+  const applyPromo = async () => {
+    const code = promo.trim();
+    if (!code) return;
+    setPromoLoading(true);
+    try {
+      const res = await validateCoupon(code, subtotal);
+      setCoupon(res);
+      toast(`Codice applicato — sconto di ${fmt(res.discount)}`, "ok");
+    } catch (e) {
+      setCoupon(null);
+      toast(e.message || "Codice non valido", "info");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const openClass = open ? " is-open" : "";
+
   return (
-    <>
+    <Portal>
       <div
+        className={"cart-drawer__scrim" + openClass}
         onClick={() => setOpen(false)}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 200,
-          background: "var(--scrim-overlay)",
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? "auto" : "none",
-          transition: "opacity .3s ease",
-          backdropFilter: open ? "blur(4px)" : "none",
-        }}
       />
 
-      <aside
-        style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 460,
-          maxWidth: "92vw",
-          background: "var(--bg-2)",
-          borderLeft: "1px solid var(--line)",
-          zIndex: 201,
-          transform: open ? "translateX(0)" : "translateX(100%)",
-          transition: "transform .45s cubic-bezier(.2,.7,.2,1)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          style={{
-            padding: "26px 28px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderBottom: "1px solid var(--line)",
-          }}
-        >
+      <aside className={"cart-drawer__panel" + openClass}>
+        <div className="cart-drawer__head">
           <div>
             <div className="eyebrow">Il tuo carrello</div>
-            <div className="display" style={{ fontSize: 28, marginTop: 4 }}>
+            <div className="display cart-drawer__count">
               {count} {count === 1 ? "pezzo" : "pezzi"}
             </div>
           </div>
           <button
+            type="button"
+            className="cart-drawer__close"
             onClick={() => setOpen(false)}
-            style={{
-              background: "none",
-              border: "1px solid var(--line-2)",
-              color: "var(--text)",
-              width: 38,
-              height: 38,
-              borderRadius: 999,
-              cursor: "pointer",
-              display: "grid",
-              placeItems: "center",
-            }}
           >
             <Icon.close />
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "8px 28px" }}>
+        {/* delivery / pickup toggle */}
+        <div className="cart-drawer__mode">
+          <div className="cart-drawer__seg">
+            {[
+              ["delivery", "Consegna"],
+              ["pickup", "Ritiro"],
+            ].map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                className={
+                  "cart-drawer__seg-btn" + (delivery === k ? " is-active" : "")
+                }
+                onClick={() => setDelivery(k)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cart-drawer__body">
           {cartItems.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "80px 0", color: "var(--text-faint)" }}>
+            <div className="cart-drawer__empty">
               <Icon.bag width={32} height={32} />
-              <div className="display" style={{ fontSize: 24, marginTop: 18, color: "var(--text-dim)" }}>
+              <div className="display cart-drawer__empty-title">
                 Carrello vuoto
               </div>
-              <button onClick={() => goTo("/menu")} className="b-btn ghost" style={{ marginTop: 24 }}>
+              <button
+                type="button"
+                onClick={() => goTo("/menu")}
+                className="b-btn ghost cart-drawer__empty-cta"
+              >
                 Vedi il menu
               </button>
             </div>
           ) : (
             cartItems.map((item) => (
-              <div
-                key={item.key || item.product}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "60px 1fr auto",
-                  gap: 16,
-                  padding: "20px 0",
-                  borderBottom: "1px solid var(--line)",
-                  alignItems: "center",
-                }}
-              >
-                <div style={{ width: 60, height: 60 }}>
-                  <ProductImage src={item.image} alt={item.name} style={{ width: 60, height: 60 }} />
+              <div key={item.key || item.product} className="cart-drawer__line">
+                <div className="cart-drawer__thumb">
+                  <ProductImage
+                    src={item.image}
+                    alt={item.name}
+                    style={{ width: 60, height: 60 }}
+                  />
                 </div>
                 <div>
-                  <div className="display" style={{ fontSize: 17, marginBottom: 4 }}>
-                    {item.name}
-                  </div>
+                  <div className="display cart-drawer__name">{item.name}</div>
                   {lineCaption(item) && (
-                    <div
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: 10,
-                        color: "var(--text-faint)",
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                      }}
-                    >
+                    <div className="cart-drawer__caption">
                       {lineCaption(item)}
                     </div>
                   )}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                    <button onClick={() => dispatch(updateCartQty(item, item.qty - 1))} style={qtyBtn}>
+                  <div className="cart-drawer__qty-row">
+                    <button
+                      type="button"
+                      className="cart-drawer__qty"
+                      onClick={() => dispatch(updateCartQty(item, item.qty - 1))}
+                    >
                       <Icon.minus />
                     </button>
-                    <span
-                      style={{ minWidth: 16, textAlign: "center", fontFamily: "var(--mono)", fontSize: 12 }}
+                    <span className="cart-drawer__qty-value">{item.qty}</span>
+                    <button
+                      type="button"
+                      className="cart-drawer__qty"
+                      onClick={() => dispatch(updateCartQty(item, item.qty + 1))}
                     >
-                      {item.qty}
-                    </span>
-                    <button onClick={() => dispatch(updateCartQty(item, item.qty + 1))} style={qtyBtn}>
                       <Icon.plus />
                     </button>
                     <button
-                      onClick={() => dispatch(removeCart(item.key || item.product))}
-                      style={{
-                        marginLeft: 6,
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-faint)",
-                        cursor: "pointer",
-                        fontSize: 11,
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                        fontFamily: "var(--mono)",
-                      }}
+                      type="button"
+                      className="cart-drawer__remove"
+                      onClick={() =>
+                        dispatch(removeCart(item.key || item.product))
+                      }
                     >
                       Rimuovi
                     </button>
                   </div>
                 </div>
-                <div className="display" style={{ fontSize: 18 }}>
+                <div className="display cart-drawer__line-total">
                   {fmt(item.price * item.qty)}
                 </div>
               </div>
@@ -211,49 +201,57 @@ const CartDrawer = () => {
         </div>
 
         {cartItems.length > 0 && (
-          <div style={{ padding: "20px 28px", borderTop: "1px solid var(--line)", background: "var(--bg)" }}>
+          <div className="cart-drawer__foot">
+            {/* promo code */}
+            <div className="cart-drawer__promo">
+              <input
+                className="cart-drawer__promo-input"
+                value={promo}
+                onChange={(e) => setPromo(e.target.value)}
+                placeholder="Codice promo · BRACE10"
+                onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+              />
+              <button
+                type="button"
+                className="b-btn sm ghost cart-drawer__promo-apply"
+                onClick={applyPromo}
+                disabled={promoLoading}
+              >
+                {promoLoading ? "…" : "Applica"}
+              </button>
+            </div>
+
             <TotalRow label="Subtotale" value={fmt(subtotal)} />
-            {subtotal >= FREE_DELIVERY_THRESHOLD && (
-              <TotalRow label="Consegna" value="Gratis" accent />
+            {discount > 0 && (
+              <TotalRow label={`Sconto · ${coupon.code}`} value={"−" + fmt(discount)} accent />
             )}
-            <div style={{ height: 1, background: "var(--line-2)", margin: "12px 0" }} />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 18,
-              }}
-            >
-              <span className="eyebrow">Totale parziale</span>
-              <span className="display" style={{ fontSize: 32 }}>
-                {fmt(subtotal)}
+            <TotalRow
+              label={delivery === "delivery" ? "Consegna" : "Ritiro in negozio"}
+              value={deliveryFee === 0 ? "Gratis" : fmt(deliveryFee)}
+            />
+            <TotalRow label="IVA inclusa" value={fmt(vatIncluded)} muted />
+
+            <div className="cart-drawer__divider" />
+            <div className="cart-drawer__total-row">
+              <span className="eyebrow">Totale</span>
+              <span className="display cart-drawer__total-value">
+                {fmt(total)}
               </span>
             </div>
             <button
+              type="button"
               onClick={() => goTo("/checkout")}
-              className="b-btn ember"
-              style={{ width: "100%", justifyContent: "center", padding: "16px 22px", fontSize: 12 }}
+              className="b-btn ember cart-drawer__checkout"
             >
               Procedi al checkout <Icon.arrow className="arrow" />
             </button>
-            <div
-              style={{
-                marginTop: 12,
-                fontFamily: "var(--mono)",
-                fontSize: 10,
-                color: "var(--text-faint)",
-                textAlign: "center",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
-            >
+            <div className="cart-drawer__free">
               Consegna gratuita oltre €{FREE_DELIVERY_THRESHOLD}
             </div>
           </div>
         )}
       </aside>
-    </>
+    </Portal>
   );
 };
 

@@ -1,0 +1,12 @@
+// ProductImage — product photo with a graceful fallback to the CSS-only
+// pizza-plate placeholder. This component carries NO styling of its own: the
+// real photo reuses the global `.pizza-photo` class and the fallback reuses the
+// global `.pizza-plate` / `.crust-glow` classes (see styles/brace.scss). The
+// `.product-image` root is only a BEM namespace anchor so callers still layer
+// their own sizing via the passthrough `style` prop (e.g. CartDrawer's 60×60).
+// It intentionally declares nothing — adding size/aspect here would fight the
+// reused globals and the incoming style prop.
+
+.product-image {
+  // no own declarations — visuals delegated to the reused globals above
+}

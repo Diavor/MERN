@@ -1,37 +1,21 @@
+import "./OrderSummary.scss";
 import React from "react";
 import fmt from "../ui/fmt";
 
 const Row = ({ label, value, muted, accent }) => (
   <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      fontFamily: "var(--mono)",
-      fontSize: 12,
-      padding: "6px 0",
-      color: muted
-        ? "var(--text-faint)"
-        : accent
-        ? "var(--gold)"
-        : "var(--text-dim)",
-    }}
+    className={`order-summary__row${muted ? " is-muted" : ""}${
+      accent ? " is-accent" : ""
+    }`}
   >
     <span>{label}</span>
-    <span
-      style={{
-        color: accent
-          ? "var(--gold)"
-          : muted
-          ? "var(--text-faint)"
-          : "var(--text)",
-      }}
-    >
-      {value}
-    </span>
+    <span className="order-summary__row-value">{value}</span>
   </div>
 );
 
-// Sticky order summary fed by the real Redux cart + computed fees.
+// Sticky order summary fed by the real Redux cart + computed fees. The promo
+// block validates against POST /api/coupons/validate (via the parent) and shows
+// the applied discount as its own line.
 const OrderSummary = ({
   cartItems,
   itemsPrice,
@@ -39,14 +23,17 @@ const OrderSummary = ({
   orderType,
   city,
   freeThreshold,
+  discount = 0,
   total,
+  promoCode,
+  setPromoCode,
+  appliedCoupon,
+  onApplyPromo,
+  onRemovePromo,
+  promoError,
+  promoLoading,
 }) => {
-  const deliveryLabel =
-    orderType === "pickup"
-      ? "Ritiro"
-      : itemsPrice >= freeThreshold
-      ? "Consegna"
-      : "Consegna";
+  const deliveryLabel = orderType === "pickup" ? "Ritiro" : "Consegna";
   const deliveryValue =
     orderType === "pickup"
       ? "Gratis"
@@ -59,50 +46,19 @@ const OrderSummary = ({
       : "Scegli zona";
 
   return (
-    <aside
-      style={{
-        position: "sticky",
-        top: 120,
-        background: "var(--bg-2)",
-        border: "1px solid var(--line)",
-        padding: 28,
-      }}
-    >
-      <div className="eyebrow" style={{ marginBottom: 20 }}>
-        Riepilogo
-      </div>
+    <aside className="order-summary">
+      <div className="eyebrow order-summary__eyebrow">Riepilogo</div>
 
-      <div style={{ maxHeight: 280, overflowY: "auto", paddingRight: 4 }}>
+      <div className="order-summary__list">
         {cartItems.map((line) => (
-          <div
-            key={line.key || line.product}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "auto 1fr auto",
-              gap: 14,
-              padding: "12px 0",
-              borderBottom: "1px solid var(--line)",
-              alignItems: "center",
-            }}
-          >
-            <div className="mono" style={{ fontSize: 11, color: "var(--gold)" }}>
-              {line.qty}×
-            </div>
+          <div key={line.key || line.product} className="order-summary__line">
+            <div className="mono order-summary__qty">{line.qty}×</div>
             <div>
-              <div style={{ fontSize: 14 }}>{line.name}</div>
+              <div className="order-summary__name">{line.name}</div>
               {(line.selectedDough || (line.toppings && line.toppings.length > 0)) && (
-                <div
-                  className="mono"
-                  style={{
-                    fontSize: 10,
-                    color: "var(--text-faint)",
-                    letterSpacing: "0.06em",
-                    marginTop: 4,
-                    lineHeight: 1.5,
-                  }}
-                >
+                <div className="mono order-summary__caption">
                   {line.selectedDough && (
-                    <span style={{ display: "block" }}>
+                    <span className="order-summary__caption-dough">
                       Impasto: {line.selectedDough.name}
                     </span>
                   )}
@@ -112,28 +68,78 @@ const OrderSummary = ({
                 </div>
               )}
             </div>
-            <div className="mono" style={{ fontSize: 13, color: "var(--text)" }}>
+            <div className="mono order-summary__line-total">
               {fmt(line.qty * line.price)}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: 20 }}>
+      {/* Promo code */}
+      <div className="order-summary__promo">
+        {appliedCoupon ? (
+          <div className="order-summary__promo-applied">
+            <div>
+              <div className="mono order-summary__promo-code">
+                {appliedCoupon.code}
+              </div>
+              <div className="mono order-summary__promo-hint">
+                {appliedCoupon.type === "percent"
+                  ? `−${appliedCoupon.value}% applicato`
+                  : "Sconto applicato"}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onRemovePromo}
+              className="order-summary__promo-remove"
+            >
+              Rimuovi
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="order-summary__promo-row">
+              <input
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onApplyPromo();
+                  }
+                }}
+                placeholder="Codice promo"
+                className="mono order-summary__promo-input"
+              />
+              <button
+                type="button"
+                onClick={onApplyPromo}
+                disabled={promoLoading || !promoCode.trim()}
+                className="b-btn sm ghost order-summary__promo-btn"
+              >
+                {promoLoading ? "…" : "Applica"}
+              </button>
+            </div>
+            {promoError && (
+              <div className="mono order-summary__promo-error">
+                ↳ {promoError}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="order-summary__totals">
         <Row label="Subtotale" value={fmt(itemsPrice)} />
         <Row label={deliveryLabel} value={deliveryValue} />
-        <div style={{ height: 1, background: "var(--line-2)", margin: "14px 0" }} />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-          }}
-        >
+        {discount > 0 && (
+          <Row label="Sconto" value={"− " + fmt(discount)} accent />
+        )}
+        <div className="order-summary__divider" />
+        <div className="order-summary__total">
           <span className="eyebrow">Totale</span>
-          <span className="display" style={{ fontSize: 36, color: "var(--gold)" }}>
-            {fmt(total)}
-          </span>
+          <span className="display order-summary__total-value">{fmt(total)}</span>
         </div>
       </div>
     </aside>

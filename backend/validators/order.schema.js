@@ -46,10 +46,21 @@ export const createOrderSchema = z.object({
   itemsPrice: money,
   taxPrice: money.optional().default(0),
   shippingPrice: money.optional().default(0),
+  // Coupon discount — must be declared or Zod strips it from req.body and the
+  // controller never persists it.
+  discountPrice: money.optional().default(0),
+  couponCode: z.string().optional().default(""),
   totalPrice: money,
 });
 
 export const orderIdParams = z.object({ id: objectId });
+
+// Admin status transition. The state machine enforces which moves are legal;
+// this only checks the target is a known status string.
+export const updateStatusSchema = z.object({
+  status: z.string().min(1),
+  note: z.string().max(500).optional(),
+});
 
 // Payment confirmation body — all optional (manual/cash payments send little).
 export const payOrderSchema = z

@@ -1,0 +1,130 @@
+// Nav — fixed top chrome. Scroll + active states are driven by toggled classes
+// (.is-scrolled / .is-active) instead of inline style objects.
+@reference "../../styles/theme.css";
+
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 100;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  transition: all 0.35s ease;
+
+  &.is-scrolled {
+    border-bottom-color: var(--line);
+    background: var(--scrim-blur);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 26px;
+    transition: padding 0.35s ease;
+
+    .nav.is-scrolled & {
+      padding-block: 16px;
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  &__brand-word {
+    font-size: 22px;
+    letter-spacing: 0.34em;
+    line-height: 1;
+    padding-top: 2px;
+  }
+
+  &__logo {
+    display: block;
+    height: 44px;
+    width: auto;
+  }
+
+  &__links {
+    @apply font-mono uppercase;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+  }
+
+  &__link {
+    position: relative;
+    color: var(--text-dim);
+    text-decoration: none;
+
+    &.is-active {
+      color: var(--gold);
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -8px;
+        height: 1px;
+        background: var(--gold);
+      }
+    }
+  }
+
+  &__logout {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-faint);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    // tighter than the base .b-btn; win specificity over .b-btn / .b-btn.sm
+    .nav__search {
+      padding: 10px 16px;
+      font-size: 11px;
+    }
+  }
+
+  &__cart {
+    @apply font-mono uppercase;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+  }
+
+  &__cart-count {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--cream);
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+}

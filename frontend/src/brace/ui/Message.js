@@ -1,4 +1,5 @@
 import React from "react";
+import "./Message.scss";
 
 const COLORS = {
   danger: { border: "var(--accent)", color: "var(--accent)" },
@@ -8,21 +9,10 @@ const COLORS = {
 
 // Drop-in replacement for the old Bootstrap Alert Message ({variant, children})
 const Message = ({ variant = "info", children }) => {
-  const c = COLORS[variant] || COLORS.info;
+  const mod = COLORS[variant] ? variant : "info";
   return (
-    <div
-      style={{
-        border: "1px solid var(--line)",
-        borderLeft: "3px solid " + c.border,
-        background: "var(--bg-2)",
-        padding: "14px 18px",
-        margin: "12px 0",
-        fontSize: 13,
-      }}
-    >
-      <span className="mono" style={{ color: c.color, fontSize: 12 }}>
-        {children}
-      </span>
+    <div className={"message message--" + mod}>
+      <span className="mono message__text">{children}</span>
     </div>
   );
 };

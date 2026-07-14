@@ -1,0 +1,102 @@
+// AdminCouponsScreen — admin coupon manager (list table + create panel).
+// Faithful port of the former inline styles. The submit button's saving
+// opacity is a state-driven modifier (is-saving). Shared adminTh/adminTd
+// table cell style-objects and admin-kit components are kept inline as-is.
+@reference "../styles/theme.css";
+
+.admin-coupons {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+
+  &__table-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+  }
+
+  &__card-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__loading {
+    padding: 40px;
+  }
+
+  &__error {
+    padding: 24px;
+  }
+
+  &__table-wrap {
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+
+  &__thead {
+    @apply uppercase;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--text-faint);
+  }
+
+  &__row {
+    border-top: 1px solid var(--line);
+  }
+
+  &__toggle.b-btn {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+
+  &__delete {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  &__form {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 28px;
+  }
+
+  &__form-eyebrow {
+    margin-bottom: 14px;
+  }
+
+  &__form-note {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 0;
+  }
+
+  &__fields {
+    display: grid;
+    gap: 14px;
+  }
+
+  &__submit.b-btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 18px;
+    opacity: 1;
+
+    &.is-saving {
+      opacity: 0.6;
+    }
+  }
+}

@@ -1,0 +1,417 @@
+// AdminOrderDetailScreen — admin single-order detail view.
+// Faithful port of the former inline styles. All values 1:1 with the original.
+@reference "../styles/theme.css";
+
+.admin-order-detail {
+  // ── back buttons ──────────────────────────────────────────────────────────
+  &__back {
+    margin-bottom: 24px;
+
+    &--header {
+      margin-bottom: 16px;
+    }
+  }
+
+  // ── loading skeleton grid ─────────────────────────────────────────────────
+  &__skel-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+  }
+
+  // ── header ────────────────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-size: 52px;
+    margin: 0;
+    line-height: 1;
+  }
+
+  &__meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 460px;
+    justify-content: flex-end;
+  }
+
+  // ── status changer ────────────────────────────────────────────────────────
+  &__status-bar {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 18px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  &__status-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__status-btn {
+    @apply uppercase;
+    padding: 9px 16px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+
+    &.is-on {
+      color: var(--bg);
+    }
+    &.is-on.is-confermato {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+    &.is-on.is-in-forno {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    &.is-on.is-partito {
+      background: #6f9ae0;
+      border-color: #6f9ae0;
+    }
+    &.is-on.is-consegnato {
+      background: var(--ok);
+      border-color: var(--ok);
+    }
+
+    &--cancel {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+  }
+
+  // ── main grid + columns ───────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  &__col {
+    display: grid;
+    gap: 20px;
+  }
+
+  // ── card ──────────────────────────────────────────────────────────────────
+  &__card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+  }
+
+  &__card-head {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__card-hint {
+    @apply uppercase;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+  }
+
+  &__card-body {
+    padding: 24px;
+    display: grid;
+    gap: 14px;
+  }
+
+  // ── products table ────────────────────────────────────────────────────────
+  &__table-wrap {
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 480px;
+  }
+
+  &__thead-row {
+    @apply uppercase;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+  }
+
+  &__th {
+    padding: 14px 24px;
+    font-weight: 400;
+
+    &--center {
+      text-align: center;
+    }
+    &--right {
+      text-align: right;
+    }
+  }
+
+  &__row {
+    border-top: 1px solid var(--line);
+  }
+
+  &__td {
+    padding: 16px 24px;
+    font-size: 14px;
+    vertical-align: middle;
+
+    &--name {
+      font-weight: 500;
+    }
+    &--extra {
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    &--qty {
+      text-align: center;
+      font-family: var(--mono);
+    }
+    &--price {
+      text-align: right;
+      font-family: var(--mono);
+      color: var(--text-dim);
+    }
+    &--total {
+      text-align: right;
+      font-family: var(--mono);
+    }
+  }
+
+  // ── totals ────────────────────────────────────────────────────────────────
+  &__totals {
+    border-top: 1px solid var(--line-2);
+    padding: 18px 24px;
+    display: grid;
+    gap: 6px;
+    max-width: 320px;
+    margin-left: auto;
+    width: 100%;
+  }
+
+  &__total-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+
+    > span:last-child {
+      color: var(--text);
+    }
+
+    &.is-muted {
+      color: var(--text-faint);
+
+      > span:last-child {
+        color: var(--text-faint);
+      }
+    }
+    &.is-accent {
+      color: var(--gold);
+
+      > span:last-child {
+        color: var(--gold);
+      }
+    }
+  }
+
+  &__totals-rule {
+    height: 1px;
+    background: var(--line-2);
+    margin: 8px 0;
+  }
+
+  &__total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  &__total-amount {
+    font-size: 30px;
+    color: var(--gold);
+  }
+
+  // ── timeline ──────────────────────────────────────────────────────────────
+  &__timeline {
+    padding: 8px 24px 24px;
+  }
+
+  &__tl-item {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 16px;
+    padding-top: 18px;
+  }
+
+  &__tl-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &__tl-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    background: var(--gold);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 18%, transparent);
+  }
+
+  &__tl-line {
+    width: 1px;
+    flex: 1;
+    background: var(--line-2);
+    margin-top: 4px;
+    min-height: 24px;
+  }
+
+  &__tl-body {
+    padding-bottom: 4px;
+  }
+
+  &__tl-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__tl-title {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  &__tl-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold);
+  }
+
+  &__tl-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    letter-spacing: 0.06em;
+  }
+
+  // ── internal notes ────────────────────────────────────────────────────────
+  &__notes {
+    padding: 24px;
+  }
+
+  &__textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 14px;
+    outline: none;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  &__notes-foot {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  // ── detail rows ───────────────────────────────────────────────────────────
+  &__detail {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: baseline;
+  }
+
+  &__lbl {
+    @apply uppercase;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+  }
+
+  &__detail-val {
+    text-align: right;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text);
+
+    &.is-mono {
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    &.is-accent {
+      color: var(--gold);
+    }
+  }
+
+  &__tracking {
+    margin-top: 8px;
+  }
+
+  // ── payment ───────────────────────────────────────────────────────────────
+  &__pay-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__pay-btn {
+    justify-content: center;
+    margin-top: 4px;
+  }
+}
+
+// Compound overrides — beat the global `.b-btn` / `.b-btn.ghost` selectors.
+.b-btn.admin-order-detail__refund {
+  color: var(--accent);
+  border-color: var(--accent);
+}

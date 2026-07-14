@@ -1,6 +1,6 @@
 import React from "react";
 
-// Inline SVG icon set from the BRÀCE design system
+// Inline SVG icon set from the Grani Antichi design system
 const Icon = {
   bag: (p) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" {...p}>

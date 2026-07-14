@@ -1,15 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "../api/axiosConfig";
 import Message from "../brace/ui/Message";
 import Loader from "../brace/ui/Loader";
 import Icon from "../brace/ui/Icon";
 import fmt from "../brace/ui/fmt";
 import Paginate from "../components/Paginate";
-import { AdminStatusPill, adminTh, adminTd, AdminEmptyState } from "../brace/admin/kit";
+import { AdminStatusPill, AdminEmptyState } from "../brace/admin/kit";
 import { listProducts } from "../store/actions/products";
 import { deleteProduct, createProduct } from "../store/actions/product";
 import { PRODUCT_CREATE_RESET } from "../store/actionTypes";
+import "./ProductListScreen.scss";
 
 const ProductListScreen = ({ history, match }) => {
   const pageNumber = match.params.pageNumber || 1;
@@ -33,6 +35,20 @@ const ProductListScreen = ({ history, match }) => {
 
   const { userInfo } = useSelector((state) => state.userLogin);
 
+  const [cat, setCat] = useState("all");
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+    axios
+      .get("/api/products/categories")
+      .then(({ data }) => alive && setCategories(data))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   useEffect(() => {
     dispatch({ type: PRODUCT_CREATE_RESET });
     if (!userInfo.isAdmin) {
@@ -41,7 +57,7 @@ const ProductListScreen = ({ history, match }) => {
     if (successCreate) {
       history.push(`/admin/product/${createdProduct._id}/edit`);
     } else {
-      dispatch(listProducts("", pageNumber));
+      dispatch(listProducts("", pageNumber, cat));
     }
   }, [
     dispatch,
@@ -51,6 +67,7 @@ const ProductListScreen = ({ history, match }) => {
     successCreate,
     createdProduct,
     pageNumber,
+    cat,
   ]);
 
   const deleteHandler = (id) => {
@@ -65,15 +82,18 @@ const ProductListScreen = ({ history, match }) => {
 
   return (
     <div className="b-rise">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          marginBottom: 24,
-          gap: 16,
-        }}
-      >
+      <div className="product-list__toolbar">
+        <div className="product-list__filters">
+          {["all", ...categories].map((c) => (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`product-list__filter${cat === c ? " is-active" : ""}`}
+            >
+              {c === "all" ? "Tutti" : c}
+            </button>
+          ))}
+        </div>
         <button className="b-btn ember" onClick={createProductHandler}>
           <Icon.plus /> Nuovo prodotto
         </button>
@@ -101,72 +121,58 @@ const ProductListScreen = ({ history, match }) => {
         />
       ) : (
         <>
-          <div style={{ background: "var(--bg-2)", border: "1px solid var(--line)", overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+          <div className="product-list__table-wrap">
+            <table className="product-list__table admin-table">
               <thead>
-                <tr
-                  style={{
-                    textAlign: "left",
-                    fontFamily: "var(--mono)",
-                    fontSize: 10,
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  <th style={adminTh}>Prodotto</th>
-                  <th style={adminTh}>Categoria</th>
-                  <th style={adminTh}>Brand</th>
-                  <th style={adminTh}>Scorte</th>
-                  <th style={{ ...adminTh, textAlign: "right" }}>Prezzo</th>
-                  <th style={{ ...adminTh, width: 120 }}></th>
+                <tr className="product-list__head-row">
+                  <th>Prodotto</th>
+                  <th>Categoria</th>
+                  <th>Brand</th>
+                  <th>Scorte</th>
+                  <th className="is-right">Prezzo</th>
+                  <th className="is-w120"></th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product._id} style={{ borderTop: "1px solid var(--line)" }}>
-                    <td style={adminTd}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                        <div className="pizza-plate" style={{ width: 40, height: 40, flexShrink: 0 }}>
+                  <tr key={product._id} className="product-list__row">
+                    <td>
+                      <div className="product-list__cell-main">
+                        <div className="pizza-plate product-list__plate">
                           <div className="crust-glow" />
                         </div>
                         <div>
-                          <div style={{ fontSize: 15 }}>{product.name}</div>
-                          <div
-                            className="mono"
-                            style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: "0.1em", marginTop: 3 }}
-                          >
+                          <div className="product-list__name">{product.name}</div>
+                          <div className="mono product-list__id">
                             {product._id.slice(-8).toUpperCase()}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ ...adminTd, color: "var(--text-dim)" }}>{product.category}</td>
-                    <td style={{ ...adminTd, color: "var(--text-dim)" }}>{product.brand}</td>
-                    <td style={adminTd}>
+                    <td className="is-dim">{product.category}</td>
+                    <td className="is-dim">{product.brand}</td>
+                    <td>
                       {product.countInStock > 0 ? (
                         <AdminStatusPill label={`${product.countInStock} pz`} color="var(--ok)" soft />
                       ) : (
                         <AdminStatusPill label="Esaurito" color="var(--accent)" soft />
                       )}
                     </td>
-                    <td style={{ ...adminTd, textAlign: "right", fontFamily: "var(--mono)", color: "var(--gold)" }}>
+                    <td className="is-right is-mono is-gold">
                       {fmt(product.price)}
                     </td>
-                    <td style={{ ...adminTd, textAlign: "right" }}>
-                      <div style={{ display: "inline-flex", gap: 8 }}>
+                    <td className="is-right">
+                      <div className="product-list__actions">
                         <Link
                           to={`/admin/product/${product._id}/edit`}
-                          className="b-btn sm ghost"
-                          style={{ padding: "6px 12px" }}
+                          className="b-btn sm ghost product-list__btn"
                           aria-label="Modifica"
                         >
                           Modifica
                         </Link>
                         <button
                           onClick={() => deleteHandler(product._id)}
-                          className="b-btn sm ghost"
-                          style={{ padding: "6px 12px", color: "var(--accent)", borderColor: "var(--accent)" }}
+                          className="b-btn sm ghost product-list__btn product-list__btn--del"
                           aria-label="Elimina"
                         >
                           <Icon.close />
@@ -178,7 +184,7 @@ const ProductListScreen = ({ history, match }) => {
               </tbody>
             </table>
           </div>
-          <div style={{ marginTop: 28 }}>
+          <div className="product-list__pagination">
             <Paginate page={page} pages={pages} isAdmin={true} />
           </div>
         </>

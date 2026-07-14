@@ -1,3 +1,4 @@
+import "./ProductEditScreen.scss";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -96,22 +97,8 @@ const ProductEditScreen = ({ match, history }) => {
   };
 
   return (
-    <div className="b-rise" style={{ maxWidth: 760 }}>
-      <Link
-        to="/admin/productlist"
-        className="mono"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          color: "var(--text-dim)",
-          textDecoration: "none",
-          fontSize: 11,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          marginBottom: 28,
-        }}
-      >
+    <div className="b-rise product-edit">
+      <Link to="/admin/productlist" className="mono product-edit__back">
         ← Torna al catalogo
       </Link>
 
@@ -124,17 +111,8 @@ const ProductEditScreen = ({ match, history }) => {
         <Message variant="danger">{error}</Message>
       ) : (
         <form onSubmit={submitHandler}>
-          <div
-            style={{
-              background: "var(--bg-2)",
-              border: "1px solid var(--line)",
-              padding: 32,
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 20,
-            }}
-          >
-            <div style={{ gridColumn: "span 2" }}>
+          <div className="product-edit__card">
+            <div className="product-edit__col-full">
               <AdminFieldText label="Nome" value={name} onChange={setName} placeholder="Nome prodotto" />
             </div>
             <AdminFieldText label="Prezzo" type="number" value={price} onChange={setPrice} prefix="€" mono />
@@ -148,25 +126,16 @@ const ProductEditScreen = ({ match, history }) => {
             <AdminFieldText label="Brand" value={brand} onChange={setBrand} placeholder="Brand" />
             <AdminFieldText label="Categoria" value={category} onChange={setCategory} placeholder="Categoria" />
 
-            <div style={{ gridColumn: "span 2" }}>
+            <div className="product-edit__col-full">
               <AdminFieldText label="Immagine (URL)" value={img} onChange={setImg} placeholder="/images/..." mono />
-              <label
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginTop: 12,
-                  cursor: "pointer",
-                }}
-                className="b-btn sm ghost"
-              >
+              <label className="b-btn sm ghost product-edit__upload">
                 <Icon.plus /> Carica file
-                <input type="file" onChange={uploadFileHandler} style={{ display: "none" }} />
+                <input type="file" onChange={uploadFileHandler} className="product-edit__file-input" />
               </label>
               {uploading && <Loader />}
             </div>
 
-            <div style={{ gridColumn: "span 2" }}>
+            <div className="product-edit__col-full">
               <AdminFieldArea
                 label="Descrizione"
                 value={description}
@@ -177,7 +146,7 @@ const ProductEditScreen = ({ match, history }) => {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+          <div className="product-edit__actions">
             <button type="submit" className="b-btn ember">
               <Icon.check /> Salva modifiche
             </button>

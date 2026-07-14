@@ -35,6 +35,34 @@ export const login = (email, password) => async (dispatch) => {
   }
 };
 
+// Exchange a verified social credential for our own session. Mirrors login():
+// on success we persist the returned identity and hydrate userLogin.
+const socialLogin = (path, body) => async (dispatch) => {
+  try {
+    dispatch({ type: actionTypes.USER_LOGIN_REQUEST });
+    const { data } = await axios.post(path, body, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
+    dispatch({ type: actionTypes.USER_LOGIN_SUCCES, payload: data });
+    localStorage.setItem("userInfo", JSON.stringify(data));
+  } catch (error) {
+    dispatch({
+      type: actionTypes.USER_LOGIN_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+export const googleLogin = (credential) =>
+  socialLogin("/api/users/google", { credential });
+
+export const appleLogin = (identityToken, name) =>
+  socialLogin("/api/users/apple", { identityToken, name });
+
 export const logout = () => (dispatch, getState) => {
   // Best-effort server-side invalidation of the refresh token (fire and forget).
   const {

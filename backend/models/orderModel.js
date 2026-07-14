@@ -1,4 +1,16 @@
 import mongoose from "mongoose";
+import { STATUSES, STATUS } from "../services/orderStateMachine.js";
+
+// One entry per status change — the order's audit trail / timeline.
+const statusEventSchema = mongoose.Schema(
+  {
+    status: { type: String, enum: STATUSES, required: true },
+    at: { type: Date, default: Date.now },
+    by: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    note: { type: String, default: "" },
+  },
+  { _id: false }
+);
 
 const orderSchema = mongoose.Schema(
   {
@@ -46,10 +58,21 @@ const orderSchema = mongoose.Schema(
       update_time: { type: String },
       email_address: { type: String },
     },
+    // Lifecycle status (see orderStateMachine.js). Legacy isPaid/isDelivered are
+    // kept in sync as side-effects for backward compatibility.
+    status: {
+      type: String,
+      enum: STATUSES,
+      default: STATUS.PENDING_PAYMENT,
+      index: true,
+    },
+    statusHistory: { type: [statusEventSchema], default: [] },
+    pickupCode: { type: String, default: "" },
+
     itemsPrice: {
       type: Number,
       required: true,
-      defaul: 0.0,
+      default: 0.0,
     },
     taxPrice: {
       type: Number,
@@ -60,6 +83,15 @@ const orderSchema = mongoose.Schema(
       type: Number,
       required: true,
       default: 0.0,
+    },
+    discountPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
+    },
+    couponCode: {
+      type: String,
+      default: "",
     },
     totalPrice: {
       type: Number,

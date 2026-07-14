@@ -133,6 +133,40 @@ export const deliverOrder = (order) => async (dispatch, getState) => {
   }
 };
 
+// Advance an order through the state machine (admin). The backend re-validates
+// the transition and returns the updated order.
+export const updateOrderStatus = (orderId, status, note) => async (
+  dispatch,
+  getState
+) => {
+  try {
+    dispatch({ type: actionTypes.ORDER_STATUS_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+    const { data } = await axios.put(
+      `/api/orders/${orderId}/status`,
+      { status, note },
+      config
+    );
+    dispatch({ type: actionTypes.ORDER_STATUS_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: actionTypes.ORDER_STATUS_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
 export const listMyOrders = () => async (dispatch, getState) => {
   try {
     dispatch({

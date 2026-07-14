@@ -1,0 +1,31 @@
+// ───────────────────────────────────────────────────────────────────────────
+// Grani Antichi design tokens — SCSS mirror
+// ---------------------------------------------------------------------------
+// Sass-time mirror of the CSS custom properties declared in styles/theme.css.
+// Use these ($accent, $line…) for compile-time work: colour math, maps, mixins,
+// media queries. For runtime values in rules, prefer the CSS custom properties
+// (var(--accent)) or Tailwind utilities (text-accent) so live theming keeps
+// working. theme.css is the source of truth — keep this in sync with it.
+// ───────────────────────────────────────────────────────────────────────────
+
+$bg: #fafaf7;
+$bg-2: #f1efe8;
+$bg-3: #e3dfd2;
+$line: #cfc8b5;
+$line-2: #a89e85;
+$text: #0e0e0e;
+$text-dim: #52524e;
+$text-faint: #8a8682;
+$accent: #a83920; // Ember — terracotta red
+$gold: #6e4920; // wheat-brown gold
+$gold-deep: #4a2f10;
+$cream: #f1e7d0;
+$ok: #5a7a3a;
+
+$serif: "Italiana", "Cormorant Garamond", serif;
+$serif-2: "Cormorant Garamond", serif;
+$sans: "DM Sans", system-ui, sans-serif;
+$mono: "IBM Plex Mono", ui-monospace, monospace;
+
+$maxw: 1440px;
+$bp-mobile: 720px;

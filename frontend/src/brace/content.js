@@ -1,4 +1,4 @@
-// Static site content for BRÀCE (from the design) + real business data.
+// Static site content for Grani Antichi (from the design) + real business data.
 
 // Real delivery zones (moved out of CheckoutScreen.js) — Mogliano Veneto area.
 export const DELIVERY_ZONES = [
@@ -18,12 +18,12 @@ export const FREE_DELIVERY_THRESHOLD = 39;
 
 export const HOURS = [
   ["Lunedì", "Chiuso"],
-  ["Martedì", "17:30 — 23:00"],
-  ["Mercoledì", "17:30 — 23:00"],
-  ["Giovedì", "17:30 — 23:00"],
-  ["Venerdì", "17:30 — 00:00"],
-  ["Sabato", "12:00 — 00:00"],
-  ["Domenica", "12:00 — 22:00"],
+  ["Martedì", "18:00 — 22:00"],
+  ["Mercoledì", "18:00 — 22:00"],
+  ["Giovedì", "18:00 — 22:00"],
+  ["Venerdì", "18:00 — 22:00"],
+  ["Sabato", "18:00 — 22:00"],
+  ["Domenica", "18:00 — 22:00"],
 ];
 
 export const TESTIMONIALS = [
@@ -51,9 +51,9 @@ export const TESTIMONIALS = [
 ];
 
 export const CONTACT = {
-  street: "Via dei Forni 14",
+  street: "Via Antonio Canova, 23",
   city: "31021 Mogliano Veneto (TV)",
-  phone: "+39 041 550 8412",
-  email: "ciao@brace.it",
-  instagram: "@brace.pizzeria",
+  phone: "+39 339 865 7277",
+  email: "info@pizzeriagraniantichi.it",
+  instagram: "@pizzeriagraniantichi",
 };
