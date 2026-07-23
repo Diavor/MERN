@@ -28,4 +28,5 @@ $sans: "DM Sans", system-ui, sans-serif;
 $mono: "IBM Plex Mono", ui-monospace, monospace;
 
 $maxw: 1440px;
-$bp-mobile: 720px;
+$bp-mobile: 720px; // phones → single-column layouts, mobile nav, stacked forms
+$bp-tablet: 1080px; // tablets/narrow desktop → two-column grids collapse

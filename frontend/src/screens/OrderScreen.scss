@@ -1,5 +1,6 @@
 // OrderScreen — order confirmation / receipt page.
 // Faithful port of the former inline styles. All values 1:1 with the original.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 .order {
@@ -95,6 +96,10 @@
     background: var(--line);
     border: 1px solid var(--line);
     text-align: left;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__cell {
@@ -244,6 +249,7 @@
   // ── footer actions ────────────────────────────────────────────────────────
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     justify-content: center;
     margin-top: 48px;

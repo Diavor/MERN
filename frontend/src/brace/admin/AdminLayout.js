@@ -4,8 +4,9 @@ import { useSelector } from "react-redux";
 import Icon from "../ui/Icon";
 import "./AdminLayout.scss";
 
-// Sits below the fixed site Nav. Offset clears the header height.
-const NAV_OFFSET = 72;
+// The storefront Nav is not rendered on /admin (see App.js), so the console
+// owns the full viewport. Kept as a CSS var in case chrome returns.
+const NAV_OFFSET = 0;
 
 const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard", title: "Panoramica", Ic: Icon.menu, match: (p) => p === "/admin" },

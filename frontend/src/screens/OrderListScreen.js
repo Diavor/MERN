@@ -88,22 +88,24 @@ const OrderListScreen = ({ history }) => {
             <tbody>
               {filtered.map((order) => (
                 <tr key={order._id} className="order-list__row">
-                  <td className="is-mono is-gold is-sm">
+                  <td data-label="Ordine" className="is-mono is-gold is-sm">
                     {order._id.slice(-8).toUpperCase()}
                   </td>
-                  <td>{order.user && order.user.name}</td>
-                  <td className="is-dim is-mono is-sm">
+                  <td data-label="Utente">{order.user && order.user.name}</td>
+                  <td data-label="Data" className="is-dim is-mono is-sm">
                     {order.createdAt.substring(0, 10)}
                   </td>
-                  <td className="is-right is-mono">{fmt(order.totalPrice)}</td>
-                  <td>
+                  <td data-label="Totale" className="is-right is-mono">
+                    {fmt(order.totalPrice)}
+                  </td>
+                  <td data-label="Pagamento">
                     {order.isPaid ? (
                       <AdminStatusPill label="Pagato" color="var(--ok)" soft />
                     ) : (
                       <AdminStatusPill label="Da pagare" color="var(--accent)" soft />
                     )}
                   </td>
-                  <td>
+                  <td data-label="Consegna">
                     <AdminStatusPill label={labelOf(order.status)} color={colorOf(order.status)} soft />
                   </td>
                   <td className="is-right">

@@ -1,5 +1,6 @@
 // AdminOrderDetailScreen — admin single-order detail view.
 // Faithful port of the former inline styles. All values 1:1 with the original.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 .admin-order-detail {
@@ -17,6 +18,10 @@
     display: grid;
     grid-template-columns: 1.6fr 1fr;
     gap: 20px;
+
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: 1fr;
+    }
   }
 
   // ── header ────────────────────────────────────────────────────────────────
@@ -120,17 +125,25 @@
     grid-template-columns: 1.6fr 1fr;
     gap: 20px;
     align-items: start;
+
+    // columns stack once the pair can't fit next to the console sidebar
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__col {
     display: grid;
     gap: 20px;
+    // let columns shrink; the items table scrolls inside __table-wrap
+    min-width: 0;
   }
 
   // ── card ──────────────────────────────────────────────────────────────────
   &__card {
     background: var(--bg-2);
     border: 1px solid var(--line);
+    min-width: 0;
   }
 
   &__card-head {

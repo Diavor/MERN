@@ -4,6 +4,7 @@
 // former JS hover handlers on the block-type cards became CSS :hover. The
 // pgTh/pgTd table style-objects and the admin-kit / pageBlocks components are
 // kept as-is.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 .admin-pages {
@@ -150,6 +151,12 @@
     margin-top: 3px;
   }
 
+  // was an inline maxWidth on the cell before the table moved to `.admin-table`
+  &__td--seo {
+    max-width: 220px;
+    font-size: 13px;
+  }
+
   &__seo {
     white-space: nowrap;
     overflow: hidden;
@@ -170,6 +177,11 @@
     cursor: pointer;
     border: 1px solid var(--line);
     color: var(--text-dim);
+
+    @media (max-width: $bp-mobile) {
+      min-height: 36px;
+      padding: 8px 12px;
+    }
     font-family: var(--mono);
     font-size: 10px;
     letter-spacing: 0.1em;

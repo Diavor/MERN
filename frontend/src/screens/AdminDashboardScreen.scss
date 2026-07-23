@@ -2,6 +2,7 @@
 // recent orders). Faithful port of the former inline styles. The `accent` KPI
 // and the lead top-product bar are toggled modifier classes. Shared adminTh/
 // adminTd table style-objects and admin-kit components are kept as-is.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 .admin-dashboard {
@@ -81,6 +82,10 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 28px;
+
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   &__panels {
@@ -88,6 +93,10 @@
     grid-template-columns: 2fr 1fr;
     gap: 16px;
     margin-bottom: 28px;
+
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__panel {

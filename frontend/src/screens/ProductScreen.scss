@@ -2,6 +2,7 @@
 // / qty), tabs (description + reviews), related strip, sticky quick-add bar.
 // Faithful port of the former inline styles. Selection/tab/hover states are
 // modifier classes (.is-selected, .is-active) toggled from component state.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 @mixin mono-label {
@@ -47,7 +48,7 @@
   // ── Layout ────────────────────────────────────────────────────────────────
   &__layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
     gap: 60px;
     align-items: start;
   }
@@ -262,6 +263,11 @@
     border: none;
     background: transparent;
     color: var(--text);
+
+    @media (max-width: $bp-mobile) {
+      width: 36px;
+      height: 36px;
+    }
     cursor: pointer;
     display: grid;
     place-items: center;
@@ -277,6 +283,10 @@
     flex: 1;
     justify-content: center;
     padding: 16px 22px;
+    // long label ("Aggiungi al carrello — €…") may wrap on narrow phones
+    // instead of setting the row's minimum width
+    min-width: 0;
+    white-space: normal;
   }
 
   // ── Availability ──────────────────────────────────────────────────────────
@@ -348,7 +358,7 @@
   // ── Reviews ───────────────────────────────────────────────────────────────
   &__reviews {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 60px;
     align-items: start;
   }
@@ -451,7 +461,7 @@
 
   &__related-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
 

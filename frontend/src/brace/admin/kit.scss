@@ -2,6 +2,7 @@
 // used to live in kit.js. Prop/state-dependent values become is-* modifiers;
 // dynamic sizing/colour props (modal width, pill colour, skeleton bar width)
 // stay inline on the JSX. Keyframes `fade` + `shimmer` are global (brace.scss).
+@use "../../styles/tokens" as *;
 @reference "../../styles/theme.css";
 
 // ---------------- SHARED DATA TABLE ----------------
@@ -45,6 +46,100 @@
   }
   .is-w120 {
     width: 120px;
+  }
+
+  // ── Tablet: tighten the grid so more columns fit before scrolling ────────
+  @media (max-width: $bp-tablet) {
+    th {
+      padding: 14px 16px;
+    }
+    td {
+      padding: 14px 16px;
+      font-size: 13px;
+    }
+  }
+
+  // ── Phone: rows become stacked cards ─────────────────────────────────────
+  // A 6–7 column table can't be read at 375px, so each row is re-laid-out as a
+  // label/value card. Labels come from `data-label` on each <td> — see
+  // `AdminTable` usage in the screens. Cells without a data-label (action
+  // buttons) render full-width at the foot of the card.
+  @media (max-width: $bp-mobile) {
+    display: block;
+    // `table.` outranks the per-screen `.x__table { min-width: NNNpx }` rules
+    // that force the desktop column widths — cards must fit the viewport.
+    &#{&} {
+      min-width: 0;
+    }
+
+    // kept in the a11y tree (not display:none) so column names survive
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    tbody {
+      display: block;
+    }
+
+    tr {
+      display: block;
+      padding: 4px 16px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+
+      & + tr {
+        margin-top: 10px;
+      }
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 0;
+      font-size: 14px;
+      border-bottom: 1px solid var(--line);
+      // column alignment/width rules are meaningless once stacked
+      text-align: left;
+      width: auto;
+
+      &::before {
+        content: attr(data-label);
+        flex: none;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+      }
+
+      // action cells: no label, buttons span the card
+      &:not([data-label]) {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        &::before {
+          display: none;
+        }
+      }
+
+      // identity cell (product/customer/page name) reads as the card's title
+      &.is-lead {
+        padding-top: 14px;
+        font-size: 15px;
+      }
+
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
   }
 }
 

@@ -9,6 +9,7 @@ import "./Nav.scss";
 const LINKS = [
   ["/", "Casa"],
   ["/menu", "Menu"],
+  ["/collezione", "Collezione"],
   ["/story", "Dough"],
 ];
 
@@ -16,6 +17,7 @@ const linkClass = (active) => "nav__link" + (active ? " is-active" : "");
 
 const Nav = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { setOpen } = useCartUI();
   const history = useHistory();
   const { pathname } = useLocation();
@@ -31,6 +33,15 @@ const Nav = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // route change closes the mobile menu; Esc closes it too
+  useEffect(() => setMenuOpen(false), [pathname]);
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
   const isActive = (to) =>
     to === "/"
       ? pathname === "/"
@@ -40,7 +51,8 @@ const Nav = () => {
   const accountActive = isActive("/profile") || isActive("/login");
 
   return (
-    <header className={"nav" + (scrolled ? " is-scrolled" : "")}>
+    <>
+      <header className={"nav" + (scrolled ? " is-scrolled" : "")}>
       <div className="b-container nav__inner">
         <Link to="/" className="nav__brand" aria-label="Pizzeria Grani Antichi — home">
           <img
@@ -96,12 +108,60 @@ const Nav = () => {
             onClick={() => setOpen(true)}
             className="nav__cart"
           >
-            <Icon.bag /> Carrello
+            <Icon.bag /> <span className="nav__cart-label">Carrello</span>
             {count > 0 && <span className="nav__cart-count">{count}</span>}
+          </button>
+          <button
+            type="button"
+            className="nav__burger"
+            aria-label={menuOpen ? "Chiudi menu" : "Apri menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? <Icon.close /> : <Icon.menu />}
           </button>
         </div>
       </div>
-    </header>
+      </header>
+
+      {/* Mobile-only full-screen menu. Sibling of the header, NOT a child:
+          the scrolled header's backdrop-filter would otherwise become the
+          containing block for this fixed panel and clip it to the bar. */}
+      <nav className={"nav__menu" + (menuOpen ? " is-open" : "")}>
+        {LINKS.map(([to, label]) => (
+          <Link
+            key={to}
+            to={to}
+            className={"nav__menu-link" + (isActive(to) ? " is-active" : "")}
+          >
+            {label}
+          </Link>
+        ))}
+        <Link
+          to={userInfo ? "/profile" : "/login"}
+          className={"nav__menu-link" + (accountActive ? " is-active" : "")}
+        >
+          {userInfo ? "Account" : "Accedi"}
+        </Link>
+        {userInfo && userInfo.isAdmin && (
+          <Link to="/admin" className="nav__menu-link">
+            Admin
+          </Link>
+        )}
+        {userInfo && (
+          <button
+            type="button"
+            className="nav__menu-link nav__menu-logout"
+            onClick={() => {
+              dispatch(logout());
+              history.push("/");
+            }}
+          >
+            Esci
+          </button>
+        )}
+      </nav>
+    </>
   );
 };
 

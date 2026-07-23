@@ -189,7 +189,7 @@ const AdminOrderDetailScreen = ({ match, history }) => {
         <div className="admin-order-detail__col">
           <Card title="Prodotti">
             <div className="admin-order-detail__table-wrap">
-              <table className="admin-order-detail__table">
+              <table className="admin-order-detail__table admin-table">
                 <thead>
                   <tr className="admin-order-detail__thead-row">
                     <th className="admin-order-detail__th">Prodotto</th>
@@ -202,13 +202,13 @@ const AdminOrderDetailScreen = ({ match, history }) => {
                 <tbody>
                   {items.map((it, i) => (
                     <tr key={i} className="admin-order-detail__row">
-                      <td className="admin-order-detail__td admin-order-detail__td--name">{it.name}</td>
-                      <td className="admin-order-detail__td admin-order-detail__td--extra">
+                      <td className="admin-order-detail__td admin-order-detail__td--name is-lead">{it.name}</td>
+                      <td data-label="Extra" className="admin-order-detail__td admin-order-detail__td--extra">
                         {it.toppings && it.toppings.length ? it.toppings.map((t) => t.name).join(", ") : "—"}
                       </td>
-                      <td className="admin-order-detail__td admin-order-detail__td--qty">{it.qty}</td>
-                      <td className="admin-order-detail__td admin-order-detail__td--price">{fmt(it.price)}</td>
-                      <td className="admin-order-detail__td admin-order-detail__td--total">{fmt(it.price * it.qty)}</td>
+                      <td data-label="Qtà" className="admin-order-detail__td admin-order-detail__td--qty">{it.qty}</td>
+                      <td data-label="Prezzo" className="admin-order-detail__td admin-order-detail__td--price">{fmt(it.price)}</td>
+                      <td data-label="Totale" className="admin-order-detail__td admin-order-detail__td--total">{fmt(it.price * it.qty)}</td>
                     </tr>
                   ))}
                 </tbody>

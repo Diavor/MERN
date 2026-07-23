@@ -167,6 +167,12 @@ body {
   &.sm {
     padding: 8px 14px;
     font-size: 11px;
+
+    // finger-sized on touch layouts
+    @media (max-width: $bp-mobile) {
+      min-height: 38px;
+      padding: 9px 16px;
+    }
   }
 
   &:disabled {

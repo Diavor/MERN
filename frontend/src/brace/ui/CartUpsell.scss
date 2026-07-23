@@ -1,0 +1,132 @@
+// CartUpsell — "add to your order" rail at the foot of the cart drawer body.
+@use "../../styles/tokens" as *;
+@reference "../../styles/theme.css";
+
+.cart-upsell {
+  padding: 22px 0 8px;
+
+  &__head {
+    margin-bottom: 14px;
+  }
+
+  &__eyebrow {
+    display: block;
+    color: var(--text-faint);
+  }
+
+  &__title {
+    margin-top: 4px;
+    font-size: 20px;
+  }
+
+  &__rail {
+    display: flex;
+    gap: 10px;
+    // bleed to the drawer's 28px gutter so the rail reads as scrollable
+    margin: 0 -28px;
+    padding: 2px 28px 6px;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+
+    @media (max-width: $bp-mobile) {
+      margin: 0 -20px;
+      padding-inline: 20px;
+    }
+  }
+
+  &__item {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  &__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 116px;
+    padding: 14px 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-3);
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease;
+
+    &:hover:not(:disabled) {
+      border-color: var(--gold-deep);
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: border-color 0.2s ease;
+      &:hover:not(:disabled) {
+        transform: none;
+      }
+    }
+  }
+
+  &__thumb {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    // two lines max, so a long name never stretches the card
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  &__price {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  &__add {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  // --- loading skeleton: same footprint as the real rail, no layout shift ---
+  &__skeleton-title {
+    display: block;
+    width: 160px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--bg-3);
+  }
+
+  .cart-upsell__card.is-skeleton {
+    height: 140px;
+    border-style: dashed;
+    cursor: default;
+  }
+
+  &.is-loading &__rail {
+    overflow: hidden;
+  }
+}

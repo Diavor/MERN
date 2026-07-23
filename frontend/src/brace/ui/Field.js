@@ -18,7 +18,9 @@ const Field = ({
   return (
     <label
       className="field"
-      style={{ gridColumn: span ? "span " + span : "auto" }}
+      // "1 / -1" = full row: unlike "span N" it can't force implicit columns
+      // when the parent grid collapses to a single column on mobile
+      style={{ gridColumn: span ? "1 / -1" : "auto" }}
     >
       <div className="field__label mono">
         {label}

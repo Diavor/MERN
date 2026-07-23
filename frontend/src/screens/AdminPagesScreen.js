@@ -234,35 +234,35 @@ function PagesList({ pages, onEdit, onNew, onDuplicate, onDelete }) {
       ) : (
         <div className="admin-pages__card">
           <div className="admin-pages__table-wrap">
-            <table className="admin-pages__table">
+            <table className="admin-pages__table admin-table">
               <thead>
                 <tr className="admin-pages__table-head">
-                  <th style={pgTh}>Titolo</th>
-                  <th style={pgTh}>Slug</th>
-                  <th style={pgTh}>Stato</th>
-                  <th style={pgTh}>Aggiornata</th>
-                  <th style={pgTh}>SEO Title</th>
-                  <th style={{ ...pgTh, textAlign: "right" }}>Azioni</th>
+                  <th>Titolo</th>
+                  <th>Slug</th>
+                  <th>Stato</th>
+                  <th>Aggiornata</th>
+                  <th>SEO Title</th>
+                  <th className="is-right">Azioni</th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((p) => (
                   <tr key={p._id} className="admin-pages__row">
-                    <td style={pgTd}>
+                    <td className="is-lead">
                       <button onClick={() => onEdit(p._id)} className="admin-pages__title-btn">
                         <div className="display admin-pages__title">{p.title || "Senza titolo"}</div>
                         <div className="mono admin-pages__blocks">{(p.blocks || []).length} blocchi</div>
                       </button>
                     </td>
-                    <td style={{ ...pgTd, fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)" }}>/{p.slug}</td>
-                    <td style={pgTd}>
+                    <td data-label="Slug" className="is-mono is-sm is-dim">/{p.slug}</td>
+                    <td data-label="Stato">
                       {p.status === "published" ? <AdminStatusPill label="Pubblicata" color="var(--ok)" soft /> : <AdminStatusPill label="Bozza" color="var(--gold)" soft />}
                     </td>
-                    <td style={{ ...pgTd, fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)" }}>{fmtDate(p.updatedAt)}</td>
-                    <td style={{ ...pgTd, color: "var(--text-dim)", fontSize: 13, maxWidth: 220 }}>
+                    <td data-label="Aggiornata" className="is-mono is-sm is-dim">{fmtDate(p.updatedAt)}</td>
+                    <td data-label="SEO Title" className="is-dim admin-pages__td--seo">
                       <div className="admin-pages__seo">{p.seo?.title || "—"}</div>
                     </td>
-                    <td style={{ ...pgTd, textAlign: "right" }}>
+                    <td className="is-right">
                       <div className="admin-pages__actions">
                         <RowAction label="Modifica" onClick={() => onEdit(p._id)} />
                         <RowAction label="Duplica" onClick={() => onDuplicate(p)} />
@@ -610,7 +610,5 @@ function PagePreview({ page, onClose }) {
   );
 }
 
-const pgTh = { padding: "16px 24px", fontWeight: 400 };
-const pgTd = { padding: "18px 24px", fontSize: 14, verticalAlign: "middle" };
 
 export default AdminPagesScreen;

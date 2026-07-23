@@ -136,7 +136,7 @@ const ProductListScreen = ({ history, match }) => {
               <tbody>
                 {products.map((product) => (
                   <tr key={product._id} className="product-list__row">
-                    <td>
+                    <td className="is-lead">
                       <div className="product-list__cell-main">
                         <div className="pizza-plate product-list__plate">
                           <div className="crust-glow" />
@@ -149,16 +149,20 @@ const ProductListScreen = ({ history, match }) => {
                         </div>
                       </div>
                     </td>
-                    <td className="is-dim">{product.category}</td>
-                    <td className="is-dim">{product.brand}</td>
-                    <td>
+                    <td data-label="Categoria" className="is-dim">
+                      {product.category}
+                    </td>
+                    <td data-label="Brand" className="is-dim">
+                      {product.brand}
+                    </td>
+                    <td data-label="Scorte">
                       {product.countInStock > 0 ? (
                         <AdminStatusPill label={`${product.countInStock} pz`} color="var(--ok)" soft />
                       ) : (
                         <AdminStatusPill label="Esaurito" color="var(--accent)" soft />
                       )}
                     </td>
-                    <td className="is-right is-mono is-gold">
+                    <td data-label="Prezzo" className="is-right is-mono is-gold">
                       {fmt(product.price)}
                     </td>
                     <td className="is-right">

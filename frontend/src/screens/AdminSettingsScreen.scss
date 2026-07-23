@@ -1,16 +1,23 @@
 // AdminSettingsScreen — read-only settings overview (Impostazioni). Faithful
-// port of the former inline styles across the four info panels. No @apply or
-// Sass vars needed here, so no theme.css @reference / tokens @use.
+// port of the former inline styles across the four info panels. No @apply
+// needed here, so no theme.css @reference; tokens are used for breakpoints.
+@use "../styles/tokens" as *;
 
 .admin-settings {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 
+  // panels stack once two abreast can't fit next to the console sidebar
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
+  }
+
   &__panel {
     background: var(--bg-2);
     border: 1px solid var(--line);
     padding: 28px;
+    min-width: 0;
   }
 
   &__panel-head {
@@ -39,8 +46,9 @@
 
   &__row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 16px;
+    gap: 6px 16px;
     padding: 14px 0;
     border-bottom: 1px solid var(--line);
     font-family: var(--mono);
@@ -55,6 +63,7 @@
   &__value {
     color: var(--text);
     text-align: right;
+    overflow-wrap: anywhere;
   }
 
   // ── Edit modal internals ──────────────────────────────────────────────────

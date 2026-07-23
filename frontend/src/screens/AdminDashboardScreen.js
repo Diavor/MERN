@@ -212,16 +212,16 @@ const AdminDashboardScreen = ({ history }) => {
                   <tbody>
                     {latest.map((o) => (
                       <tr key={o._id} className="admin-dashboard__row">
-                        <td className="is-mono is-gold is-sm">{o._id.slice(-8).toUpperCase()}</td>
-                        <td>{o.user && o.user.name}</td>
-                        <td className="is-dim is-mono is-sm">{o.createdAt ? o.createdAt.substring(0, 10) : "—"}</td>
-                        <td>
+                        <td data-label="Ordine" className="is-mono is-gold is-sm">{o._id.slice(-8).toUpperCase()}</td>
+                        <td data-label="Cliente">{o.user && o.user.name}</td>
+                        <td data-label="Data" className="is-dim is-mono is-sm">{o.createdAt ? o.createdAt.substring(0, 10) : "—"}</td>
+                        <td data-label="Stato">
                           <div className="admin-dashboard__pills">
                             {o.isPaid ? <AdminStatusPill label="Pagato" color="var(--ok)" soft /> : <AdminStatusPill label="Da pagare" color="var(--accent)" soft />}
                             {o.isDelivered ? <AdminStatusPill label="Consegnato" color="var(--ok)" soft /> : <AdminStatusPill label="In attesa" color="var(--gold)" soft />}
                           </div>
                         </td>
-                        <td className="is-right is-mono">{fmt(o.totalPrice)}</td>
+                        <td data-label="Totale" className="is-right is-mono">{fmt(o.totalPrice)}</td>
                         <td className="is-right">
                           <Link to={`/admin/orders/${o._id}`} className="b-btn sm ghost admin-dashboard__detail-btn">
                             <Icon.arrow />

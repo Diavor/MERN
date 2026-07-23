@@ -50,7 +50,7 @@ const UserListScreen = ({ history }) => {
             <tbody>
               {users.map((user) => (
                 <tr key={user._id} className="user-list__row">
-                  <td>
+                  <td className="is-lead">
                     <div className="user-list__cust">
                       <div className="user-list__avatar">
                         {(user.name || "?").charAt(0).toUpperCase()}
@@ -58,12 +58,12 @@ const UserListScreen = ({ history }) => {
                       <span>{user.name}</span>
                     </div>
                   </td>
-                  <td className="user-list__td--email is-sm">
+                  <td data-label="Email" className="user-list__td--email is-sm">
                     <a href={`mailto:${user.email}`} className="user-list__email">
                       {user.email}
                     </a>
                   </td>
-                  <td>
+                  <td data-label="Ruolo">
                     {user.isAdmin ? (
                       <AdminStatusPill label="Admin" color="var(--gold)" soft />
                     ) : (

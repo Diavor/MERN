@@ -144,12 +144,14 @@ const AdminCouponsScreen = () => {
                   const s = STATUS[c.status] || STATUS.active;
                   return (
                     <tr key={c._id} className="admin-coupons__row">
-                      <td className="is-mono is-gold is-spaced">{c.code}</td>
-                      <td className="is-dim">{c.type === "percent" ? "Percentuale" : "Importo"}</td>
-                      <td className="is-mono">{fmtValue(c)}</td>
-                      <td className="is-mono is-sm is-dim">{fmtUses(c)}</td>
-                      <td className="is-mono is-sm">{fmtDate(c.expiresAt)}</td>
-                      <td>
+                      <td className="is-lead is-mono is-gold is-spaced">{c.code}</td>
+                      <td data-label="Tipo" className="is-dim">
+                        {c.type === "percent" ? "Percentuale" : "Importo"}
+                      </td>
+                      <td data-label="Valore" className="is-mono">{fmtValue(c)}</td>
+                      <td data-label="Utilizzi" className="is-mono is-sm is-dim">{fmtUses(c)}</td>
+                      <td data-label="Scadenza" className="is-mono is-sm">{fmtDate(c.expiresAt)}</td>
+                      <td data-label="Stato">
                         <AdminStatusPill label={s.label} color={s.color} soft />
                       </td>
                       <td className="is-right is-nowrap">

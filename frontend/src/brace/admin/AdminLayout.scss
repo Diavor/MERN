@@ -2,6 +2,9 @@
 // nav item is expressed via .is-active instead of inline style branching.
 // --nav-offset (the header clearance) is injected from JS as a CSS var so the
 // layout config stays in one place.
+// ≤ $bp-mobile the sidebar collapses into a top strip with a horizontally
+// scrollable nav row so content keeps the full viewport width.
+@use "../../styles/tokens" as *;
 @reference "../../styles/theme.css";
 
 .admin-layout {
@@ -140,5 +143,97 @@
 
   &__body {
     padding: 40px 48px;
+  }
+
+  // header children may hold long titles; never push the avatar off-canvas
+  &__header > div {
+    min-width: 0;
+  }
+
+  &__header-title {
+    overflow-wrap: anywhere;
+  }
+
+  // ── TABLET + PHONE: sidebar → top strip ──────────────────────────────────
+  // Collapses at $bp-tablet (not $bp-mobile) per the design handoff: on a
+  // 768px tablet the 260px rail left tables only ~500px and forced constant
+  // horizontal scrolling.
+  @media (max-width: $bp-tablet) {
+    // minmax(0,…) + min-width: 0 below: without them the nowrap nav row's
+    // intrinsic width would blow the single track past the viewport
+    grid-template-columns: minmax(0, 1fr);
+    // on pages shorter than 100vh the leftover height must go to the content
+    // row — otherwise both auto rows stretch and the top strip balloons
+    grid-template-rows: auto 1fr;
+
+    &__sidebar {
+      position: static;
+      height: auto;
+      min-width: 0;
+      padding: 14px 0 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    &__head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 0 22px 10px;
+      border-bottom: 0;
+    }
+
+    &__head-eyebrow {
+      margin-bottom: 0;
+    }
+
+    &__title {
+      font-size: 18px;
+    }
+
+    &__user {
+      display: none;
+    }
+
+    &__nav {
+      display: flex;
+      gap: 4px;
+      padding: 4px 12px 10px;
+      min-width: 0;
+      // cancel the desktop flex: 1 — the nav row must never soak up height
+      flex: none;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    &__link {
+      width: auto;
+      margin-bottom: 0;
+      padding: 10px 12px;
+      white-space: nowrap;
+      gap: 8px;
+    }
+
+    &__foot {
+      padding: 0 22px 14px;
+      border-top: 0;
+    }
+
+    &__foot-btn {
+      width: auto;
+    }
+
+    &__header {
+      padding: 16px 22px;
+      gap: 14px;
+    }
+
+    &__header-title {
+      font-size: 22px;
+    }
+
+    &__body {
+      padding: 22px;
+    }
   }
 }

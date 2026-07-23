@@ -15,6 +15,7 @@ import { CartUIProvider } from "./brace/ui/CartUI";
 import HomeCmsScreen from "./screens/HomeCmsScreen";
 import MenuScreen from "./screens/MenuScreen";
 import StoryScreen from "./screens/StoryScreen";
+import CollezioneScreen from "./screens/CollezioneScreen";
 import CartScreen from "./screens/CartScreen";
 import ProductScreen from "./screens/ProductScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -48,11 +49,14 @@ const PizzaOrderStandalone = lazy(() =>
 
 const Chrome = () => {
   const { pathname } = useLocation();
-  const bare = pathname.startsWith("/admin") || pathname.startsWith("/order-pizza");
+  const admin = pathname.startsWith("/admin");
+  const bare = admin || pathname.startsWith("/order-pizza");
 
   return (
     <>
-      <Nav />
+      {/* The admin console ships its own chrome (AdminLayout); the storefront
+          nav would just overflow small screens there. */}
+      {!admin && <Nav />}
       <main>
         <Suspense fallback={null}>
         <Switch>
@@ -65,6 +69,7 @@ const Chrome = () => {
           <Route path="/order/:id" component={OrderScreen} />
           <Route path="/product/:id" component={ProductScreen} />
           <Route path="/story" exact component={StoryScreen} />
+          <Route path="/collezione" exact component={CollezioneScreen} />
 
           <Route
             path="/admin"

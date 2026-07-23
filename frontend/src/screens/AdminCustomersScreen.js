@@ -71,7 +71,7 @@ const AdminCustomersScreen = ({ history }) => {
             <tbody>
               {rows.map((c) => (
                 <tr key={c._id} className="admin-customers__row">
-                  <td>
+                  <td className="is-lead">
                     <div className="admin-customers__cust">
                       <div className="admin-customers__avatar">
                         {(c.name || "?").charAt(0).toUpperCase()}
@@ -79,15 +79,21 @@ const AdminCustomersScreen = ({ history }) => {
                       <span>{c.name}</span>
                     </div>
                   </td>
-                  <td className="admin-customers__td--email is-sm">{c.email}</td>
-                  <td>
+                  <td data-label="Email" className="admin-customers__td--email is-sm">
+                    {c.email}
+                  </td>
+                  <td data-label="Tessera">
                     <span className={`admin-customers__tier admin-customers__tier--${tierMod[c.tier]}`}>
                       {c.tier}
                     </span>
                   </td>
-                  <td className="admin-customers__td--num">{c.orders}</td>
-                  <td className="admin-customers__td--spend">{fmt(c.spend)}</td>
-                  <td className="admin-customers__td--last is-sm">
+                  <td data-label="Ordini" className="admin-customers__td--num">
+                    {c.orders}
+                  </td>
+                  <td data-label="Speso" className="admin-customers__td--spend">
+                    {fmt(c.spend)}
+                  </td>
+                  <td data-label="Ultimo ordine" className="admin-customers__td--last is-sm">
                     {c.last ? c.last.toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
                   </td>
                 </tr>

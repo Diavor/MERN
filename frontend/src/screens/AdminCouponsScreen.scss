@@ -2,6 +2,7 @@
 // Faithful port of the former inline styles. The submit button's saving
 // opacity is a state-driven modifier (is-saving). Shared adminTh/adminTd
 // table cell style-objects and admin-kit components are kept inline as-is.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 .admin-coupons {
@@ -10,9 +11,17 @@
   gap: 24px;
   align-items: start;
 
+  // form column stacks under the table once the pair can't fit next to the
+  // console sidebar
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
+  }
+
   &__table-card {
     background: var(--bg-2);
     border: 1px solid var(--line);
+    // let the column shrink; the table scrolls inside __table-wrap
+    min-width: 0;
   }
 
   &__card-head {

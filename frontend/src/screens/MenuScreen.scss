@@ -147,7 +147,8 @@
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    // min(…, 100%) lets cards shrink below 320px on the narrowest phones
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
     gap: 28px;
     margin-top: 48px;
     margin-bottom: 48px;

@@ -30,3 +30,7 @@ yarn-error.log*
 # local upload store (ephemeral; use object storage in production)
 /uploads/*
 !/uploads/.gitkeep
+
+# machine-local Claude Code config (permissions, launch profiles)
+.claude/settings.local.json
+.claude/launch.json

@@ -2,6 +2,7 @@
 // State-driven visuals (active step / order type / payment / auth mode) are
 // expressed as `.is-active` modifiers. Shared child components (DatePicker,
 // TimeSlotPicker, ZoneSelector, OrderSummary, Field, Message) style themselves.
+@use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
 .checkout {
@@ -74,7 +75,7 @@
     gap: 14px;
 
     &.is-span {
-      grid-column: span 2;
+      grid-column: 1 / -1;
     }
 
     &.is-top {
@@ -112,12 +113,23 @@
     grid-template-columns: 1.4fr 1fr;
     gap: 80px;
     align-items: start;
+
+    // summary stacks under the form on tablets and phones; minmax(0,…) so the
+    // single column can shrink below its content's intrinsic width
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 48px;
+    }
   }
 
   &__nav {
     margin-top: 48px;
     display: flex;
     justify-content: space-between;
+    // both step buttons are nowrap pills; let the row wrap on narrow phones
+    // instead of dictating the page's minimum width
+    flex-wrap: wrap;
+    gap: 12px;
     padding-top: 32px;
     border-top: 1px solid var(--line);
   }
@@ -172,6 +184,10 @@
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-bottom: 28px;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__option {
@@ -204,6 +220,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__span-full {
@@ -215,6 +235,10 @@
     display: grid;
     grid-template-columns: 1.1fr 1fr;
     gap: 24px;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
   }
 
   // ── Step 2 · payment methods ─────────────────────────────────────
@@ -222,6 +246,10 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__method {

@@ -1,0 +1,450 @@
+// La Collezione — cinematic dark showcase. Everything is scoped under
+// .collezione (page) or body.page-collezione (chrome overrides added/removed
+// by the screen on mount) so the dark treatment never leaks to other routes.
+@use "../styles/tokens" as *;
+@reference "../styles/theme.css";
+
+.collezione {
+  // page-local palette: warm charcoal / cream / wheat-gold / ember
+  --k-bg: #171310;
+  --k-bg-2: #1f1a14;
+  --k-line: rgba(241, 231, 208, 0.16);
+  --k-cream: #f1e7d0;
+  --k-cream-dim: rgba(241, 231, 208, 0.72);
+  --k-cream-faint: rgba(241, 231, 208, 0.45);
+  --k-gold: #d9a95e;
+  --k-ember: #e05a2b;
+
+  position: relative;
+  margin-top: -1px; // tuck under the fixed nav's transparent strip
+  background: var(--k-bg);
+  color: var(--k-cream);
+
+  // flour-grain texture overlay across the whole page
+  &::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.9 0 0 0 0 0.8 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
+
+  // ── Hero: scroll-scrub track ──────────────────────────────────────────────
+  &__hero {
+    height: 280vh;
+    position: relative;
+  }
+
+  &__hero-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  &__hero-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__hero-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(23, 19, 16, 0.55) 0%, rgba(23, 19, 16, 0) 30%),
+      linear-gradient(0deg, rgba(23, 19, 16, 0.85) 0%, rgba(23, 19, 16, 0) 45%);
+  }
+
+  &__hero-copy {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 12vh;
+    text-align: center;
+  }
+
+  &__hero-title {
+    margin: 0;
+    font-size: clamp(56px, 10vw, 152px);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--k-cream);
+    animation: collezione-track-in 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  &__hero-tagline {
+    margin-top: 18px;
+    font-size: clamp(18px, 2.2vw, 26px);
+    color: var(--k-cream-dim);
+    animation: collezione-fade-up 1.6s 0.7s ease both;
+  }
+
+  &__hero-hint {
+    margin-top: 5vh;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--k-cream-faint);
+    animation: collezione-fade-up 1.6s 1.3s ease both;
+  }
+
+  // ── Media-backed sections (impasti / delivery) ────────────────────────────
+  &__section {
+    position: relative;
+    overflow: hidden;
+    padding: 140px 0;
+  }
+
+  &__section-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.18); // parallax headroom
+    will-change: transform;
+  }
+
+  &__section-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(23, 19, 16, 0.72);
+  }
+
+  &__section-inner {
+    position: relative;
+    z-index: 2;
+  }
+
+  // ── Shared type ───────────────────────────────────────────────────────────
+  // `& &__x` bumps specificity so these win over the single-class globals
+  // (.eyebrow's text-gold, .b-btn's colors) regardless of bundle order.
+  & &__eyebrow {
+    color: var(--k-gold);
+    margin-bottom: 20px;
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: clamp(40px, 5.5vw, 76px);
+    line-height: 1.05;
+    color: var(--k-cream);
+
+    .it {
+      color: var(--k-gold);
+      font-weight: 300;
+    }
+  }
+
+  &__note {
+    margin-top: 24px;
+    max-width: 620px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--k-cream-dim);
+  }
+
+  // ── Doughs ────────────────────────────────────────────────────────────────
+  &__doughs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 80px;
+  }
+
+  &__dough {
+    border-top: 1px solid var(--k-line);
+    padding-top: 20px;
+  }
+
+  &__dough-num {
+    color: var(--k-gold);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+  }
+
+  &__dough-name {
+    margin: 14px 0 12px;
+    font-size: 30px;
+    color: var(--k-cream);
+  }
+
+  &__dough-desc {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--k-cream-dim);
+  }
+
+  // ── La Collezione grid ────────────────────────────────────────────────────
+  &__grid-section {
+    position: relative;
+    z-index: 2;
+    padding: 140px 0;
+    background: var(--k-bg-2);
+  }
+
+  &__pizzas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 70px;
+  }
+
+  &__pizza {
+    border: 1px solid var(--k-line);
+    padding: 44px 40px 40px;
+    background: rgba(23, 19, 16, 0.55);
+    transition: border-color 0.3s ease;
+
+    &:hover {
+      border-color: var(--k-gold);
+    }
+  }
+
+  &__pizza-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  &__pizza-name {
+    margin: 0;
+    font-size: clamp(30px, 3vw, 42px);
+    color: var(--k-cream);
+  }
+
+  &__pizza-price {
+    color: var(--k-gold);
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  &__pizza-desc {
+    margin: 22px 0 0;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--k-cream-dim);
+  }
+
+  // ── Delivery ──────────────────────────────────────────────────────────────
+  &__zones {
+    margin-top: 40px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 2.2;
+    color: var(--k-gold);
+  }
+
+  // ── Closing ───────────────────────────────────────────────────────────────
+  &__closing {
+    position: relative;
+    z-index: 2;
+    padding: 140px 0 120px;
+    border-top: 1px solid var(--k-line);
+  }
+
+  &__closing-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  &__facts {
+    margin: 48px 0 0;
+    display: grid;
+    gap: 36px;
+
+    dt {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--k-gold);
+      margin-bottom: 10px;
+    }
+
+    dd {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.5;
+      color: var(--k-cream-dim);
+    }
+  }
+
+  & &__cta {
+    margin-top: 48px;
+    background: var(--k-ember);
+    border-color: var(--k-ember);
+    color: var(--k-cream);
+
+    &:hover {
+      background: var(--k-gold);
+      border-color: var(--k-gold);
+      color: var(--k-bg);
+    }
+  }
+
+  &__map {
+    border: 1px solid var(--k-line);
+    aspect-ratio: 4 / 3;
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      filter: grayscale(0.4) sepia(0.18) contrast(0.95);
+    }
+  }
+
+  // ── Sticky mobile call bar ────────────────────────────────────────────────
+  &__callbar {
+    display: none;
+  }
+
+  // ── Mobile pass ───────────────────────────────────────────────────────────
+  @media (max-width: $bp-mobile) {
+    &__hero {
+      height: 220vh;
+    }
+
+    &__section {
+      padding: 90px 0;
+    }
+
+    &__doughs {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      margin-top: 56px;
+    }
+
+    &__grid-section {
+      padding: 90px 0;
+    }
+
+    &__pizzas {
+      grid-template-columns: 1fr;
+      margin-top: 48px;
+    }
+
+    &__pizza {
+      padding: 32px 26px 28px;
+    }
+
+    &__closing {
+      padding: 90px 0 140px; // room for the call bar
+    }
+
+    &__closing-inner {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+
+    &__callbar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 95;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+      background: var(--k-ember);
+      color: var(--k-cream);
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+    }
+  }
+}
+
+@keyframes collezione-track-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.34em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.04em;
+  }
+}
+
+@keyframes collezione-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── Chrome overrides while on /collezione ───────────────────────────────────
+// The fixed nav is dark-on-transparent; over the charcoal hero flip it to
+// cream until it gains its scrolled scrim.
+body.page-collezione {
+  background: #171310;
+
+  .nav:not(.is-scrolled) {
+    .nav__logo {
+      filter: brightness(0) saturate(100%) invert(92%) sepia(10%) saturate(500%)
+        hue-rotate(10deg);
+    }
+
+    .nav__link {
+      color: rgba(241, 231, 208, 0.75);
+
+      &.is-active {
+        color: #d9a95e;
+
+        &::after {
+          background: #d9a95e;
+        }
+      }
+    }
+
+    .nav__logout {
+      color: rgba(241, 231, 208, 0.55);
+    }
+
+    .nav__search {
+      color: rgba(241, 231, 208, 0.85);
+      border-color: rgba(241, 231, 208, 0.3);
+    }
+
+    .nav__cart {
+      color: #f1e7d0;
+      border-color: rgba(241, 231, 208, 0.35);
+    }
+
+    .nav__burger {
+      color: #f1e7d0;
+      border-color: rgba(241, 231, 208, 0.35);
+    }
+  }
+
+  // keep the floating cart pill clear of the sticky call bar
+  @media (max-width: $bp-mobile) {
+    .floating-cart {
+      bottom: 92px;
+    }
+  }
+}
