@@ -22,7 +22,22 @@ export const getPages = asyncHandler(async (req, res) => {
 // @access   Public
 export const getPageBySlug = asyncHandler(async (req, res) => {
   const page = await Page.findOne({ slug: req.params.slug, status: "published" });
-  if (page) {
+
+  // A page is publicly readable only when it's published AND its visibility
+  // allows it right now:
+  //   • public    — always visible
+  //   • private   — never served on the storefront (admin/preview only)
+  //   • scheduled — visible only once publishDate has passed
+  // Anything else is indistinguishable from "not found" to the public.
+  const isPublic =
+    page &&
+    (page.visibility === "public" ||
+      !page.visibility ||
+      (page.visibility === "scheduled" &&
+        page.publishDate &&
+        new Date(page.publishDate).getTime() <= Date.now()));
+
+  if (isPublic) {
     res.json(page);
   } else {
     res.status(404);

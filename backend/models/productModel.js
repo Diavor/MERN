@@ -41,9 +41,16 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    // Primary/cover image. Kept required for back-compat: menu cards, cart lines
+    // and order items all read `img`. It mirrors images[0] when a gallery exists.
     img: {
       type: String,
       required: true,
+    },
+    // Optional additional photos (gallery). First entry is treated as the cover.
+    images: {
+      type: [String],
+      default: [],
     },
     brand: {
       type: String,

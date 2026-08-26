@@ -2,6 +2,11 @@ import env from "./config/env.js";
 import logger from "./utils/logger.js";
 import connectDB, { disconnectDB } from "./config/db.js";
 import app from "./app.js";
+import {
+  startOrderChangeStream,
+  stopOrderChangeStream,
+} from "./services/orderChangeStream.js";
+import { closeQueues } from "./services/queue.service.js";
 
 // Boot sequence: connect to Mongo, then start accepting traffic. If the DB is
 // unreachable at startup we crash loudly so the orchestrator restarts us.
@@ -11,6 +16,14 @@ const start = async () => {
   } catch (err) {
     logger.fatal({ err }, "Failed to connect to MongoDB on startup");
     process.exit(1);
+  }
+
+  // Order events flow from the DB change stream (requires a replica set); on
+  // failure it degrades to in-process emits, so this must not block boot.
+  try {
+    startOrderChangeStream();
+  } catch (err) {
+    logger.warn({ err }, "Could not start order change stream");
   }
 
   const server = app.listen(env.PORT, () =>
@@ -23,6 +36,10 @@ const start = async () => {
     logger.info(`${signal} received — shutting down gracefully`);
     server.close(async () => {
       try {
+        // Let in-flight jobs finish, then release the change stream before the
+        // DB pool closes under it.
+        await closeQueues();
+        await stopOrderChangeStream();
         await disconnectDB();
       } catch (err) {
         logger.error({ err }, "Error during DB disconnect");

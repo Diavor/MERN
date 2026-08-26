@@ -66,6 +66,21 @@ actually works, not a generic ideal.
   (`PizzaOrderStandalone`). Never import it in new code.
 - No external UI libraries. Compose from existing brace/ui primitives
   (`Loader`, `Message`, `Icon`, `Field`, `Portal`, `SectionHead`, …) first.
+- **Form fields — two parallel families, split by domain; don't cross them:**
+  - Storefront (`brace/ui/`): `Field` (text/`multiline`), `FieldSelect`
+    (accessible custom listbox, `variant="field"|"pill"`). Used by
+    login/register/profile/checkout/menu/product. Prefer these over hand-rolled
+    `<label>`+`<input>`/`<textarea>`/`<select>`.
+    `onChange` receives the **raw value**, not the event.
+  - Admin (`brace/admin/kit.js`): `AdminFieldText` / `AdminFieldArea` /
+    `AdminFieldSelect` — richer (focus state, inline `error`, `hint`, `prefix`,
+    `<datalist>` options). Admin editors (e.g. `ProductEditModal`) use these;
+    do **not** swap them for the storefront `Field`, which lacks those features.
+  - Inline composites (search box + icon, input + adjacent button, repeatable
+    name/price rows) are intentionally raw — a labelled Field doesn't fit; leave
+    them.
+  - React is **17** here: no `useId` or other 18-only hooks. `FieldSelect` uses
+    a module-scoped id counter (`useAutoId`) instead — follow that pattern.
 - Keep components under ~200 lines; extract page-local subcomponents in the
   same file, promote to `brace/ui/` only when a second screen needs them.
 - Copy/content tone is Italian-first for storefront pages.

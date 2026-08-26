@@ -1,0 +1,120 @@
+// Desserts (category "Dolci") for the menu + admin catalog. Like beverages,
+// they're simple line items — no toppings or dough variants. Images reuse the
+// /img/dessert-*.jpg convention; ProductImage falls back to the plate
+// placeholder when a file is missing.
+const desserts = [
+  {
+    name: "Tiramisù della Casa",
+    img: "/img/dessert-tiramisu.jpg",
+    description:
+      "Savoiardi inzuppati nel caffè, crema al mascarpone e cacao amaro.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 5.0,
+    countInStock: 60,
+    rating: 4.9,
+    numReviews: 21,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Panna Cotta ai Frutti di Bosco",
+    img: "/img/dessert-pannacotta.jpg",
+    description:
+      "Panna cotta vellutata con coulis di frutti di bosco freschi.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 4.5,
+    countInStock: 50,
+    rating: 4.7,
+    numReviews: 12,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Cannolo Siciliano",
+    img: "/img/dessert-cannolo.jpg",
+    description:
+      "Cialda croccante ripiena di ricotta dolce e gocce di cioccolato.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 4.0,
+    countInStock: 70,
+    rating: 4.8,
+    numReviews: 17,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Tartufo Nero",
+    img: "/img/dessert-tartufo.jpg",
+    description:
+      "Semifreddo al cioccolato fondente con cuore morbido, spolverato di cacao.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 4.5,
+    countInStock: 45,
+    rating: 4.6,
+    numReviews: 9,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Profiteroles",
+    img: "/img/dessert-profiteroles.jpg",
+    description:
+      "Bignè ripieni di panna, ricoperti di crema al cioccolato.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 5.0,
+    countInStock: 40,
+    rating: 4.7,
+    numReviews: 8,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Sorbetto al Limone",
+    img: "/img/dessert-sorbetto.jpg",
+    description:
+      "Sorbetto artigianale al limone, fresco e agrumato. Senza glutine.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 3.5,
+    countInStock: 80,
+    rating: 4.4,
+    numReviews: 6,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Cheesecake ai Frutti di Bosco",
+    img: "/img/dessert-cheesecake.jpg",
+    description:
+      "Base croccante, crema al formaggio e topping di frutti di bosco.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 5.0,
+    countInStock: 50,
+    rating: 4.8,
+    numReviews: 14,
+    toppings: [],
+    doughVariants: [],
+  },
+  {
+    name: "Nutella Pizza",
+    img: "/img/dessert-nutella-pizza.jpg",
+    description:
+      "Impasto dolce cotto nel forno a legna, farcito con Nutella e zucchero a velo.",
+    brand: "Dolci",
+    category: "Dolci",
+    price: 7.0,
+    countInStock: 100,
+    rating: 4.9,
+    numReviews: 28,
+    toppings: [],
+    doughVariants: [],
+  },
+];
+
+export default desserts;

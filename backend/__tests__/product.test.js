@@ -60,4 +60,62 @@ describe("products", () => {
     const res = await request(app).get("/api/products/not-a-valid-id");
     assert.equal(res.status, 404);
   });
+
+  test("admin can update a product's toppings and dough variants", async () => {
+    const created = await request(app)
+      .post("/api/products")
+      .set("Authorization", `Bearer ${adminToken}`);
+    const id = created.body._id;
+
+    const res = await request(app)
+      .put(`/api/products/${id}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({
+        name: "Margherita",
+        price: 8,
+        description: "Pomodoro e mozzarella",
+        img: "/img/x.jpg",
+        brand: "Grani Antichi",
+        category: "Pizza",
+        countInStock: 100,
+        doughVariants: [{ name: "Senza glutine", price: 2 }],
+        toppings: [{ name: "Bufala", price: 1.5 }],
+      });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.doughVariants.length, 1);
+    assert.equal(res.body.doughVariants[0].name, "Senza glutine");
+    assert.equal(res.body.toppings[0].price, 1.5);
+  });
+
+  test("omitting toppings on update leaves the stored arrays untouched", async () => {
+    const created = await request(app)
+      .post("/api/products")
+      .set("Authorization", `Bearer ${adminToken}`);
+    const id = created.body._id;
+    const base = {
+      name: "Marinara",
+      price: 7,
+      description: "Pomodoro, aglio, origano",
+      img: "/img/y.jpg",
+      brand: "Grani Antichi",
+      category: "Pizza",
+      countInStock: 50,
+    };
+
+    await request(app)
+      .put(`/api/products/${id}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ ...base, toppings: [{ name: "Acciughe", price: 2 }] });
+
+    // A later update that doesn't mention toppings must not wipe them.
+    const res = await request(app)
+      .put(`/api/products/${id}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ ...base, price: 7.5 });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.toppings.length, 1);
+    assert.equal(res.body.toppings[0].name, "Acciughe");
+  });
 });

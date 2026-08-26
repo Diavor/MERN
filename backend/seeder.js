@@ -5,6 +5,7 @@ import users from "./data/users.js";
 import products from "./data/products.js";
 import pizzas from "./data/pizzas.js";
 import beverages from "./data/beverages.js";
+import desserts from "./data/desserts.js";
 import zones from "./data/zones.js";
 import coupons from "./data/coupons.js";
 import settings from "./data/settings.js";
@@ -33,7 +34,7 @@ const importData = async () => {
 
     const adminUser = createdUsers[0]._id;
 
-    const sampleProducts = [...products, ...pizzas, ...beverages].map((product) => {
+    const sampleProducts = [...products, ...pizzas, ...beverages, ...desserts].map((product) => {
       return { ...product, user: adminUser };
     });
 

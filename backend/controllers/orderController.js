@@ -3,8 +3,11 @@ import jwt from "jsonwebtoken";
 import Order from "../models/orderModel.js";
 import Coupon from "../models/couponModel.js";
 import User from "../models/userModel.js";
+import Zone from "../models/zoneModel.js";
 import { STATUS, applyTransition, nextStates } from "../services/orderStateMachine.js";
-import { emitOrderEvent, onOrderEvent } from "../services/orderEvents.js";
+import { emitFallbackOrderEvent, onOrderEvent } from "../services/orderEvents.js";
+import { enqueue, QUEUE, JOB } from "../services/queue.service.js";
+import { SLOT_CAPACITY, reserveSlot, releaseSlot } from "../services/slotReservation.js";
 
 // @desc     Create new order
 // @route    POST /api/orders
@@ -28,6 +31,30 @@ export const addOrderItems = asyncHandler(async (req, res) => {
     throw new Error("No order items");
   }
 
+  // Reserve slot capacity before persisting the order, so a full slot can never
+  // be oversold from the storefront (the embeddable widget reserves the same
+  // way). Each storefront order takes one unit of the slot's load; a delivery
+  // order is additionally capped by its zone's `maxOrders` when that is tighter
+  // than the global ceiling. Orders without a scheduled slot skip reservation.
+  const deliveryDate = shippingAddress?.deliveryDate;
+  const deliverySlot = shippingAddress?.deliverySlot;
+  let reserved = false;
+  if (deliveryDate && deliverySlot) {
+    let capacity = SLOT_CAPACITY;
+    if (shippingAddress?.orderType === "delivery" && shippingAddress?.city) {
+      const zone = await Zone.findOne({ name: shippingAddress.city, active: true });
+      if (zone && typeof zone.maxOrders === "number") {
+        capacity = Math.min(SLOT_CAPACITY, zone.maxOrders);
+      }
+    }
+    const { ok } = await reserveSlot({ date: deliveryDate, time: deliverySlot, units: 1, capacity });
+    if (!ok) {
+      res.status(409);
+      throw new Error("Questo orario di consegna è al completo. Scegli un altro orario.");
+    }
+    reserved = true;
+  }
+
   const order = new Order({
     orderItems,
     user: req.user?._id || null,
@@ -45,8 +72,19 @@ export const addOrderItems = asyncHandler(async (req, res) => {
     statusHistory: [{ status: STATUS.PENDING_PAYMENT, by: req.user?._id || null }],
   });
 
-  const createdOrder = await order.save();
-  emitOrderEvent("created", createdOrder.toObject());
+  let createdOrder;
+  try {
+    createdOrder = await order.save();
+  } catch (err) {
+    // Roll back the slot hold so a failed save doesn't leave phantom load.
+    if (reserved) await releaseSlot({ date: deliveryDate, time: deliverySlot, units: 1 });
+    throw err;
+  }
+  emitFallbackOrderEvent("created", createdOrder.toObject());
+
+  // Confirmation email goes through the background queue — the customer's
+  // response never waits on (or fails because of) the email transport.
+  enqueue(QUEUE.EMAILS, JOB.ORDER_CONFIRMATION, { order: createdOrder.toObject() });
 
   // Count the redemption so coupon usage limits (maxUses) stay accurate. Best
   // effort — a missing/renamed code must never block a paid order.
@@ -113,7 +151,7 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
   if (order.status === STATUS.PENDING_PAYMENT) applyTransition(order, STATUS.PAID, { by: req.user?._id });
 
   const updatedOrder = await order.save();
-  emitOrderEvent("updated", updatedOrder.toObject());
+  emitFallbackOrderEvent("updated", updatedOrder.toObject());
   res.json(updatedOrder);
 });
 
@@ -139,7 +177,7 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
     order.deliveredAt = order.deliveredAt || Date.now();
   }
   const updatedOrder = await order.save();
-  emitOrderEvent("updated", updatedOrder.toObject());
+  emitFallbackOrderEvent("updated", updatedOrder.toObject());
   res.json(updatedOrder);
 });
 
@@ -159,7 +197,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw e;
   }
   const updatedOrder = await order.save();
-  emitOrderEvent("updated", updatedOrder.toObject());
+  emitFallbackOrderEvent("updated", updatedOrder.toObject());
   res.json(updatedOrder);
 });
 

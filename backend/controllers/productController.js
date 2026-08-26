@@ -94,7 +94,8 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @route    PUT /api/products/:id
 // @access   Private/Admin
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, img, brand, category, countInStock } = req.body;
+  const { name, price, description, img, images, brand, category, countInStock, toppings, doughVariants } =
+    req.body;
 
   const product = await Product.findById(req.params.id);
   if (product) {
@@ -102,9 +103,20 @@ export const updateProduct = asyncHandler(async (req, res) => {
     product.price = price;
     product.description = description;
     product.img = img;
+    // Gallery is optional in the payload; when sent, replace it and keep the
+    // cover (img) in sync with the first photo.
+    if (images !== undefined) {
+      product.images = images;
+      if (images.length > 0) product.img = images[0];
+    }
     product.brand = brand;
     product.category = category;
     product.countInStock = countInStock;
+    // Priced add-ons + dough variants are optional in the payload; only replace
+    // them when the client actually sends them, so partial updates don't wipe
+    // existing menu configuration.
+    if (toppings !== undefined) product.toppings = toppings;
+    if (doughVariants !== undefined) product.doughVariants = doughVariants;
 
     const updatedProduct = await product.save();
     res.json(updatedProduct);

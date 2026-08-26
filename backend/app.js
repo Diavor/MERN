@@ -13,6 +13,8 @@ import { isDbReady } from "./config/db.js";
 import requestId from "./middleware/requestId.js";
 import { apiLimiter } from "./middleware/rateLimit.js";
 import { notFound, errorHandler } from "./middleware/error.js";
+import { adminPage } from "./middleware/authMiddleware.js";
+import { queuesEnabled, getQueues } from "./services/queue.service.js";
 
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -132,6 +134,23 @@ app.get("/api/config/auth", (req, res) =>
     appleClientId: env.APPLE_CLIENT_ID || "",
   })
 );
+
+// --- Job queue dashboard (bull-board) ----------------------------------------
+// Admin-only. Open as /admin/queues?token=<accessToken>; disabled when queues
+// are (tests, or no Redis configured).
+if (queuesEnabled()) {
+  const { createBullBoard } = await import("@bull-board/api");
+  const { BullMQAdapter } = await import("@bull-board/api/bullMQAdapter");
+  const { ExpressAdapter } = await import("@bull-board/express");
+
+  const serverAdapter = new ExpressAdapter();
+  serverAdapter.setBasePath("/admin/queues");
+  createBullBoard({
+    queues: getQueues().map((q) => new BullMQAdapter(q)),
+    serverAdapter,
+  });
+  app.use("/admin/queues", adminPage, serverAdapter.getRouter());
+}
 
 // --- Static assets -----------------------------------------------------------
 const __dirname = path.resolve();
