@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import axios from "../api/axiosConfig";
 import Icon from "../brace/ui/Icon";
 import Loader from "../brace/ui/Loader";
 import Message from "../brace/ui/Message";
 import PizzaCard from "../brace/ui/PizzaCard";
+import FieldSelect from "../brace/ui/FieldSelect";
 import { useToast } from "../brace/ui/Toast";
 import { useCartUI } from "../brace/ui/CartUI";
 import Paginate from "../components/Paginate";
@@ -14,6 +16,7 @@ import { addToCart } from "../store/actions/cart";
 import "./MenuScreen.scss";
 
 const MenuScreen = ({ history, match }) => {
+  const { t } = useTranslation();
   const keyword = match.params.keyword || "";
   const pageNumber = match.params.pageNumber || 1;
 
@@ -69,30 +72,27 @@ const MenuScreen = ({ history, match }) => {
 
   const quickAdd = (product) => {
     dispatch(addToCart(product._id, 1, [], null));
-    toast(`Aggiunto al carrello · ${product.name}`, "ok");
+    toast(t("common.addedToCart", { name: product.name }), "ok");
     cartUI.setOpen(true);
   };
 
   return (
     <div className="menu">
-      <Meta title="Grani Antichi | Il menu" />
+      <Meta title={t("menu.metaTitle")} />
       <div className="b-container">
         {/* Header */}
         <div className="menu__header">
           <div className="eyebrow menu__eyebrow">
-            Il menu
+            {t("menu.eyebrow")}
           </div>
           <h1 className="display menu__title">
-            La carta,
+            {t("menu.title")}
             <br />
             <span className="it menu__title-accent">
-              per intero.
+              {t("menu.titleAccent")}
             </span>
           </h1>
-          <p className="menu__lede">
-            Tutte le nostre pizze e bevande, cotte nel forno a legna. Cerca,
-            filtra per categoria e ordina come preferisci.
-          </p>
+          <p className="menu__lede">{t("menu.lede")}</p>
         </div>
 
         {/* Sticky filter bar */}
@@ -103,7 +103,7 @@ const MenuScreen = ({ history, match }) => {
                 onClick={() => setCat("all")}
                 className={`menu__pill${cat === "all" ? " is-active" : ""}`}
               >
-                Tutte
+                {t("menu.all")}
               </button>
               {categories.map((c) => (
                 <button
@@ -125,21 +125,23 @@ const MenuScreen = ({ history, match }) => {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Cerca una pizza…"
-                aria-label="Cerca una pizza"
+                placeholder={t("menu.searchPlaceholder")}
+                aria-label={t("menu.searchAria")}
                 className="menu__search-input"
               />
             </form>
-            <select
+            <FieldSelect
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              aria-label="Ordina per prezzo"
+              onChange={setSort}
+              ariaLabel={t("menu.sortAria")}
+              variant="pill"
               className="menu__sort"
-            >
-              <option value="default">Ordina</option>
-              <option value="price-asc">Prezzo crescente</option>
-              <option value="price-desc">Prezzo decrescente</option>
-            </select>
+              options={[
+                { value: "default", label: t("menu.sortDefault") },
+                { value: "price-asc", label: t("menu.sortPriceAsc") },
+                { value: "price-desc", label: t("menu.sortPriceDesc") },
+              ]}
+            />
           </div>
         </div>
 
@@ -158,11 +160,9 @@ const MenuScreen = ({ history, match }) => {
               {items.length === 0 ? (
                 <div className="menu__empty">
                   <div className="display menu__empty-title">
-                    Niente da mostrare.
+                    {t("menu.emptyTitle")}
                   </div>
-                  <p className="menu__empty-text">
-                    Prova a cambiare filtro o cerca un&apos;altra pizza.
-                  </p>
+                  <p className="menu__empty-text">{t("menu.emptyText")}</p>
                   <button
                     className="b-btn ghost menu__empty-btn"
                     onClick={() => {
@@ -171,7 +171,7 @@ const MenuScreen = ({ history, match }) => {
                       history.push("/menu");
                     }}
                   >
-                    Mostra tutto il menu
+                    {t("menu.showAll")}
                   </button>
                 </div>
               ) : (

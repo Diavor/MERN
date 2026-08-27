@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import Icon from "../brace/ui/Icon";
 import fmt from "../brace/ui/fmt";
@@ -16,7 +17,7 @@ import { DELIVERY_ZONES, FREE_DELIVERY_THRESHOLD } from "../brace/content";
 import { fetchActiveZones, validateCoupon } from "../brace/admin/api";
 import "./CheckoutScreen.scss";
 
-const STEP_LABELS = ["Contatti", "Pagamento", "Conferma"];
+const STEP_KEYS = ["checkout.stepContacts", "checkout.stepPayment", "checkout.stepConfirm"];
 
 // Round a currency amount to cents as a Number (avoids float noise like 8.499999
 // while keeping the value numeric, which the order validator requires).
@@ -48,6 +49,7 @@ const SectionLabel = ({ n, label, span, top }) => (
 );
 
 const CheckoutScreen = ({ history }) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const { cartItems } = useSelector((state) => state.cart);
@@ -161,18 +163,18 @@ const CheckoutScreen = ({ history }) => {
 
   const validateStep1 = () => {
     if (!name.trim() || !phone.trim() || !email.trim())
-      return "Inserisci nome, telefono ed email.";
+      return t("checkout.errContact");
     if (orderType === "delivery" && (!city || !street.trim() || !buildingNumber.trim()))
-      return "Completa l'indirizzo di consegna (zona, via e numero civico).";
+      return t("checkout.errAddress");
     if (
       orderType === "delivery" &&
       selectedZone &&
       selectedZone.minOrder > 0 &&
       itemsPrice < selectedZone.minOrder
     )
-      return `Ordine minimo ${fmt(selectedZone.minOrder)} per la zona ${city}.`;
-    if (!selectedDate) return "Scegli una data.";
-    if (!selectedSlot) return "Scegli un orario.";
+      return t("checkout.errMinOrder", { min: fmt(selectedZone.minOrder), city });
+    if (!selectedDate) return t("checkout.errDate");
+    if (!selectedSlot) return t("checkout.errSlot");
     return "";
   };
 
@@ -186,7 +188,7 @@ const CheckoutScreen = ({ history }) => {
       setAppliedCoupon(res); // { code, type, value, discount }
     } catch (e) {
       setAppliedCoupon(null);
-      setPromoError(e.message || "Codice non valido");
+      setPromoError(e.message || t("checkout.promoInvalid"));
     } finally {
       setPromoLoading(false);
     }
@@ -268,30 +270,30 @@ const CheckoutScreen = ({ history }) => {
         {/* progress */}
         <div className="checkout__progress">
           <div className="eyebrow checkout__eyebrow">
-            Checkout · Passo {step} di 3
+            {t("checkout.progress", { step })}
           </div>
           <h1 className="display checkout__title">
             {step === 1 ? (
               <>
-                Dove ti
+                {t("checkout.titleWhere1")}
                 <br />
                 <span className="it checkout__title-kicker">
-                  troviamo?
+                  {t("checkout.titleWhere2")}
                 </span>
               </>
             ) : (
               <>
-                Come
+                {t("checkout.titleHow1")}
                 <br />
                 <span className="it checkout__title-kicker">
-                  vuoi pagare?
+                  {t("checkout.titleHow2")}
                 </span>
               </>
             )}
           </h1>
 
           <div className="checkout__steps">
-            {STEP_LABELS.map((l, i) => (
+            {STEP_KEYS.map((l, i) => (
               <div
                 key={l}
                 className={"checkout__step" + (i + 1 <= step ? " is-active" : "")}
@@ -303,7 +305,7 @@ const CheckoutScreen = ({ history }) => {
                   }
                 >
                   <span>0{i + 1}</span>
-                  <span>{l}</span>
+                  <span>{t(l)}</span>
                   {i + 1 < step && <Icon.check className="checkout__step-check" />}
                 </div>
               </div>
@@ -372,7 +374,7 @@ const CheckoutScreen = ({ history }) => {
                 className="b-btn ghost"
               >
                 <Icon.arrow className="checkout__back-arrow" />{" "}
-                {step === 1 ? "Continua a comprare" : "Indietro"}
+                {step === 1 ? t("checkout.keepShopping") : t("checkout.back")}
               </button>
               <button
                 type="button"
@@ -382,14 +384,20 @@ const CheckoutScreen = ({ history }) => {
               >
                 {step === 1 ? (
                   <>
-                    Continua al pagamento <Icon.arrow className="arrow" />
+                    {t("checkout.continuePayment")} <Icon.arrow className="arrow" />
                   </>
                 ) : loading ? (
-                  "Invio ordine…"
+                  t("checkout.sending")
                 ) : (
                   <>
-                    Ordina · paga {paymentMethod === "Contanti" ? "alla consegna" : "al POS"}{" "}
-                    {fmt(totalPrice)} <Icon.arrow className="arrow" />
+                    {t("checkout.orderBtn", {
+                      where:
+                        paymentMethod === "Contanti"
+                          ? t("checkout.onDelivery")
+                          : t("checkout.atPos"),
+                      total: fmt(totalPrice),
+                    })}{" "}
+                    <Icon.arrow className="arrow" />
                   </>
                 )}
               </button>
@@ -452,6 +460,7 @@ const Step1 = ({
   zones,
   zonesLoading,
 }) => {
+  const { t } = useTranslation();
   return (
     <div>
       {/* guest / login toggle (only for anonymous visitors) */}
@@ -467,34 +476,31 @@ const Step1 = ({
                   "checkout__auth-btn" + (mode === k ? " is-active" : "")
                 }
               >
-                {k === "guest" ? "Continua come ospite" : "Accedi"}
+                {k === "guest" ? t("checkout.asGuest") : t("nav.login")}
               </button>
             ))}
           </div>
           {mode === "login" && (
             <div className="checkout__auth-hint">
-              Hai già un account?{" "}
+              {t("auth.haveAccount")}{" "}
               <Link
                 to="/login?redirect=/checkout"
                 className="checkout__auth-link"
               >
-                Accedi
+                {t("nav.login")}
               </Link>{" "}
-              per ritrovare i tuoi dati — oppure continua come ospite.
+              {t("checkout.loginHintRest")}
             </div>
           )}
         </>
       )}
 
       {/* delivery toggle */}
-      <SectionLabel
-        n="01"
-        label={orderType === "delivery" ? "Consegna o ritiro" : "Consegna o ritiro"}
-      />
+      <SectionLabel n="01" label={t("checkout.deliveryOrPickup")} />
       <div className="checkout__options">
         {[
-          ["delivery", "Consegna a casa", "Mogliano Veneto e dintorni"],
-          ["pickup", "Ritiro in pizzeria", "Nessun costo di consegna"],
+          ["delivery", t("checkout.deliveryHome"), t("checkout.deliveryHomeSub")],
+          ["pickup", t("checkout.pickupOpt"), t("checkout.pickupSub")],
         ].map(([k, l, sub]) => (
           <button
             type="button"
@@ -509,15 +515,15 @@ const Step1 = ({
       </div>
 
       {/* contact fields */}
-      <SectionLabel n="02" label="I tuoi contatti" top />
+      <SectionLabel n="02" label={t("checkout.yourContacts")} top />
       <div className="checkout__grid">
-        <Field label="Nome e cognome" value={name} onChange={setName} span={2} required />
-        <Field label="Telefono" value={phone} onChange={setPhone} type="tel" required />
-        <Field label="Email" value={email} onChange={setEmail} type="email" required />
+        <Field label={t("auth.fullName")} value={name} onChange={setName} span={2} required />
+        <Field label={t("checkout.phone")} value={phone} onChange={setPhone} type="tel" required />
+        <Field label={t("auth.email")} value={email} onChange={setEmail} type="email" required />
 
         {orderType === "delivery" && (
           <>
-            <SectionLabel n="03" label="Indirizzo di consegna" span={2} top />
+            <SectionLabel n="03" label={t("checkout.deliveryAddress")} span={2} top />
             <div className="checkout__span-full">
               <ZoneSelector
                 zones={zones}
@@ -528,7 +534,7 @@ const Step1 = ({
               />
             </div>
             <Field
-              label="Via"
+              label={t("checkout.street")}
               value={street}
               onChange={setStreet}
               span={2}
@@ -536,18 +542,18 @@ const Step1 = ({
               required
             />
             <Field
-              label="Numero civico"
+              label={t("checkout.buildingNumber")}
               value={buildingNumber}
               onChange={setBuildingNumber}
               required
             />
-            <Field label="Piano · interno" value={floor} onChange={setFloor} />
+            <Field label={t("checkout.floor")} value={floor} onChange={setFloor} />
           </>
         )}
 
         <SectionLabel
           n={orderType === "delivery" ? "04" : "03"}
-          label="Quando ti serviamo"
+          label={t("checkout.whenServe")}
           span={2}
           top
         />
@@ -564,12 +570,12 @@ const Step1 = ({
 
         <SectionLabel
           n={orderType === "delivery" ? "05" : "04"}
-          label="Note per la cucina"
+          label={t("checkout.kitchenNotes")}
           span={2}
           top
         />
         <Field
-          label="Allergie, citofono, richieste particolari…"
+          label={t("checkout.notesLabel")}
           value={notes}
           onChange={setNotes}
           span={2}
@@ -582,24 +588,26 @@ const Step1 = ({
 
 // ---- STEP 2: payment method ----
 const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
+  const { t } = useTranslation();
+  // Method ids are data values persisted on the order — only labels translate.
   const methods = [
     {
       id: "Contanti",
-      label: "Contanti",
-      sub: "Paghi alla consegna o al ritiro",
+      label: t("checkout.cashLabel"),
+      sub: t("checkout.cashSub"),
       icon: "€",
     },
     {
       id: "Bancomat",
-      label: "Bancomat / Carta",
-      sub: "POS a bordo · Visa · Mastercard",
+      label: t("checkout.cardLabel"),
+      sub: t("checkout.cardSub"),
       icon: "💳",
     },
   ];
 
   return (
     <div>
-      <SectionLabel n="01" label="Come vuoi pagare" />
+      <SectionLabel n="01" label={t("checkout.paymentHow")} />
       <div className="checkout__methods">
         {methods.map((opt) => (
           <button
@@ -623,7 +631,7 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
       {/* Decorative "POS a bordo" card visual for Bancomat */}
       {paymentMethod === "Bancomat" && (
         <div className="checkout__pos">
-          <SectionLabel n="02" label="Pagamento alla consegna" />
+          <SectionLabel n="02" label={t("checkout.posSection")} />
           <div className="checkout__card">
             <div className="checkout__card-glow" />
             <div className="checkout__card-inner">
@@ -632,7 +640,7 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
                   Grani Antichi
                 </span>
                 <span className="mono checkout__card-tag">
-                  POS a bordo
+                  {t("checkout.posTag")}
                 </span>
               </div>
               <div className="mono checkout__card-number">
@@ -641,7 +649,7 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
               <div className="checkout__card-foot">
                 <div>
                   <div className="mono checkout__card-caption">
-                    TITOLARE
+                    {t("checkout.cardHolder")}
                   </div>
                   <div className="mono checkout__card-value is-upper">
                     {name || "—"}
@@ -649,10 +657,10 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
                 </div>
                 <div>
                   <div className="mono checkout__card-caption">
-                    PAGAMENTO
+                    {t("checkout.cardPayment")}
                   </div>
                   <div className="mono checkout__card-value">
-                    Alla consegna
+                    {t("checkout.cardOnDelivery")}
                   </div>
                 </div>
               </div>
@@ -661,7 +669,7 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
           <div className="checkout__rider">
             <span className="checkout__rider-dot" />
             <span className="mono checkout__rider-text">
-              Il rider porta il POS · paghi con carta o bancomat alla consegna
+              {t("checkout.riderText")}
             </span>
           </div>
         </div>
@@ -670,12 +678,9 @@ const Step2 = ({ paymentMethod, setPaymentMethod, name }) => {
       {paymentMethod === "Contanti" && (
         <div className="checkout__cash">
           <div className="display checkout__cash-title">
-            Contanti
+            {t("checkout.cashLabel")}
           </div>
-          <p className="checkout__cash-text">
-            Paghi in contanti direttamente al rider (o al banco, se ritiri).
-            Tieni pronto l'importo — il resto lo portiamo noi.
-          </p>
+          <p className="checkout__cash-text">{t("checkout.cashText")}</p>
         </div>
       )}
     </div>

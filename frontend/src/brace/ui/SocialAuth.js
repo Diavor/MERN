@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import axios from "../../api/axiosConfig";
 import { googleLogin, appleLogin } from "../../store/actions/user";
 import "./SocialAuth.scss";
@@ -34,6 +35,7 @@ const APPLE_SRC =
 // configured client id (GET /api/config/auth), so an unconfigured deployment
 // shows nothing extra.
 const SocialAuth = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [config, setConfig] = useState(null);
   const googleBtnRef = useRef(null);
@@ -112,7 +114,7 @@ const SocialAuth = () => {
   return (
     <div className="social-auth">
       <div className="social-auth__divider">
-        <span>oppure</span>
+        <span>{t("auth.or")}</span>
       </div>
 
       <div className="social-auth__buttons">
@@ -125,7 +127,7 @@ const SocialAuth = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M17.05 12.97c-.02-2.03 1.66-3 1.74-3.05-.95-1.39-2.43-1.58-2.96-1.6-1.26-.13-2.46.74-3.1.74-.64 0-1.62-.72-2.66-.7-1.37.02-2.63.8-3.34 2.02-1.42 2.47-.36 6.12 1.02 8.12.67.98 1.48 2.08 2.53 2.04 1.02-.04 1.4-.66 2.64-.66 1.23 0 1.58.66 2.66.64 1.1-.02 1.79-1 2.46-1.98.77-1.13 1.09-2.23 1.11-2.29-.02-.01-2.13-.82-2.15-3.25zM15.1 6.9c.56-.68.94-1.63.84-2.58-.81.03-1.79.54-2.37 1.22-.52.6-.98 1.56-.86 2.48.9.07 1.83-.46 2.39-1.12z" />
             </svg>
-            Continua con Apple
+            {t("auth.continueApple")}
           </button>
         )}
       </div>

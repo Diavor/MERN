@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import Icon from "./Icon";
 import fmt from "./fmt";
 import ProductImage from "./ProductImage";
@@ -35,6 +36,7 @@ const lineCaption = (item) => {
 };
 
 const CartDrawer = () => {
+  const { t } = useTranslation();
   const { open, setOpen } = useCartUI();
   const history = useHistory();
   const dispatch = useDispatch();
@@ -66,9 +68,9 @@ const CartDrawer = () => {
       <aside className={"cart-drawer__panel" + openClass}>
         <div className="cart-drawer__head">
           <div>
-            <div className="eyebrow">Il tuo carrello</div>
+            <div className="eyebrow">{t("cart.title")}</div>
             <div className="display cart-drawer__count">
-              {count} {count === 1 ? "pezzo" : "pezzi"}
+              {t("cart.pieces", { count })}
             </div>
           </div>
           <button
@@ -84,8 +86,8 @@ const CartDrawer = () => {
         <div className="cart-drawer__mode">
           <div className="cart-drawer__seg">
             {[
-              ["delivery", "Consegna"],
-              ["pickup", "Ritiro"],
+              ["delivery", t("cart.delivery")],
+              ["pickup", t("cart.pickup")],
             ].map(([k, label]) => (
               <button
                 key={k}
@@ -106,14 +108,14 @@ const CartDrawer = () => {
             <div className="cart-drawer__empty">
               <Icon.bag width={32} height={32} />
               <div className="display cart-drawer__empty-title">
-                Carrello vuoto
+                {t("cart.empty")}
               </div>
               <button
                 type="button"
                 onClick={() => goTo("/menu")}
                 className="b-btn ghost cart-drawer__empty-cta"
               >
-                Vedi il menu
+                {t("cart.viewMenu")}
               </button>
             </div>
           ) : (
@@ -156,7 +158,7 @@ const CartDrawer = () => {
                         dispatch(removeCart(item.key || item.product))
                       }
                     >
-                      Rimuovi
+                      {t("cart.remove")}
                     </button>
                   </div>
                 </div>
@@ -175,7 +177,7 @@ const CartDrawer = () => {
         {cartItems.length > 0 && (
           <div className="cart-drawer__foot">
             <div className="cart-drawer__total-row">
-              <span className="eyebrow">Totale</span>
+              <span className="eyebrow">{t("cart.total")}</span>
               <span className="display cart-drawer__total-value">
                 {fmt(total)}
               </span>
@@ -185,10 +187,10 @@ const CartDrawer = () => {
               onClick={() => goTo("/checkout")}
               className="b-btn ember cart-drawer__checkout"
             >
-              Procedi al checkout <Icon.arrow className="arrow" />
+              {t("cart.checkout")} <Icon.arrow className="arrow" />
             </button>
             <div className="cart-drawer__free">
-              Consegna gratuita oltre €{FREE_DELIVERY_THRESHOLD}
+              {t("cart.freeDelivery", { amount: FREE_DELIVERY_THRESHOLD })}
             </div>
           </div>
         )}

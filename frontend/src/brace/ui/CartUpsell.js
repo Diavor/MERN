@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import axios from "../../api/axiosConfig";
 import Icon from "./Icon";
 import fmt from "./fmt";
@@ -12,16 +13,18 @@ import "./CartUpsell.scss";
 // something to offer, so the customer is nudged through drinks → dessert
 // without ever leaving the cart. A group whose category has no products (e.g.
 // "Dolci" before desserts are seeded) is skipped silently.
+// `category` is a data value (DB category name) — never translated. The
+// eyebrow/title are translation keys resolved at render time.
 export const DEFAULT_GROUPS = [
   {
     category: "Bevande",
-    eyebrow: "Ci aggiungiamo",
-    title: "Qualcosa da bere?",
+    eyebrow: "upsell.drinksEyebrow",
+    title: "upsell.drinksTitle",
   },
   {
     category: "Dolci",
-    eyebrow: "Per finire",
-    title: "Un dolce?",
+    eyebrow: "upsell.dessertEyebrow",
+    title: "upsell.dessertTitle",
   },
 ];
 
@@ -35,6 +38,7 @@ const SKELETONS = [0, 1, 2];
  * @param {bool}   enabled - defer the fetch until the drawer is actually opened.
  */
 const CartUpsell = ({ groups = DEFAULT_GROUPS, max = 8, enabled = true }) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const toast = useToast();
   const { cartItems } = useSelector((s) => s.cart);
@@ -89,9 +93,9 @@ const CartUpsell = ({ groups = DEFAULT_GROUPS, max = 8, enabled = true }) => {
     setAdding(product._id);
     try {
       await dispatch(addToCart(product._id, 1, [], null));
-      toast(`Aggiunto al carrello · ${product.name}`, "ok");
+      toast(t("common.addedToCart", { name: product.name }), "ok");
     } catch (e) {
-      toast("Non è stato possibile aggiungere il prodotto", "info");
+      toast(t("upsell.addFailed"), "info");
     } finally {
       setAdding("");
     }
@@ -119,9 +123,9 @@ const CartUpsell = ({ groups = DEFAULT_GROUPS, max = 8, enabled = true }) => {
   return (
     <section className="cart-upsell" aria-labelledby="cart-upsell-title">
       <div className="cart-upsell__head">
-        <span className="eyebrow cart-upsell__eyebrow">{active.eyebrow}</span>
+        <span className="eyebrow cart-upsell__eyebrow">{t(active.eyebrow)}</span>
         <h3 id="cart-upsell-title" className="display cart-upsell__title">
-          {active.title}
+          {t(active.title)}
         </h3>
       </div>
 
@@ -133,7 +137,7 @@ const CartUpsell = ({ groups = DEFAULT_GROUPS, max = 8, enabled = true }) => {
               className="cart-upsell__card"
               disabled={adding === p._id}
               onClick={() => add(p)}
-              aria-label={`Aggiungi ${p.name} al carrello · ${fmt(p.price)}`}
+              aria-label={t("upsell.addAria", { name: p.name, price: fmt(p.price) })}
             >
               <span className="cart-upsell__thumb">
                 <ProductImage

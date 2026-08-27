@@ -1,5 +1,6 @@
 import "./OrderSummary.scss";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import fmt from "../ui/fmt";
 
 const Row = ({ label, value, muted, accent }) => (
@@ -33,21 +34,22 @@ const OrderSummary = ({
   promoError,
   promoLoading,
 }) => {
-  const deliveryLabel = orderType === "pickup" ? "Ritiro" : "Consegna";
+  const { t } = useTranslation();
+  const deliveryLabel = orderType === "pickup" ? t("cart.pickup") : t("cart.delivery");
   const deliveryValue =
     orderType === "pickup"
-      ? "Gratis"
+      ? t("summary.free")
       : itemsPrice >= freeThreshold
-      ? "Gratis"
+      ? t("summary.free")
       : deliveryFee > 0
       ? fmt(deliveryFee)
       : city
       ? "—"
-      : "Scegli zona";
+      : t("summary.chooseZone");
 
   return (
     <aside className="order-summary">
-      <div className="eyebrow order-summary__eyebrow">Riepilogo</div>
+      <div className="eyebrow order-summary__eyebrow">{t("summary.title")}</div>
 
       <div className="order-summary__list">
         {cartItems.map((line) => (
@@ -59,7 +61,7 @@ const OrderSummary = ({
                 <div className="mono order-summary__caption">
                   {line.selectedDough && (
                     <span className="order-summary__caption-dough">
-                      Impasto: {line.selectedDough.name}
+                      {t("product.dough")}: {line.selectedDough.name}
                     </span>
                   )}
                   {line.toppings && line.toppings.length > 0 && (
@@ -85,8 +87,8 @@ const OrderSummary = ({
               </div>
               <div className="mono order-summary__promo-hint">
                 {appliedCoupon.type === "percent"
-                  ? `−${appliedCoupon.value}% applicato`
-                  : "Sconto applicato"}
+                  ? t("summary.percentApplied", { value: appliedCoupon.value })
+                  : t("summary.discountApplied")}
               </div>
             </div>
             <button
@@ -94,7 +96,7 @@ const OrderSummary = ({
               onClick={onRemovePromo}
               className="order-summary__promo-remove"
             >
-              Rimuovi
+              {t("cart.remove")}
             </button>
           </div>
         ) : (
@@ -109,7 +111,7 @@ const OrderSummary = ({
                     onApplyPromo();
                   }
                 }}
-                placeholder="Codice promo"
+                placeholder={t("summary.promoPlaceholder")}
                 className="mono order-summary__promo-input"
               />
               <button
@@ -118,7 +120,7 @@ const OrderSummary = ({
                 disabled={promoLoading || !promoCode.trim()}
                 className="b-btn sm ghost order-summary__promo-btn"
               >
-                {promoLoading ? "…" : "Applica"}
+                {promoLoading ? "…" : t("summary.apply")}
               </button>
             </div>
             {promoError && (
@@ -131,14 +133,14 @@ const OrderSummary = ({
       </div>
 
       <div className="order-summary__totals">
-        <Row label="Subtotale" value={fmt(itemsPrice)} />
+        <Row label={t("summary.subtotal")} value={fmt(itemsPrice)} />
         <Row label={deliveryLabel} value={deliveryValue} />
         {discount > 0 && (
-          <Row label="Sconto" value={"− " + fmt(discount)} accent />
+          <Row label={t("summary.discount")} value={"− " + fmt(discount)} accent />
         )}
         <div className="order-summary__divider" />
         <div className="order-summary__total">
-          <span className="eyebrow">Totale</span>
+          <span className="eyebrow">{t("cart.total")}</span>
           <span className="display order-summary__total-value">{fmt(total)}</span>
         </div>
       </div>

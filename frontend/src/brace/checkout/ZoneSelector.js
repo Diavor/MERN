@@ -1,5 +1,7 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import fmt from "../ui/fmt";
+import FieldSelect from "../ui/FieldSelect";
 import "./ZoneSelector.scss";
 
 // Delivery-zone picker over the live admin-managed zones (GET /api/zones?
@@ -7,50 +9,46 @@ import "./ZoneSelector.scss";
 // minimum order and ETA, so the card reflects the real rules per area.
 // Controlled: `value` is the selected zone name, `onChange` receives that name.
 const ZoneSelector = ({ zones, value, onChange, subtotal, loading }) => {
+  const { t } = useTranslation();
   const selected = zones.find((z) => z.name === value);
   const free = selected && subtotal >= selected.freeThreshold;
   const belowMin = selected && selected.minOrder > 0 && subtotal < selected.minOrder;
 
   return (
     <div className="zone-selector">
-      <select
+      <FieldSelect
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         required
         disabled={loading}
-        className={
-          "zone-selector__select" + (value ? "" : " is-placeholder")
-        }
-      >
-        <option value="">
-          {loading ? "Carico le zone…" : "Seleziona la tua zona…"}
-        </option>
-        {zones.map((z) => (
-          <option key={z._id || z.name} value={z.name}>
-            {z.name} — {z.fee === 0 ? "Gratis" : "€ " + z.fee.toFixed(2)}
-          </option>
-        ))}
-      </select>
+        ariaLabel={t("zone.aria")}
+        className="zone-selector__select"
+        placeholder={loading ? t("zone.loading") : t("zone.select")}
+        options={zones.map((z) => ({
+          value: z.name,
+          label: `${z.name} — ${z.fee === 0 ? t("summary.free") : "€ " + z.fee.toFixed(2)}`,
+        }))}
+      />
 
       {/* Selected-zone summary card */}
       {selected && (
         <div className="zone-selector__card">
           <div>
             <div className="eyebrow zone-selector__eyebrow">
-              Zona selezionata
+              {t("zone.selectedZone")}
             </div>
             <div className="display zone-selector__city">
               {selected.name}
             </div>
             {selected.eta && (
               <div className="mono zone-selector__eta">
-                Consegna {selected.eta}
+                {t("cart.delivery")} {selected.eta}
               </div>
             )}
           </div>
           <div className="zone-selector__cost">
             <div className="mono zone-selector__cost-label">
-              Costo consegna
+              {t("zone.deliveryCost")}
             </div>
             <div
               className={
@@ -58,15 +56,15 @@ const ZoneSelector = ({ zones, value, onChange, subtotal, loading }) => {
                 (free ? " is-free" : "")
               }
             >
-              {free ? "Gratis" : "€ " + selected.fee.toFixed(2)}
+              {free ? t("summary.free") : "€ " + selected.fee.toFixed(2)}
             </div>
             {free ? (
               <div className="mono zone-selector__free-note">
-                ↑ ordine ≥ {fmt(selected.freeThreshold)}
+                {t("zone.freeReached", { amount: fmt(selected.freeThreshold) })}
               </div>
             ) : (
               <div className="mono zone-selector__free-note">
-                Gratis da {fmt(selected.freeThreshold)}
+                {t("zone.freeFrom", { amount: fmt(selected.freeThreshold) })}
               </div>
             )}
           </div>
@@ -75,7 +73,7 @@ const ZoneSelector = ({ zones, value, onChange, subtotal, loading }) => {
 
       {belowMin && (
         <div className="mono zone-selector__min-note">
-          ↳ Ordine minimo {fmt(selected.minOrder)} per questa zona
+          ↳ {t("zone.minOrder", { min: fmt(selected.minOrder) })}
         </div>
       )}
     </div>

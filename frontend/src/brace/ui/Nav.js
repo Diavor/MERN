@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import Icon from "./Icon";
 import { useCartUI } from "./CartUI";
 import { logout } from "../../store/actions/user";
 import "./Nav.scss";
 
+// Labels are translation keys — resolved with t() at render time.
 const LINKS = [
-  ["/", "Casa"],
-  ["/menu", "Menu"],
-  ["/collezione", "Collezione"],
-  ["/story", "Dough"],
+  ["/", "nav.home"],
+  ["/menu", "nav.menu"],
+  ["/collezione", "nav.collection"],
+  ["/story", "nav.story"],
 ];
 
 const linkClass = (active) => "nav__link" + (active ? " is-active" : "");
 
 const Nav = () => {
+  const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { setOpen } = useCartUI();
@@ -50,6 +53,10 @@ const Nav = () => {
 
   const accountActive = isActive("/profile") || isActive("/login");
 
+  // Two languages only — a single toggle beats a dropdown.
+  const otherLang = i18n.resolvedLanguage === "it" ? "en" : "it";
+  const switchLang = () => i18n.changeLanguage(otherLang);
+
   return (
     <>
       <header className={"nav" + (scrolled ? " is-scrolled" : "")}>
@@ -67,14 +74,14 @@ const Nav = () => {
         <nav className="nav__links">
           {LINKS.map(([to, label]) => (
             <Link key={to} to={to} className={linkClass(isActive(to))}>
-              {label}
+              {t(label)}
             </Link>
           ))}
           <Link
             to={userInfo ? "/profile" : "/login"}
             className={linkClass(accountActive)}
           >
-            {userInfo ? "Account" : "Accedi"}
+            {userInfo ? t("nav.account") : t("nav.login")}
           </Link>
           {userInfo && userInfo.isAdmin && (
             <Link to="/admin" className={linkClass(pathname.startsWith("/admin"))}>
@@ -90,7 +97,7 @@ const Nav = () => {
                 history.push("/");
               }}
             >
-              Esci
+              {t("nav.logout")}
             </button>
           )}
         </nav>
@@ -98,23 +105,31 @@ const Nav = () => {
         <div className="nav__actions">
           <button
             type="button"
+            className="b-btn ghost nav__lang"
+            onClick={switchLang}
+            aria-label={t("nav.switchLang")}
+          >
+            {otherLang.toUpperCase()}
+          </button>
+          <button
+            type="button"
             onClick={() => history.push("/menu")}
             className="b-btn ghost nav__search"
           >
-            <Icon.search /> Cerca
+            <Icon.search /> {t("nav.search")}
           </button>
           <button
             type="button"
             onClick={() => setOpen(true)}
             className="nav__cart"
           >
-            <Icon.bag /> <span className="nav__cart-label">Carrello</span>
+            <Icon.bag /> <span className="nav__cart-label">{t("nav.cart")}</span>
             {count > 0 && <span className="nav__cart-count">{count}</span>}
           </button>
           <button
             type="button"
             className="nav__burger"
-            aria-label={menuOpen ? "Chiudi menu" : "Apri menu"}
+            aria-label={menuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
           >
@@ -134,15 +149,22 @@ const Nav = () => {
             to={to}
             className={"nav__menu-link" + (isActive(to) ? " is-active" : "")}
           >
-            {label}
+            {t(label)}
           </Link>
         ))}
         <Link
           to={userInfo ? "/profile" : "/login"}
           className={"nav__menu-link" + (accountActive ? " is-active" : "")}
         >
-          {userInfo ? "Account" : "Accedi"}
+          {userInfo ? t("nav.account") : t("nav.login")}
         </Link>
+        <button
+          type="button"
+          className="nav__menu-link nav__menu-lang"
+          onClick={switchLang}
+        >
+          {otherLang === "it" ? "Italiano" : "English"}
+        </button>
         {userInfo && userInfo.isAdmin && (
           <Link to="/admin" className="nav__menu-link">
             Admin
@@ -157,7 +179,7 @@ const Nav = () => {
               history.push("/");
             }}
           >
-            Esci
+            {t("nav.logout")}
           </button>
         )}
       </nav>

@@ -401,53 +401,16 @@
     margin-bottom: 16px;
   }
 
-  &__form-label {
-    @include mono-label;
-    display: block;
-    margin-bottom: 8px;
+  // The review form now composes the shared <FieldSelect> + <Field multiline>;
+  // this just stacks them with rhythm and pushes the submit button down.
+  &__review-form {
+    display: grid;
+    gap: 18px;
   }
 
-  &__select {
-    background-color: var(--bg-2);
-    color: var(--text);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 10px 40px 10px 16px;
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    width: 100%;
-    margin-bottom: 18px;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image:
-      linear-gradient(45deg, transparent 50%, var(--gold) 50%),
-      linear-gradient(135deg, var(--gold) 50%, transparent 50%);
-    background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%;
-    background-size: 6px 6px, 6px 6px;
-    background-repeat: no-repeat;
-    transition: border-color 0.15s ease;
-
-    &:hover,
-    &:focus {
-      border-color: var(--gold-deep);
-      outline: none;
-    }
-  }
-
-  &__textarea {
-    width: 100%;
-    background: var(--bg-2);
-    color: var(--text);
-    border: 1px solid var(--line);
-    padding: 14px;
-    font-family: inherit;
-    font-size: 15px;
-    line-height: 1.5;
-    resize: vertical;
-    margin-bottom: 18px;
+  &__review-submit {
+    justify-self: start;
+    margin-top: 4px;
   }
 
   // ── Related ───────────────────────────────────────────────────────────────

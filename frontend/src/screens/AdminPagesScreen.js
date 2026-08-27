@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./AdminPagesScreen.scss";
 import Icon from "../brace/ui/Icon";
 import Message from "../brace/ui/Message";
+import FieldSelect from "../brace/ui/FieldSelect";
 import Portal from "../brace/ui/Portal";
 import { useToast } from "../brace/ui/Toast";
 import {
@@ -215,11 +216,18 @@ function PagesList({ pages, onEdit, onNew, onDuplicate, onDelete }) {
             <Icon.search className="admin-pages__search-icon" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca pagina o slug…" className="admin-pages__search-input" />
           </div>
-          <select value={sort} onChange={(e) => setSort(e.target.value)} className="admin-pages__sort">
-            <option value="updatedAt">Aggiornate</option>
-            <option value="createdAt">Create</option>
-            <option value="title">Titolo A–Z</option>
-          </select>
+          <FieldSelect
+            value={sort}
+            onChange={setSort}
+            variant="pill"
+            ariaLabel="Ordina pagine"
+            className="admin-pages__sort"
+            options={[
+              { value: "updatedAt", label: "Aggiornate" },
+              { value: "createdAt", label: "Create" },
+              { value: "title", label: "Titolo A–Z" },
+            ]}
+          />
           <button className="b-btn sm ember" onClick={onNew}>+ Nuova pagina</button>
         </div>
       </div>
@@ -562,7 +570,7 @@ function SeoSettings({ draft, update, openMedia }) {
         <div className="eyebrow admin-pages__google-label">Anteprima Google</div>
         <div className="admin-pages__google-preview">
           <div className="admin-pages__google-title">{draft.seoTitle || draft.title || "Titolo pagina"}</div>
-          <div className="admin-pages__google-url">brace.it › {draft.slug || "..."}</div>
+          <div className="admin-pages__google-url">graniantichi.it › {draft.slug || "..."}</div>
           <div className="admin-pages__google-desc">{draft.seoDesc || "Aggiungi una descrizione SEO per migliorare l'anteprima nei risultati di ricerca."}</div>
         </div>
       </div>
@@ -588,7 +596,7 @@ function PagePreview({ page, onClose }) {
       <div className="admin-pages__preview-bar">
         <div className="admin-pages__preview-bar-left">
           <AdminStatusPill label={page.status === "published" ? "Pubblicata" : "Anteprima bozza"} color={page.status === "published" ? "var(--ok)" : "var(--gold)"} soft />
-          <span className="mono admin-pages__preview-url">brace.it/{page.slug}</span>
+          <span className="mono admin-pages__preview-url">graniantichi.it/{page.slug}</span>
         </div>
         <button className="b-btn sm ghost" onClick={onClose}><Icon.close /> Chiudi anteprima</button>
       </div>

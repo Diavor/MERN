@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import Icon from "../brace/ui/Icon";
 import Field from "../brace/ui/Field";
 import Loader from "../brace/ui/Loader";
@@ -11,6 +12,7 @@ import { register } from "../store/actions/user";
 import "./RegisterScreen.scss";
 
 const RegisterScreen = ({ location, history }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +33,7 @@ const RegisterScreen = ({ location, history }) => {
   const submitHandler = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setMessage("Le password non coincidono");
+      setMessage(t("auth.passwordMismatch"));
     } else {
       setMessage(null);
       dispatch(register(name, email, password));
@@ -40,17 +42,17 @@ const RegisterScreen = ({ location, history }) => {
 
   return (
     <main className="register">
-      <Meta title="Registrati · Grani Antichi" />
+      <Meta title={t("auth.metaRegister")} />
       <div className="b-container">
         <div className="register__inner">
           <div className="eyebrow register__eyebrow">
-            Nuovo account
+            {t("auth.newAccount")}
           </div>
           <h1 className="display register__title">
-            Unisciti
+            {t("auth.joinTitle")}
             <br />
             <span className="it register__title-it">
-              a noi.
+              {t("auth.joinAccent")}
             </span>
           </h1>
 
@@ -73,14 +75,14 @@ const RegisterScreen = ({ location, history }) => {
           <form onSubmit={submitHandler}>
             <div className="register__fields">
               <Field
-                label="Nome e cognome"
+                label={t("auth.fullName")}
                 value={name}
                 onChange={setName}
                 autoComplete="name"
                 required
               />
               <Field
-                label="Email"
+                label={t("auth.email")}
                 value={email}
                 onChange={setEmail}
                 type="email"
@@ -88,7 +90,7 @@ const RegisterScreen = ({ location, history }) => {
                 required
               />
               <Field
-                label="Password"
+                label={t("auth.password")}
                 value={password}
                 onChange={setPassword}
                 type="password"
@@ -96,7 +98,7 @@ const RegisterScreen = ({ location, history }) => {
                 required
               />
               <Field
-                label="Conferma password"
+                label={t("auth.confirmPassword")}
                 value={confirmPassword}
                 onChange={setConfirmPassword}
                 type="password"
@@ -110,19 +112,19 @@ const RegisterScreen = ({ location, history }) => {
               className="b-btn ember register__submit"
               disabled={loading}
             >
-              Crea account <Icon.arrow className="arrow" />
+              {t("auth.createAccount")} <Icon.arrow className="arrow" />
             </button>
           </form>
 
           <SocialAuth />
 
           <div className="register__footer">
-            Hai già un account?{" "}
+            {t("auth.haveAccount")}{" "}
             <Link
               to={redirect ? `/login?redirect=${redirect}` : "/login"}
               className="register__footer-link"
             >
-              Accedi
+              {t("nav.login")}
             </Link>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Meta from "../components/Meta";
-import "./CollezioneScreen.scss";
+import "./CollectionScreen.scss";
 
 // Grani Antichi — La Collezione. Cinematic showcase page (static).
 // Section media are local clips in /video with poster fallbacks in /img;
@@ -8,24 +9,18 @@ import "./CollezioneScreen.scss";
 
 const PHONE = "+393398657277";
 
+// [num, nameKey, descKey] — resolved with t() at render time.
 const DOUGHS = [
-  ["01", "Classico", "Farina tipo 0 di grani italiani, 48 ore di lievitazione."],
-  ["02", "Multicereali", "Cinque cereali macinati a pietra, crosta rustica."],
-  ["03", "Integrale", "Grano tenero integrale, profondità e carattere."],
-  ["04", "Senatore Cappelli", "Il grano duro antico per eccellenza, Presidio Slow Food."],
+  ["01", "collection.dough1Name", "collection.dough1Desc"],
+  ["02", "collection.dough2Name", "collection.dough2Desc"],
+  ["03", "collection.dough3Name", "collection.dough3Desc"],
+  ["04", "collection.dough4Name", "collection.dough4Desc"],
 ];
 
+// Pizza names are brand names — only the descriptions translate.
 const PIZZE = [
-  {
-    name: "La Melone",
-    desc: "Focaccina croccante, Prosciutto crudo di Parma 24 mesi, burrata, velo di melone.",
-    price: "14,00 €",
-  },
-  {
-    name: "L'Oca Loca",
-    desc: "Fior di latte, pomodorini confit, pesto di basilico, petto d'oca affumicato.",
-    price: "14,00 €",
-  },
+  { name: "La Melone", descKey: "collection.pizza1Desc", price: "14,00 €" },
+  { name: "L'Oca Loca", descKey: "collection.pizza2Desc", price: "14,00 €" },
 ];
 
 const ZONES =
@@ -61,6 +56,7 @@ const ClipMedia = ({ src, poster, mediaRef, className, scrub }) => {
 // Full-bleed hero: a tall scroll track with a sticky viewport; scroll progress
 // scrubs the clip's currentTime instead of playing it.
 const ScrubHero = () => {
+  const { t } = useTranslation();
   const trackRef = useRef(null);
   const mediaRef = useRef(null);
 
@@ -91,20 +87,20 @@ const ScrubHero = () => {
   }, []);
 
   return (
-    <section ref={trackRef} className="collezione__hero" aria-label="Grani Antichi">
-      <div className="collezione__hero-sticky">
+    <section ref={trackRef} className="collection__hero" aria-label="Grani Antichi">
+      <div className="collection__hero-sticky">
         <ClipMedia
           scrub
           mediaRef={mediaRef}
-          className="collezione__hero-media"
+          className="collection__hero-media"
           src="/video/hero-oven.mp4"
           poster="/img/hero-oven.jpg"
         />
-        <div className="collezione__hero-scrim" />
-        <div className="collezione__hero-copy">
-          <h1 className="display collezione__hero-title">Grani Antichi</h1>
-          <p className="it collezione__hero-tagline">Farine antiche. Fuoco vero.</p>
-          <div className="mono collezione__hero-hint">Scorri</div>
+        <div className="collection__hero-scrim" />
+        <div className="collection__hero-copy">
+          <h1 className="display collection__hero-title">Grani Antichi</h1>
+          <p className="it collection__hero-tagline">{t("collection.tagline")}</p>
+          <div className="mono collection__hero-hint">{t("collection.scroll")}</div>
         </div>
       </div>
     </section>
@@ -142,72 +138,73 @@ const MediaSection = ({ src, poster, className, children }) => {
   }, []);
 
   return (
-    <section ref={sectionRef} className={`collezione__section ${className}`}>
+    <section ref={sectionRef} className={`collection__section ${className}`}>
       <ClipMedia
         mediaRef={mediaRef}
-        className="collezione__section-media"
+        className="collection__section-media"
         src={src}
         poster={poster}
       />
-      <div className="collezione__section-scrim" />
-      <div className="b-container collezione__section-inner">{children}</div>
+      <div className="collection__section-scrim" />
+      <div className="b-container collection__section-inner">{children}</div>
     </section>
   );
 };
 
-const CollezioneScreen = () => {
+const CollectionScreen = () => {
+  const { t } = useTranslation();
   // Page-scoped chrome overrides (dark nav, floating-cart offset) hook off this
   // body class; removed on unmount so nothing leaks to other routes.
   useEffect(() => {
-    document.body.classList.add("page-collezione");
-    return () => document.body.classList.remove("page-collezione");
+    document.body.classList.add("page-collection");
+    return () => document.body.classList.remove("page-collection");
   }, []);
 
   return (
-    <div className="collezione">
+    <div className="collection">
       <Meta title="Grani Antichi | La Collezione" />
 
       <ScrubHero />
 
       {/* Gli impasti — over the dough clip */}
       <MediaSection
-        className="collezione__impasti"
+        className="collection__impasti"
         src="/video/dough-hands.mp4"
         poster="/img/dough-hands.jpg"
       >
-        <div className="eyebrow collezione__eyebrow">Gli impasti</div>
-        <h2 className="display collezione__heading">
-          Quattro impasti. <span className="it">Grani italiani, 100% tracciabili.</span>
+        <div className="eyebrow collection__eyebrow">{t("collection.doughsEyebrow")}</div>
+        <h2 className="display collection__heading">
+          {t("collection.doughsHeading")}{" "}
+          <span className="it">{t("collection.doughsHeadingAccent")}</span>
         </h2>
-        <div className="collezione__doughs">
-          {DOUGHS.map(([n, name, desc]) => (
-            <div key={n} className="collezione__dough">
-              <div className="mono collezione__dough-num">· {n}</div>
-              <h3 className="display collezione__dough-name">{name}</h3>
-              <p className="collezione__dough-desc">{desc}</p>
+        <div className="collection__doughs">
+          {DOUGHS.map(([n, nameKey, descKey]) => (
+            <div key={n} className="collection__dough">
+              <div className="mono collection__dough-num">· {n}</div>
+              <h3 className="display collection__dough-name">{t(nameKey)}</h3>
+              <p className="collection__dough-desc">{t(descKey)}</p>
             </div>
           ))}
         </div>
       </MediaSection>
 
       {/* La Collezione — seasonal pizzas */}
-      <section className="collezione__grid-section">
+      <section className="collection__grid-section">
         <div className="b-container">
-          <div className="eyebrow collezione__eyebrow">La Collezione</div>
-          <h2 className="display collezione__heading">
-            Pizze di stagione, <span className="it">ingredienti con un nome.</span>
+          <div className="eyebrow collection__eyebrow">La Collezione</div>
+          <h2 className="display collection__heading">
+            {t("collection.seasonHeading")}{" "}
+            <span className="it">{t("collection.seasonHeadingAccent")}</span>
           </h2>
-          <p className="collezione__note">
-            DOP, IGP e Presìdi Slow Food. La collezione cambia con le stagioni.
-          </p>
-          <div className="collezione__pizzas">
+          <p className="collection__note">{t("collection.seasonNote")}</p>
+          <div className="collection__pizzas">
             {PIZZE.map((p) => (
-              <article key={p.name} className="collezione__pizza">
-                <header className="collezione__pizza-head">
-                  <h3 className="display collezione__pizza-name">{p.name}</h3>
-                  <div className="mono collezione__pizza-price">{p.price}</div>
+              <article key={p.name} className="collection__pizza">
+                <header className="collection__pizza-head">
+                  <h3 className="display collection__pizza-name">{p.name}</h3>
+                  <div className="mono collection__pizza-price">{p.price}</div>
                 </header>
-                <p className="it collezione__pizza-desc">{p.desc}</p>
+                <p className="it collection__pizza-desc">{t(p.descKey)}</p>
               </article>
             ))}
           </div>
@@ -216,37 +213,36 @@ const CollezioneScreen = () => {
 
       {/* Delivery — over the room clip */}
       <MediaSection
-        className="collezione__delivery"
+        className="collection__delivery"
         src="/video/dining-room.mp4"
         poster="/img/dining-room.jpg"
       >
-        <div className="eyebrow collezione__eyebrow">A domicilio</div>
-        <h2 className="display collezione__heading">
-          La pizza <span className="it">direttamente a casa tua.</span>
+        <div className="eyebrow collection__eyebrow">{t("collection.deliveryEyebrow")}</div>
+        <h2 className="display collection__heading">
+          {t("collection.deliveryHeading")}{" "}
+          <span className="it">{t("collection.deliveryHeadingAccent")}</span>
         </h2>
-        <p className="collezione__note">
-          Consegna gratuita sopra i 49 €. Pagamento con carta alla porta.
-        </p>
-        <div className="mono collezione__zones">{ZONES}</div>
+        <p className="collection__note">{t("collection.deliveryNote")}</p>
+        <div className="mono collection__zones">{ZONES}</div>
       </MediaSection>
 
       {/* Closing — hours, address, map, CTA */}
-      <section className="collezione__closing">
-        <div className="b-container collezione__closing-inner">
-          <div className="collezione__closing-info">
-            <div className="eyebrow collezione__eyebrow">Vieni a trovarci</div>
-            <h2 className="display collezione__heading">Zerman.</h2>
-            <dl className="collezione__facts">
+      <section className="collection__closing">
+        <div className="b-container collection__closing-inner">
+          <div className="collection__closing-info">
+            <div className="eyebrow collection__eyebrow">{t("collection.visitEyebrow")}</div>
+            <h2 className="display collection__heading">Zerman.</h2>
+            <dl className="collection__facts">
               <div>
-                <dt className="mono">Orari</dt>
+                <dt className="mono">{t("footer.hours")}</dt>
                 <dd>
-                  Martedì – Domenica · 18:00 – 22:00
+                  {t("collection.hoursLine1")}
                   <br />
-                  Lunedì chiuso
+                  {t("collection.hoursLine2")}
                 </dd>
               </div>
               <div>
-                <dt className="mono">Indirizzo</dt>
+                <dt className="mono">{t("collection.address")}</dt>
                 <dd>
                   Via Antonio Canova 23
                   <br />
@@ -254,11 +250,11 @@ const CollezioneScreen = () => {
                 </dd>
               </div>
             </dl>
-            <a href={`tel:${PHONE}`} className="b-btn collezione__cta">
-              Ordina Ora · 339 865 7277
+            <a href={`tel:${PHONE}`} className="b-btn collection__cta">
+              {t("collection.orderNow")} · 339 865 7277
             </a>
           </div>
-          <div className="collezione__map">
+          <div className="collection__map">
             <iframe
               title="Grani Antichi — Via Antonio Canova 23, Zerman di Mogliano Veneto"
               src="https://www.google.com/maps?q=Via%20Antonio%20Canova%2023%2C%20Zerman%2C%20Mogliano%20Veneto&output=embed"
@@ -271,11 +267,11 @@ const CollezioneScreen = () => {
       </section>
 
       {/* Mobile-only sticky call bar */}
-      <a href={`tel:${PHONE}`} className="collezione__callbar mono">
-        Ordina Ora · 339 865 7277
+      <a href={`tel:${PHONE}`} className="collection__callbar mono">
+        {t("collection.orderNow")} · 339 865 7277
       </a>
     </div>
   );
 };
 
-export default CollezioneScreen;
+export default CollectionScreen;

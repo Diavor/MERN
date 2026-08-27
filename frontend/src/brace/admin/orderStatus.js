@@ -65,6 +65,12 @@ export const nextStates = (from) => TRANSITIONS[from] || [];
 export const labelOf = (s) => STATUS_LABEL[s] || s || "—";
 export const colorOf = (s) => STATUS_COLOR[s] || "var(--text-faint)";
 
+// Shared order-card helpers used by the Kitchen and Delivery boards. Kept here
+// so the two screens can't drift apart. "GA" = Grani Antichi (short ticket id).
+export const shortId = (o) => "GA-" + String(o?._id || "").slice(-8).toUpperCase();
+export const minsSince = (d) =>
+  Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 60000));
+
 // Active kitchen queue = accepted and still cooking. Once READY the order leaves
 // the kitchen and moves to the delivery/handoff board.
 export const KITCHEN_STATUSES = [STATUS.CONFIRMED, STATUS.PREPARING];

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import Icon from "../brace/ui/Icon";
 import Field from "../brace/ui/Field";
 import Loader from "../brace/ui/Loader";
@@ -11,6 +12,7 @@ import { login } from "../store/actions/user";
 import "./LoginScreen.scss";
 
 const LoginScreen = ({ location, history }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -30,14 +32,14 @@ const LoginScreen = ({ location, history }) => {
 
   return (
     <main className="login">
-      <Meta title="Accedi · Grani Antichi" />
+      <Meta title={t("auth.metaLogin")} />
       <div className="b-container">
         <div className="login__inner">
           <div className="eyebrow login__eyebrow">
-            Il tuo account
+            {t("auth.yourAccount")}
           </div>
           <h1 className="display login__title">
-            Bentornato.
+            {t("auth.welcomeBack")}
           </h1>
 
           {error && (
@@ -54,7 +56,7 @@ const LoginScreen = ({ location, history }) => {
           <form onSubmit={submitHandler}>
             <div className="login__fields">
               <Field
-                label="Email"
+                label={t("auth.email")}
                 value={email}
                 onChange={setEmail}
                 type="email"
@@ -62,7 +64,7 @@ const LoginScreen = ({ location, history }) => {
                 required
               />
               <Field
-                label="Password"
+                label={t("auth.password")}
                 value={password}
                 onChange={setPassword}
                 type="password"
@@ -76,19 +78,19 @@ const LoginScreen = ({ location, history }) => {
               className="b-btn ember login__submit"
               disabled={loading}
             >
-              Accedi <Icon.arrow className="arrow" />
+              {t("nav.login")} <Icon.arrow className="arrow" />
             </button>
           </form>
 
           <SocialAuth />
 
           <div className="login__footer">
-            Non hai un account?{" "}
+            {t("auth.noAccount")}{" "}
             <Link
               to={redirect ? `/register?redirect=${redirect}` : "/register"}
               className="login__register"
             >
-              Registrati
+              {t("auth.register")}
             </Link>
           </div>
         </div>

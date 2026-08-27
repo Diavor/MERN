@@ -1,5 +1,16 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./DatePicker.scss";
+
+const WEEKDAY_KEYS = [
+  "date.mon",
+  "date.tue",
+  "date.wed",
+  "date.thu",
+  "date.fri",
+  "date.sat",
+  "date.sun",
+];
 
 const fmtKey = (d) => {
   const y = d.getFullYear();
@@ -11,6 +22,8 @@ const fmtKey = (d) => {
 // Inline mini-calendar. Controlled: `value` is "YYYY-MM-DD", `onChange` gets one.
 // Selectable window is today .. today + 14 days.
 const DatePicker = ({ value, onChange }) => {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.resolvedLanguage === "en" ? "en-GB" : "it-IT";
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const maxDate = new Date(today);
@@ -20,7 +33,7 @@ const DatePicker = ({ value, onChange }) => {
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   );
 
-  const monthName = view.toLocaleDateString("it-IT", {
+  const monthName = view.toLocaleDateString(dateLocale, {
     month: "long",
     year: "numeric",
   });
@@ -50,7 +63,7 @@ const DatePicker = ({ value, onChange }) => {
 
   return (
     <div className="date-picker">
-      <div className="eyebrow date-picker__eyebrow">Data</div>
+      <div className="eyebrow date-picker__eyebrow">{t("date.date")}</div>
 
       <div className="date-picker__nav">
         <button
@@ -79,8 +92,8 @@ const DatePicker = ({ value, onChange }) => {
       </div>
 
       <div className="date-picker__weekdays">
-        {["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"].map((d) => (
-          <div key={d}>{d}</div>
+        {WEEKDAY_KEYS.map((d) => (
+          <div key={d}>{t(d)}</div>
         ))}
       </div>
 
@@ -109,9 +122,9 @@ const DatePicker = ({ value, onChange }) => {
 
       {value && (
         <div className="date-picker__summary">
-          <span className="date-picker__summary-label">Selezionato</span>
+          <span className="date-picker__summary-label">{t("common.selected")}</span>
           <span className="date-picker__summary-value">
-            {new Date(value).toLocaleDateString("it-IT", {
+            {new Date(value).toLocaleDateString(dateLocale, {
               weekday: "long",
               day: "numeric",
               month: "long",

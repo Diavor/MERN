@@ -46,7 +46,7 @@ actually works, not a generic ideal.
   `.display`, `.it`, `.mono`, `.hr`, `.no-scrollbar`.
 - Scope everything to the page/block. If chrome (nav, floating cart) must be
   restyled for one route, gate it behind a body class added/removed in a
-  `useEffect` (see `CollezioneScreen`'s `page-collezione` pattern).
+  `useEffect` (see `CollectionScreen`'s `page-collection` pattern).
 - Respect `prefers-reduced-motion` for any scroll/parallax/animation work.
 
 ## Component & file conventions

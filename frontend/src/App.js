@@ -15,7 +15,7 @@ import { CartUIProvider } from "./brace/ui/CartUI";
 import HomeCmsScreen from "./screens/HomeCmsScreen";
 import MenuScreen from "./screens/MenuScreen";
 import StoryScreen from "./screens/StoryScreen";
-import CollezioneScreen from "./screens/CollezioneScreen";
+import CollectionScreen from "./screens/CollectionScreen";
 import CartScreen from "./screens/CartScreen";
 import ProductScreen from "./screens/ProductScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -26,7 +26,6 @@ import OrderListScreen from "./screens/OrderListScreen";
 import UserListScreen from "./screens/UserListScreen";
 import UserEditScreen from "./screens/UserEditScreen";
 import ProductListScreen from "./screens/ProductListScreen";
-import ProductEditScreen from "./screens/ProductEditScreen";
 import AdminDashboardScreen from "./screens/AdminDashboardScreen";
 import AdminOrderDetailScreen from "./screens/AdminOrderDetailScreen";
 import KitchenScreen from "./screens/KitchenScreen";
@@ -69,7 +68,7 @@ const Chrome = () => {
           <Route path="/order/:id" component={OrderScreen} />
           <Route path="/product/:id" component={ProductScreen} />
           <Route path="/story" exact component={StoryScreen} />
-          <Route path="/collezione" exact component={CollezioneScreen} />
+          <Route path="/collezione" exact component={CollectionScreen} />
 
           <Route
             path="/admin"
@@ -122,10 +121,9 @@ const Chrome = () => {
             exact
             render={(props) => <AdminRoute component={ProductListScreen} {...props} />}
           />
-          <Route
-            path="/admin/product/:id/edit"
-            render={(props) => <AdminRoute component={ProductEditScreen} {...props} />}
-          />
+          {/* Product editing now happens in a modal on the product list; keep
+              old deep links working by redirecting them there. */}
+          <Redirect from="/admin/product/:id/edit" to="/admin/productlist" />
           <Route
             path="/admin/user/:id/edit"
             render={(props) => <AdminRoute component={UserEditScreen} {...props} />}

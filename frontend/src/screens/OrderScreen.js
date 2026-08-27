@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import "./OrderScreen.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Icon from "../brace/ui/Icon";
 import fmt from "../brace/ui/fmt";
 import Loader from "../brace/ui/Loader";
@@ -25,6 +26,7 @@ const Pill = ({ ok, okLabel, offLabel }) => (
 );
 
 const OrderScreen = ({ match }) => {
+  const { t, i18n } = useTranslation();
   const orderId = match.params.id;
   const dispatch = useDispatch();
 
@@ -87,11 +89,10 @@ const OrderScreen = ({ match }) => {
     );
   const eta =
     (s.deliveryDate
-      ? new Date(s.deliveryDate).toLocaleDateString("it-IT", {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
-        })
+      ? new Date(s.deliveryDate).toLocaleDateString(
+          i18n.resolvedLanguage === "en" ? "en-GB" : "it-IT",
+          { weekday: "short", day: "numeric", month: "short" }
+        )
       : "—") + (s.deliverySlot ? " · " + s.deliverySlot : "");
 
   return (
@@ -103,26 +104,30 @@ const OrderScreen = ({ match }) => {
           </div>
 
           <p className="it order__thanks">
-            Grazie, {s.name || order.user?.name || "amico"}.
+            {t("order.thanks", { name: s.name || order.user?.name || t("profile.friend") })}
           </p>
 
-          <div className="eyebrow order__eyebrow">Ordine</div>
+          <div className="eyebrow order__eyebrow">{t("order.order")}</div>
           <div className="display order__id">{order._id}</div>
 
           {/* status pills */}
           <div className="order__pills">
-            <Pill ok={order.isPaid} okLabel="Pagato" offLabel="Da pagare" />
+            <Pill
+              ok={order.isPaid}
+              okLabel={t("profile.paid")}
+              offLabel={t("profile.unpaid")}
+            />
             <Pill
               ok={order.isDelivered}
-              okLabel="Consegnato"
-              offLabel={s.orderType === "pickup" ? "Da ritirare" : "In consegna"}
+              okLabel={t("profile.delivered")}
+              offLabel={s.orderType === "pickup" ? t("order.toPickup") : t("order.inDelivery")}
             />
           </div>
 
           {/* info cells */}
           <div className="order__cells">
             <Cell
-              k={s.orderType === "pickup" ? "Ritiro previsto" : "Consegna prevista"}
+              k={s.orderType === "pickup" ? t("order.pickupEta") : t("order.deliveryEta")}
               v={eta}
               sub={
                 s.orderType === "pickup"
@@ -131,27 +136,27 @@ const OrderScreen = ({ match }) => {
               }
             />
             <Cell
-              k="Totale"
+              k={t("cart.total")}
               v={fmt(order.totalPrice)}
               sub={
                 order.paymentMethod +
                 " · " +
                 (Number(order.shippingPrice) === 0
-                  ? "consegna gratis"
-                  : "consegna " + fmt(order.shippingPrice))
+                  ? t("order.freeShippingSub")
+                  : t("order.shippingSub", { price: fmt(order.shippingPrice) }))
               }
             />
             <Cell
-              k={s.orderType === "pickup" ? "Punto di ritiro" : "Indirizzo"}
+              k={s.orderType === "pickup" ? t("order.pickupPoint") : t("order.address")}
               v={
                 s.orderType === "pickup"
-                  ? "In pizzeria"
+                  ? t("order.atPizzeria")
                   : [s.street, s.buildingNumber].filter(Boolean).join(" ") || "—"
               }
               sub={
                 s.orderType === "pickup"
                   ? "Mogliano Veneto"
-                  : [s.city, s.floor && "piano " + s.floor]
+                  : [s.city, s.floor && t("order.floorSub", { floor: s.floor })]
                       .filter(Boolean)
                       .join(" · ")
               }
@@ -160,7 +165,7 @@ const OrderScreen = ({ match }) => {
 
           {/* items */}
           <div className="order__items">
-            <div className="eyebrow order__items-label">Il tuo ordine</div>
+            <div className="eyebrow order__items-label">{t("order.yourOrder")}</div>
             <div className="order__list">
               {order.orderItems.map((item, i) => (
                 <div
@@ -197,7 +202,7 @@ const OrderScreen = ({ match }) => {
           {/* notes */}
           {s.notes && (
             <div className="order__notes">
-              <div className="eyebrow order__notes-label">Note</div>
+              <div className="eyebrow order__notes-label">{t("order.notes")}</div>
               <p className="order__notes-text">{s.notes}</p>
             </div>
           )}
@@ -206,27 +211,28 @@ const OrderScreen = ({ match }) => {
           {discount > 0 && (
             <div className="order__breakdown">
               <div className="order__breakdown-row">
-                <span>Subtotale</span>
+                <span>{t("summary.subtotal")}</span>
                 <span>{fmt(order.itemsPrice)}</span>
               </div>
               <div className="order__breakdown-row is-discount">
                 <span>
-                  Sconto{order.couponCode ? ` · ${order.couponCode}` : ""}
+                  {t("summary.discount")}
+                  {order.couponCode ? ` · ${order.couponCode}` : ""}
                 </span>
                 <span>−{fmt(discount)}</span>
               </div>
               <div className="order__breakdown-row">
-                <span>Consegna</span>
+                <span>{t("cart.delivery")}</span>
                 <span>
                   {Number(order.shippingPrice) === 0
-                    ? "Gratis"
+                    ? t("summary.free")
                     : fmt(order.shippingPrice)}
                 </span>
               </div>
             </div>
           )}
           <div className="order__totals">
-            <span className="eyebrow">Totale pagato</span>
+            <span className="eyebrow">{t("order.totalPaid")}</span>
             <span className="display order__totals-value">
               {fmt(order.totalPrice)}
             </span>
@@ -236,7 +242,7 @@ const OrderScreen = ({ match }) => {
           {userInfo?.isAdmin &&
             (!order.isPaid || !order.isDelivered) && (
               <div className="order__admin">
-                <div className="eyebrow order__admin-label">Amministrazione</div>
+                <div className="eyebrow order__admin-label">{t("profile.admin")}</div>
                 {(loadingPay || loadingDeliver) && <Loader />}
                 <div className="order__admin-actions">
                   {!order.isPaid && (
@@ -245,7 +251,7 @@ const OrderScreen = ({ match }) => {
                       className="b-btn"
                       onClick={payHandler}
                     >
-                      Segna come pagato
+                      {t("order.markPaid")}
                     </button>
                   )}
                   {!order.isDelivered && (
@@ -254,7 +260,7 @@ const OrderScreen = ({ match }) => {
                       className="b-btn ember"
                       onClick={deliverHandler}
                     >
-                      Segna come consegnato
+                      {t("order.markDelivered")}
                     </button>
                   )}
                 </div>
@@ -263,16 +269,16 @@ const OrderScreen = ({ match }) => {
 
           <div className="order__actions">
             <Link to="/profile" className="b-btn">
-              I miei ordini
+              {t("order.myOrders")}
             </Link>
             <Link to="/" className="b-btn ember">
-              Torna alla casa <Icon.arrow className="arrow" />
+              {t("order.backHome")} <Icon.arrow className="arrow" />
             </Link>
           </div>
 
           {(s.email || order.user?.email) && (
             <p className="mono order__confirm">
-              Conferma inviata a {s.email || order.user?.email}
+              {t("order.confirmSent", { email: s.email || order.user?.email })}
             </p>
           )}
         </div>

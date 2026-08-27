@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Icon from "../brace/ui/Icon";
 import fmt from "../brace/ui/fmt";
 import Rating from "../brace/ui/Rating";
@@ -8,6 +9,8 @@ import Loader from "../brace/ui/Loader";
 import Message from "../brace/ui/Message";
 import ProductImage from "../brace/ui/ProductImage";
 import PizzaCard from "../brace/ui/PizzaCard";
+import Field from "../brace/ui/Field";
+import FieldSelect from "../brace/ui/FieldSelect";
 import { useToast } from "../brace/ui/Toast";
 import { useCartUI } from "../brace/ui/CartUI";
 import Meta from "../components/Meta";
@@ -28,6 +31,7 @@ const FieldGroup = ({ label, children }) => (
 );
 
 const ProductScreen = ({ history, match }) => {
+  const { t, i18n } = useTranslation();
   const [qty, setQty] = useState(1);
   const [selectedToppings, setSelectedToppings] = useState([]);
   const [selectedDough, setSelectedDough] = useState(null);
@@ -52,7 +56,7 @@ const ProductScreen = ({ history, match }) => {
 
   useEffect(() => {
     if (successReview) {
-      toast("Recensione inviata. Grazie!", "ok");
+      toast(t("product.reviewSent"), "ok");
       setRating(0);
       setComment("");
       dispatch({ type: PRODUCT_CREATE_REVIEW_RESET });
@@ -91,13 +95,13 @@ const ProductScreen = ({ history, match }) => {
 
   const addToCartHandler = () => {
     dispatch(addToCart(product._id, qty, selectedToppings, selectedDough));
-    toast(`Aggiunto al carrello · ${product.name}`, "ok");
+    toast(t("common.addedToCart", { name: product.name }), "ok");
     cartUI.setOpen(true);
   };
 
   const quickAddRelated = (p) => {
     dispatch(addToCart(p._id, 1, [], null));
-    toast(`Aggiunto al carrello · ${p.name}`, "ok");
+    toast(t("common.addedToCart", { name: p.name }), "ok");
     cartUI.setOpen(true);
   };
 
@@ -137,11 +141,11 @@ const ProductScreen = ({ history, match }) => {
         {/* Breadcrumb */}
         <div className="product__breadcrumb">
           <Link to="/" className="product__breadcrumb-link">
-            Casa
+            {t("nav.home")}
           </Link>
           <span>/</span>
           <Link to="/menu" className="product__breadcrumb-link">
-            Menu
+            {t("nav.menu")}
           </Link>
           <span>/</span>
           <span className="product__breadcrumb-current">{product.name}</span>
@@ -181,13 +185,13 @@ const ProductScreen = ({ history, match }) => {
             <div className="product__rating">
               <Rating
                 value={product.rating}
-                text={`${product.numReviews} recensioni`}
+                text={t("common.reviews", { count: product.numReviews })}
               />
             </div>
 
             {/* Impasto */}
             {product.doughVariants && product.doughVariants.length > 0 && (
-              <FieldGroup label="Impasto">
+              <FieldGroup label={t("product.dough")}>
                 <div className="product__options">
                   <button
                     onClick={() => setSelectedDough(null)}
@@ -201,8 +205,8 @@ const ProductScreen = ({ history, match }) => {
                       )}
                     </span>
                     <div className="product__option-body">
-                      <div className="product__option-name">Standard</div>
-                      <div className="mono product__option-meta">incluso</div>
+                      <div className="product__option-name">{t("product.standardDough")}</div>
+                      <div className="mono product__option-meta">{t("product.included")}</div>
                     </div>
                   </button>
                   {product.doughVariants.map((d) => {
@@ -233,7 +237,7 @@ const ProductScreen = ({ history, match }) => {
 
             {/* Aggiunte */}
             {product.toppings && product.toppings.length > 0 && (
-              <FieldGroup label="Aggiunte">
+              <FieldGroup label={t("product.toppings")}>
                 <div className="product__toppings">
                   {product.toppings.map((t) => {
                     const checked = !!selectedToppings.find(
@@ -270,7 +274,7 @@ const ProductScreen = ({ history, match }) => {
               <div className="product__qty">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  aria-label="Riduci quantità"
+                  aria-label={t("product.qtyDec")}
                   className="product__qty-btn"
                 >
                   <Icon.minus />
@@ -280,7 +284,7 @@ const ProductScreen = ({ history, match }) => {
                   onClick={() =>
                     setQty(Math.min(product.countInStock || 1, qty + 1))
                   }
-                  aria-label="Aumenta quantità"
+                  aria-label={t("product.qtyInc")}
                   className="product__qty-btn"
                 >
                   <Icon.plus />
@@ -292,21 +296,21 @@ const ProductScreen = ({ history, match }) => {
                 className="b-btn ember product__add-btn"
               >
                 {inStock
-                  ? `Aggiungi al carrello — ${fmt(unitPrice * qty)}`
-                  : "Esaurito"}
+                  ? t("product.addWithPrice", { price: fmt(unitPrice * qty) })
+                  : t("product.soldOut")}
               </button>
             </div>
 
             {/* availability line */}
             <div className="product__availability">
-              <span>Preparata al momento</span>
+              <span>{t("product.freshMade")}</span>
               {inStock ? (
                 <span className="product__availability-status--ok">
-                  ● Disponibile · forno acceso
+                  ● {t("product.available")}
                 </span>
               ) : (
                 <span className="product__availability-status--out">
-                  ● Esaurito
+                  ● {t("product.soldOut")}
                 </span>
               )}
             </div>
@@ -317,8 +321,8 @@ const ProductScreen = ({ history, match }) => {
         <div className="product__tabs">
           <div className="product__tab-list">
             {[
-              ["desc", "Descrizione"],
-              ["reviews", `Recensioni (${product.numReviews || 0})`],
+              ["desc", t("product.descTab")],
+              ["reviews", t("product.reviewsTab", { count: product.numReviews || 0 })],
             ].map(([k, l]) => (
               <button
                 key={k}
@@ -340,9 +344,7 @@ const ProductScreen = ({ history, match }) => {
                 {/* review list */}
                 <div>
                   {(!product.reviews || product.reviews.length === 0) && (
-                    <Message variant="info">
-                      Nessuna recensione, per ora. Sii il primo a raccontarla.
-                    </Message>
+                    <Message variant="info">{t("product.noReviews")}</Message>
                   )}
                   {(product.reviews || []).map((r) => (
                     <div key={r._id} className="product__review">
@@ -351,7 +353,9 @@ const ProductScreen = ({ history, match }) => {
                           {r.name}
                         </span>
                         <span className="mono product__review-date">
-                          {new Date(r.createdAt).toLocaleDateString("it-IT")}
+                          {new Date(r.createdAt).toLocaleDateString(
+                            i18n.resolvedLanguage === "en" ? "en-GB" : "it-IT"
+                          )}
                         </span>
                       </div>
                       <div className="product__review-rating">
@@ -365,7 +369,7 @@ const ProductScreen = ({ history, match }) => {
                 {/* review form */}
                 <div>
                   <div className="eyebrow product__form-title">
-                    Scrivi una recensione
+                    {t("product.writeReview")}
                   </div>
                   {errorReview && (
                     <div className="product__form-error">
@@ -373,43 +377,39 @@ const ProductScreen = ({ history, match }) => {
                     </div>
                   )}
                   {userInfo ? (
-                    <form onSubmit={submitHandler}>
-                      <label className="mono product__form-label">
-                        Valutazione
-                      </label>
-                      <select
+                    <form onSubmit={submitHandler} className="product__review-form">
+                      <FieldSelect
+                        label={t("product.ratingLabel")}
                         value={rating}
-                        onChange={(e) => setRating(e.target.value)}
+                        onChange={setRating}
                         required
-                        className="product__select"
-                      >
-                        <option value="">Scegli…</option>
-                        <option value="1">1 — Scarsa</option>
-                        <option value="2">2 — Discreta</option>
-                        <option value="3">3 — Buona</option>
-                        <option value="4">4 — Molto buona</option>
-                        <option value="5">5 — Eccellente</option>
-                      </select>
-                      <label className="mono product__form-label">
-                        Commento
-                      </label>
-                      <textarea
-                        rows={4}
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        required
-                        className="product__textarea"
+                        placeholder={t("product.choose")}
+                        options={[
+                          { value: "1", label: t("product.rating1") },
+                          { value: "2", label: t("product.rating2") },
+                          { value: "3", label: t("product.rating3") },
+                          { value: "4", label: t("product.rating4") },
+                          { value: "5", label: t("product.rating5") },
+                        ]}
                       />
-                      <button type="submit" className="b-btn solid">
-                        Invia recensione
+                      <Field
+                        label={t("product.comment")}
+                        multiline
+                        value={comment}
+                        onChange={setComment}
+                        required
+                        placeholder={t("product.commentPlaceholder")}
+                      />
+                      <button type="submit" className="b-btn solid product__review-submit">
+                        {t("product.submitReview")}
                       </button>
                     </form>
                   ) : (
                     <Message variant="info">
                       <Link to={`/login?redirect=/product/${product._id}`}>
-                        Accedi
+                        {t("nav.login")}
                       </Link>{" "}
-                      per scrivere una recensione.
+                      {t("product.loginToReview")}
                     </Message>
                   )}
                 </div>
@@ -422,7 +422,7 @@ const ProductScreen = ({ history, match }) => {
         {related.length > 0 && (
           <div className="product__related">
             <div className="eyebrow product__related-title">
-              Da provare anche
+              {t("product.related")}
             </div>
             <div className="product__related-grid">
               {related.map((r) => (
@@ -459,10 +459,11 @@ const ProductScreen = ({ history, match }) => {
         >
           {inStock ? (
             <>
-              Aggiungi {fmt(unitPrice * qty)} <Icon.arrow className="arrow" />
+              {t("product.addShort", { price: fmt(unitPrice * qty) })}{" "}
+              <Icon.arrow className="arrow" />
             </>
           ) : (
-            "Esaurito"
+            t("product.soldOut")
           )}
         </button>
       </div>

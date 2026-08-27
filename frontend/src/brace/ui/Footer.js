@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import Icon from "./Icon";
 import { HOURS, CONTACT } from "../content";
 import usePublicSettings from "./usePublicSettings";
@@ -6,9 +7,9 @@ import "./Footer.scss";
 
 // Map the settings document into the shapes this footer already renders, falling
 // back to the static content constants until settings load (or if the fetch fails).
-const toHoursRows = (settings) =>
+const toHoursRows = (settings, t) =>
   settings
-    ? settings.hours.map((d) => [d.day, d.closed ? "Chiuso" : `${d.open} — ${d.close}`])
+    ? settings.hours.map((d) => [d.day, d.closed ? t("footer.closed") : `${d.open} — ${d.close}`])
     : HOURS;
 
 const toContact = (settings) =>
@@ -23,8 +24,9 @@ const toContact = (settings) =>
     : CONTACT;
 
 const Footer = () => {
+  const { t } = useTranslation();
   const settings = usePublicSettings();
-  const hours = toHoursRows(settings);
+  const hours = toHoursRows(settings, t);
   const contact = toContact(settings);
 
   return (
@@ -41,14 +43,11 @@ const Footer = () => {
               height={63}
             />
           </div>
-          <p className="it footer__blurb">
-            Sforniamo pizze di qualità dal 2017. Un locale open space vista
-            cucina, a Mogliano Veneto.
-          </p>
+          <p className="it footer__blurb">{t("footer.blurb")}</p>
         </div>
 
         <div>
-          <div className="eyebrow footer__col-title">Orari</div>
+          <div className="eyebrow footer__col-title">{t("footer.hours")}</div>
           <ul className="footer__hours">
             {hours.map(([day, range]) => (
               <li key={day} className="footer__hours-row">
@@ -60,7 +59,7 @@ const Footer = () => {
         </div>
 
         <div>
-          <div className="eyebrow footer__col-title">Contatto</div>
+          <div className="eyebrow footer__col-title">{t("footer.contact")}</div>
           <div className="footer__contact">
             <div className="footer__contact-strong">{contact.street}</div>
             {contact.city && <div>{contact.city}</div>}
@@ -71,10 +70,8 @@ const Footer = () => {
         </div>
 
         <div>
-          <div className="eyebrow footer__col-title">Newsletter</div>
-          <p className="footer__news-copy">
-            Stagionali e dropping menu, una mail al mese. Niente di più.
-          </p>
+          <div className="eyebrow footer__col-title">{t("footer.newsletter")}</div>
+          <p className="footer__news-copy">{t("footer.newsletterCopy")}</p>
           <form
             className="footer__news-form"
             onSubmit={(e) => e.preventDefault()}
@@ -94,9 +91,9 @@ const Footer = () => {
       <div className="footer__legal">
         <div>© {new Date().getFullYear()} Grani Antichi Pizzeria — Mogliano Veneto</div>
         <div className="footer__legal-links">
-          <span>Privacy</span>
-          <span>Cookies</span>
-          <span>Allergeni</span>
+          <span>{t("footer.privacy")}</span>
+          <span>{t("footer.cookies")}</span>
+          <span>{t("footer.allergens")}</span>
         </div>
       </div>
     </div>

@@ -1,10 +1,10 @@
 // La Collezione — cinematic dark showcase. Everything is scoped under
-// .collezione (page) or body.page-collezione (chrome overrides added/removed
+// .collection (page) or body.page-collection (chrome overrides added/removed
 // by the screen on mount) so the dark treatment never leaks to other routes.
 @use "../styles/tokens" as *;
 @reference "../styles/theme.css";
 
-.collezione {
+.collection {
   // page-local palette: warm charcoal / cream / wheat-gold / ember
   --k-bg: #171310;
   --k-bg-2: #1f1a14;
@@ -79,14 +79,14 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--k-cream);
-    animation: collezione-track-in 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: collection-track-in 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   &__hero-tagline {
     margin-top: 18px;
     font-size: clamp(18px, 2.2vw, 26px);
     color: var(--k-cream-dim);
-    animation: collezione-fade-up 1.6s 0.7s ease both;
+    animation: collection-fade-up 1.6s 0.7s ease both;
   }
 
   &__hero-hint {
@@ -95,7 +95,7 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--k-cream-faint);
-    animation: collezione-fade-up 1.6s 1.3s ease both;
+    animation: collection-fade-up 1.6s 1.3s ease both;
   }
 
   // ── Media-backed sections (impasti / delivery) ────────────────────────────
@@ -375,7 +375,7 @@
   }
 }
 
-@keyframes collezione-track-in {
+@keyframes collection-track-in {
   from {
     opacity: 0;
     letter-spacing: 0.34em;
@@ -386,7 +386,7 @@
   }
 }
 
-@keyframes collezione-fade-up {
+@keyframes collection-fade-up {
   from {
     opacity: 0;
     transform: translateY(14px);
@@ -397,10 +397,10 @@
   }
 }
 
-// ── Chrome overrides while on /collezione ───────────────────────────────────
+// ── Chrome overrides while on /collection ───────────────────────────────────
 // The fixed nav is dark-on-transparent; over the charcoal hero flip it to
 // cream until it gains its scrolled scrim.
-body.page-collezione {
+body.page-collection {
   background: #171310;
 
   .nav:not(.is-scrolled) {

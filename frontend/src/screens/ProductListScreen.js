@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "../api/axiosConfig";
 import Message from "../brace/ui/Message";
@@ -8,6 +7,7 @@ import Icon from "../brace/ui/Icon";
 import fmt from "../brace/ui/fmt";
 import Paginate from "../components/Paginate";
 import { AdminStatusPill, AdminEmptyState } from "../brace/admin/kit";
+import ProductEditModal from "../brace/admin/ProductEditModal";
 import { listProducts } from "../store/actions/products";
 import { deleteProduct, createProduct } from "../store/actions/product";
 import { PRODUCT_CREATE_RESET } from "../store/actionTypes";
@@ -37,7 +37,14 @@ const ProductListScreen = ({ history, match }) => {
 
   const [cat, setCat] = useState("all");
   const [categories, setCategories] = useState([]);
+  const [editing, setEditing] = useState(null); // product being edited | null
 
+  // Admin guard.
+  useEffect(() => {
+    if (!userInfo?.isAdmin) history.push("/login");
+  }, [userInfo, history]);
+
+  // Category filter chips.
   useEffect(() => {
     let alive = true;
     axios
@@ -49,26 +56,18 @@ const ProductListScreen = ({ history, match }) => {
     };
   }, []);
 
+  // (Re)load the catalog on filter/page change, and after a delete.
   useEffect(() => {
-    dispatch({ type: PRODUCT_CREATE_RESET });
-    if (!userInfo.isAdmin) {
-      history.push("/login");
+    dispatch(listProducts("", pageNumber, cat));
+  }, [dispatch, pageNumber, cat, successDelete]);
+
+  // A freshly-created sample product opens straight in the editor modal.
+  useEffect(() => {
+    if (successCreate && createdProduct) {
+      setEditing(createdProduct);
+      dispatch({ type: PRODUCT_CREATE_RESET });
     }
-    if (successCreate) {
-      history.push(`/admin/product/${createdProduct._id}/edit`);
-    } else {
-      dispatch(listProducts("", pageNumber, cat));
-    }
-  }, [
-    dispatch,
-    history,
-    userInfo,
-    successDelete,
-    successCreate,
-    createdProduct,
-    pageNumber,
-    cat,
-  ]);
+  }, [successCreate, createdProduct, dispatch]);
 
   const deleteHandler = (id) => {
     if (window.confirm("Eliminare questo prodotto?")) {
@@ -76,8 +75,11 @@ const ProductListScreen = ({ history, match }) => {
     }
   };
 
-  const createProductHandler = () => {
-    dispatch(createProduct());
+  const createProductHandler = () => dispatch(createProduct());
+
+  const handleSaved = () => {
+    setEditing(null);
+    dispatch(listProducts("", pageNumber, cat));
   };
 
   return (
@@ -167,13 +169,13 @@ const ProductListScreen = ({ history, match }) => {
                     </td>
                     <td className="is-right">
                       <div className="product-list__actions">
-                        <Link
-                          to={`/admin/product/${product._id}/edit`}
+                        <button
+                          onClick={() => setEditing(product)}
                           className="b-btn sm ghost product-list__btn"
                           aria-label="Modifica"
                         >
                           Modifica
-                        </Link>
+                        </button>
                         <button
                           onClick={() => deleteHandler(product._id)}
                           className="b-btn sm ghost product-list__btn product-list__btn--del"
@@ -193,6 +195,14 @@ const ProductListScreen = ({ history, match }) => {
           </div>
         </>
       )}
+
+      <ProductEditModal
+        open={!!editing}
+        product={editing}
+        categories={categories}
+        onClose={() => setEditing(null)}
+        onSaved={handleSaved}
+      />
     </div>
   );
 };

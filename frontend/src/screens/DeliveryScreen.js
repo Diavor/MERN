@@ -4,14 +4,19 @@ import Message from "../brace/ui/Message";
 import { useToast } from "../brace/ui/Toast";
 import { listOrders, updateOrderStatus } from "../store/actions/order";
 import { ORDER_STATUS_RESET } from "../store/actionTypes";
-import { STATUS, DELIVERY_STATUSES, labelOf, colorOf } from "../brace/admin/orderStatus";
+import {
+  STATUS,
+  DELIVERY_STATUSES,
+  labelOf,
+  colorOf,
+  shortId,
+  minsSince,
+} from "../brace/admin/orderStatus";
 import useOrderStream from "../brace/admin/useOrderStream";
 import { printReceipt } from "../services/print";
 import usePublicSettings from "../brace/ui/usePublicSettings";
 import "./KitchenScreen.scss";
 
-const shortId = (o) => "BR-" + String(o._id || "").slice(-8).toUpperCase();
-const minsSince = (d) => Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 60000));
 const isPickup = (o) => o.shippingAddress?.orderType === "pickup";
 
 const fullAddress = (a = {}) =>

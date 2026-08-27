@@ -1,0 +1,288 @@
+// ProductEditModal — product editor rendered inside an AdminModal. The modal
+// shell (panel, scrim, header, body padding, footer bar) comes from kit.scss;
+// this file only styles the form grid, image upload, and the dough/toppings
+// variant editors. Tokens come from styles/theme.css.
+
+.product-modal {
+  // ── Form grid ─────────────────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  &__col-full {
+    grid-column: 1 / -1;
+  }
+
+  // ── Image upload ──────────────────────────────────────────────────────────
+  &__upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    cursor: pointer;
+  }
+
+  &__file-input {
+    display: none;
+  }
+
+  // ── Photo gallery ─────────────────────────────────────────────────────────
+  &__gallery {
+    display: block;
+  }
+
+  &__thumbs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  &__thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg);
+
+    &.is-cover {
+      border-color: var(--gold-deep);
+    }
+
+    // ProductImage fills the tile
+    .product-image,
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__thumb-badge {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--gold);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  &__thumb-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &__thumb:hover &__thumb-actions,
+  &__thumb:focus-within &__thumb-actions {
+    opacity: 1;
+  }
+
+  // keep actions reachable on touch (no hover)
+  @media (hover: none) {
+    &__thumb-actions {
+      opacity: 1;
+    }
+  }
+
+  &__thumb-btn {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 999px;
+    background: var(--scrim-overlay, rgba(0, 0, 0, 0.6));
+    color: #fff;
+    cursor: pointer;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    &.is-danger:hover {
+      background: var(--accent);
+    }
+  }
+
+  &__thumb-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-style: dashed;
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      border-color: var(--gold-deep);
+      color: var(--text-dim);
+    }
+  }
+
+  &__thumb-add-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  &__gallery-url {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+
+    .product-modal__variant-name {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+  }
+
+  // ── Footer actions ────────────────────────────────────────────────────────
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  // ── Variant editor (dough variants / toppings) ────────────────────────────
+  &__variants {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+
+  &__variants-head {
+    margin-bottom: 12px;
+  }
+
+  &__variants-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  &__variants-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 4px;
+  }
+
+  &__variants-empty {
+    font-size: 12px;
+    color: var(--text-faint);
+    padding: 8px 0 12px;
+  }
+
+  &__variants-list {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__variant-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  &__variant-name,
+  &__variant-price-input {
+    width: 100%;
+    min-width: 0;
+    background: var(--bg-1, var(--bg-2));
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 10px 12px;
+    font: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  }
+
+  &__variant-price {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    background: var(--bg-1, var(--bg-2));
+    padding-left: 10px;
+
+    &:focus-within {
+      border-color: var(--accent);
+    }
+  }
+
+  &__variant-prefix {
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+
+  &__variant-price-input {
+    border: 0;
+    padding-left: 4px;
+
+    &:focus {
+      border: 0;
+    }
+  }
+
+  &__variant-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--danger, #c0392b);
+      color: var(--danger, #c0392b);
+    }
+  }
+
+  &__variant-add {
+    margin-top: 4px;
+  }
+}
+
+// Collapse the form + variant rows to a single column on narrow phones so the
+// modal never forces horizontal overflow.
+@media (max-width: 560px) {
+  .product-modal__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product-modal__variant-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .product-modal__variant-name {
+      grid-column: 1 / -1;
+    }
+  }
+}

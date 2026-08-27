@@ -4,13 +4,18 @@ import Message from "../brace/ui/Message";
 import { useToast } from "../brace/ui/Toast";
 import { listOrders, updateOrderStatus } from "../store/actions/order";
 import { ORDER_STATUS_RESET } from "../store/actionTypes";
-import { STATUS, KITCHEN_STATUSES, labelOf, colorOf, nextStates } from "../brace/admin/orderStatus";
+import {
+  STATUS,
+  KITCHEN_STATUSES,
+  labelOf,
+  colorOf,
+  nextStates,
+  shortId,
+  minsSince,
+} from "../brace/admin/orderStatus";
 import useOrderStream from "../brace/admin/useOrderStream";
 import { printKitchenTicket } from "../services/print";
 import "./KitchenScreen.scss";
-
-const shortId = (o) => "BR-" + String(o._id || "").slice(-8).toUpperCase();
-const minsSince = (d) => Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 60000));
 
 // The kitchen only advances cooking states, ending at READY (which hands the
 // order off to the delivery board). Payment/cancel/complete live elsewhere.

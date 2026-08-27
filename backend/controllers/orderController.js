@@ -7,6 +7,7 @@ import Zone from "../models/zoneModel.js";
 import { STATUS, applyTransition, nextStates } from "../services/orderStateMachine.js";
 import { emitFallbackOrderEvent, onOrderEvent } from "../services/orderEvents.js";
 import { enqueue, QUEUE, JOB } from "../services/queue.service.js";
+import { localeFromReq, t } from "../utils/i18n.js";
 import { SLOT_CAPACITY, reserveSlot, releaseSlot } from "../services/slotReservation.js";
 
 // @desc     Create new order
@@ -50,7 +51,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
     const { ok } = await reserveSlot({ date: deliveryDate, time: deliverySlot, units: 1, capacity });
     if (!ok) {
       res.status(409);
-      throw new Error("Questo orario di consegna è al completo. Scegli un altro orario.");
+      throw new Error(t(localeFromReq(req), "order.slotFull"));
     }
     reserved = true;
   }
@@ -83,8 +84,12 @@ export const addOrderItems = asyncHandler(async (req, res) => {
   emitFallbackOrderEvent("created", createdOrder.toObject());
 
   // Confirmation email goes through the background queue — the customer's
-  // response never waits on (or fails because of) the email transport.
-  enqueue(QUEUE.EMAILS, JOB.ORDER_CONFIRMATION, { order: createdOrder.toObject() });
+  // response never waits on (or fails because of) the email transport. The
+  // locale is captured now, from the request, since the worker has no request.
+  enqueue(QUEUE.EMAILS, JOB.ORDER_CONFIRMATION, {
+    order: createdOrder.toObject(),
+    locale: localeFromReq(req),
+  });
 
   // Count the redemption so coupon usage limits (maxUses) stay accurate. Best
   // effort — a missing/renamed code must never block a paid order.

@@ -1,22 +1,24 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import "./TimeSlotPicker.scss";
 
 // Time-slot grid fed by GET /api/slots?date= → [{ time, available }].
 // Controlled: `value` is the chosen time, `onChange` receives a time string.
 const TimeSlotPicker = ({ slots, value, onChange, loading, date }) => {
+  const { t } = useTranslation();
   return (
     <div className="slot-picker">
       <div className="slot-picker__head">
-        <div className="eyebrow">Orario</div>
-        <div className="mono slot-picker__cadence">ogni 15 min</div>
+        <div className="eyebrow">{t("slot.time")}</div>
+        <div className="mono slot-picker__cadence">{t("slot.cadence")}</div>
       </div>
 
       {!date ? (
-        <div className="mono slot-picker__empty">Scegli prima una data</div>
+        <div className="mono slot-picker__empty">{t("slot.pickDateFirst")}</div>
       ) : loading ? (
-        <div className="mono slot-picker__empty">Carico gli orari…</div>
+        <div className="mono slot-picker__empty">{t("slot.loading")}</div>
       ) : slots.length === 0 ? (
-        <div className="mono slot-picker__empty">Nessun orario disponibile</div>
+        <div className="mono slot-picker__empty">{t("slot.none")}</div>
       ) : (
         <div className="slot-picker__grid">
           {slots.map((slot) => {
@@ -50,8 +52,8 @@ const TimeSlotPicker = ({ slots, value, onChange, loading, date }) => {
 
       {value && (
         <div className="slot-picker__footer">
-          <span className="slot-picker__footer-label">Selezionato</span>
-          <span className="slot-picker__footer-value">Alle {value}</span>
+          <span className="slot-picker__footer-label">{t("common.selected")}</span>
+          <span className="slot-picker__footer-value">{t("slot.at", { time: value })}</span>
         </div>
       )}
     </div>

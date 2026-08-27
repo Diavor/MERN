@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from "react";
 import Icon from "../ui/Icon";
 import Portal from "../ui/Portal";
+import FieldSelect from "../ui/FieldSelect";
 import "./kit.scss";
 
 // ---------------- MODAL ----------------
@@ -51,8 +52,11 @@ export function AdminModal({ open, onClose, title, subtitle, width = 760, footer
 }
 
 // ---------------- FORM FIELDS ----------------
-export function AdminFieldText({ label, value, onChange, placeholder, error, type = "text", hint, span, prefix, mono }) {
+export function AdminFieldText({ label, value, onChange, placeholder, error, type = "text", hint, span, prefix, mono, options }) {
   const [focus, setFocus] = useState(false);
+  // Optional autocomplete suggestions (native <datalist>) — free text still
+  // works, so custom values beyond the presets remain possible.
+  const listId = options && options.length ? `akit-dl-${label}` : undefined;
   return (
     <label className="akit-field" style={{ gridColumn: span ? "span " + span : "auto" }}>
       <div className={"akit-field__label" + (focus ? " is-focus" : "") + (error ? " is-error" : "")}>
@@ -65,11 +69,19 @@ export function AdminFieldText({ label, value, onChange, placeholder, error, typ
           type={type}
           value={value}
           placeholder={placeholder}
+          list={listId}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
           className={"akit-field__input" + (mono ? " is-mono" : "")}
         />
+        {listId && (
+          <datalist id={listId}>
+            {options.map((opt) => (
+              <option key={opt} value={opt} />
+            ))}
+          </datalist>
+        )}
       </div>
       {error && (
         <div className="mono akit-field__error akit-field__error--spaced">
@@ -105,28 +117,20 @@ export function AdminFieldArea({ label, value, onChange, placeholder, error, row
 }
 
 export function AdminFieldSelect({ label, value, options, onChange, error, span, hint }) {
+  // Thin wrapper over the shared, fully-styled <FieldSelect> so every admin
+  // dropdown matches the storefront one (portalled panel → never clipped by the
+  // modal body). The `span` grid placement is preserved on the wrapper.
   return (
-    <label className="akit-field" style={{ gridColumn: span ? "span " + span : "auto" }}>
-      <div className={"akit-field__label" + (error ? " is-error" : "")}>
-        <span>{label}</span>
-        {hint && <span className="akit-field__hint">{hint}</span>}
-      </div>
-      <select
+    <div style={{ gridColumn: span ? "span " + span : "auto" }}>
+      <FieldSelect
+        label={label}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={"akit-field__select" + (error ? " is-error" : "")}
-      >
-        {options.map((o) => {
-          const v = typeof o === "object" ? o.value : o;
-          const l = typeof o === "object" ? o.label : o;
-          return (
-            <option key={v} value={v}>
-              {l}
-            </option>
-          );
-        })}
-      </select>
-    </label>
+        options={options}
+        onChange={onChange}
+        error={error}
+        hint={hint}
+      />
+    </div>
   );
 }
 // Alias kept for the name referenced in the brief.

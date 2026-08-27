@@ -2,6 +2,7 @@ import "./ProfileScreen.scss";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import Icon from "../brace/ui/Icon";
 import fmt from "../brace/ui/fmt";
 import Field from "../brace/ui/Field";
@@ -29,6 +30,7 @@ const Pill = ({ ok, okLabel, offLabel }) => (
 );
 
 const ProfileScreen = ({ history }) => {
+  const { t, i18n } = useTranslation();
   const [tab, setTab] = useState("orders");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -63,7 +65,7 @@ const ProfileScreen = ({ history }) => {
   const submitHandler = (e) => {
     e.preventDefault();
     if (password && password !== confirmPassword) {
-      setMessage("Le password non coincidono");
+      setMessage(t("auth.passwordMismatch"));
     } else {
       setMessage(null);
       dispatch(updateUserProfile({ id: user._id, name, email, password }));
@@ -72,19 +74,19 @@ const ProfileScreen = ({ history }) => {
 
   return (
     <main className="profile">
-      <Meta title="Il mio account · Grani Antichi" />
+      <Meta title={t("profile.metaTitle")} />
       <div className="b-container">
         {/* header */}
         <div className="profile__header">
           <div>
             <div className="eyebrow profile__eyebrow">
-              Il mio account
+              {t("profile.myAccount")}
             </div>
             <h1 className="display profile__title">
-              Ciao,
+              {t("profile.hi")}
               <br />
               <span className="it profile__name">
-                {(userInfo?.name || "").split(" ")[0] || "amico"}.
+                {(userInfo?.name || "").split(" ")[0] || t("profile.friend")}.
               </span>
             </h1>
           </div>
@@ -96,22 +98,22 @@ const ProfileScreen = ({ history }) => {
               history.push("/");
             }}
           >
-            Esci
+            {t("nav.logout")}
           </button>
         </div>
 
         {/* tabs */}
         <div className="profile__tabs">
           <Tab active={tab === "orders"} onClick={() => setTab("orders")}>
-            Ordini
+            {t("profile.orders")}
           </Tab>
           <Tab active={tab === "profile"} onClick={() => setTab("profile")}>
-            Profilo
+            {t("profile.profile")}
           </Tab>
           {userInfo?.isAdmin && (
             <Link to="/admin/orderlist" className="profile__admin-link">
               <Tab active={false} onClick={() => {}}>
-                Amministrazione ↗
+                {t("profile.admin")} ↗
               </Tab>
             </Link>
           )}
@@ -126,13 +128,11 @@ const ProfileScreen = ({ history }) => {
             ) : !orders || orders.length === 0 ? (
               <div className="profile__empty">
                 <div className="display profile__empty-title">
-                  Nessun ordine, ancora.
+                  {t("profile.noOrders")}
                 </div>
-                <p className="profile__empty-text">
-                  Quando ordini una pizza, la ritrovi qui.
-                </p>
+                <p className="profile__empty-text">{t("profile.noOrdersText")}</p>
                 <Link to="/menu" className="b-btn ember">
-                  Vedi il menu <Icon.arrow className="arrow" />
+                  {t("cart.viewMenu")} <Icon.arrow className="arrow" />
                 </Link>
               </div>
             ) : (
@@ -149,20 +149,23 @@ const ProfileScreen = ({ history }) => {
                       </div>
                       <div className="mono profile__order-date">
                         {order.createdAt
-                          ? new Date(order.createdAt).toLocaleDateString("it-IT", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })
+                          ? new Date(order.createdAt).toLocaleDateString(
+                              i18n.resolvedLanguage === "en" ? "en-GB" : "it-IT",
+                              { day: "numeric", month: "long", year: "numeric" }
+                            )
                           : "—"}
                       </div>
                     </div>
                     <div className="profile__order-status">
-                      <Pill ok={order.isPaid} okLabel="Pagato" offLabel="Da pagare" />
+                      <Pill
+                        ok={order.isPaid}
+                        okLabel={t("profile.paid")}
+                        offLabel={t("profile.unpaid")}
+                      />
                       <Pill
                         ok={order.isDelivered}
-                        okLabel="Consegnato"
-                        offLabel="In attesa"
+                        okLabel={t("profile.delivered")}
+                        offLabel={t("profile.pending")}
                       />
                     </div>
                     <div className="display profile__order-total">
@@ -190,7 +193,7 @@ const ProfileScreen = ({ history }) => {
             )}
             {success && (
               <div className="profile__alert">
-                <Message variant="success">Profilo aggiornato</Message>
+                <Message variant="success">{t("profile.updated")}</Message>
               </div>
             )}
             {loading && (
@@ -201,17 +204,17 @@ const ProfileScreen = ({ history }) => {
 
             <form onSubmit={submitHandler}>
               <div className="profile__fields">
-                <Field label="Nome e cognome" value={name} onChange={setName} />
-                <Field label="Email" value={email} onChange={setEmail} type="email" />
+                <Field label={t("auth.fullName")} value={name} onChange={setName} />
+                <Field label={t("auth.email")} value={email} onChange={setEmail} type="email" />
                 <Field
-                  label="Nuova password · lascia vuoto per non cambiarla"
+                  label={t("profile.newPassword")}
                   value={password}
                   onChange={setPassword}
                   type="password"
                   autoComplete="new-password"
                 />
                 <Field
-                  label="Conferma password"
+                  label={t("auth.confirmPassword")}
                   value={confirmPassword}
                   onChange={setConfirmPassword}
                   type="password"
@@ -222,7 +225,7 @@ const ProfileScreen = ({ history }) => {
                 type="submit"
                 className="b-btn ember profile__submit"
               >
-                Aggiorna profilo <Icon.arrow className="arrow" />
+                {t("profile.update")} <Icon.arrow className="arrow" />
               </button>
             </form>
           </div>
