@@ -107,6 +107,12 @@ export const applyTransition = (order, to, ctx = {}) => {
   if (to === STATUS.COMPLETED) {
     order.isDelivered = true;
     order.deliveredAt = order.deliveredAt || new Date();
+    // Cash/POS orders are settled at hand-off: completing an order implies the
+    // courier (or counter) collected payment.
+    if (!order.isPaid) {
+      order.isPaid = true;
+      order.paidAt = order.paidAt || new Date();
+    }
   }
 
   return order;

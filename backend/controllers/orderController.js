@@ -162,9 +162,16 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
     // Guard against a missing payer object (manual/cash payments have none).
     email_address: req.body.payer?.email_address,
   };
-  // Advance through the state machine (also sets isPaid/paidAt as a side-effect).
-  if (order.status === STATUS.PENDING_PAYMENT)
+  // Advance through the state machine when the order is still awaiting payment
+  // (the PAID transition sets isPaid/paidAt). An order that already progressed
+  // (cash orders cook before they're paid) can't legally move back to PAID, so
+  // set the payment fields directly — "mark as paid" must work at any stage.
+  if (order.status === STATUS.PENDING_PAYMENT) {
     applyTransition(order, STATUS.PAID, { by: req.user?._id });
+  } else if (!order.isPaid) {
+    order.isPaid = true;
+    order.paidAt = order.paidAt || new Date();
+  }
 
   const updatedOrder = await order.save();
   emitFallbackOrderEvent("updated", updatedOrder.toObject());
