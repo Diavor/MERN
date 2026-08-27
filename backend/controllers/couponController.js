@@ -36,7 +36,15 @@ export const updateCoupon = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Coupon not found");
   }
-  const fields = ["code", "type", "value", "minOrder", "maxUses", "expiresAt", "active"];
+  const fields = [
+    "code",
+    "type",
+    "value",
+    "minOrder",
+    "maxUses",
+    "expiresAt",
+    "active",
+  ];
   fields.forEach((f) => {
     if (req.body[f] !== undefined) coupon[f] = req.body[f];
   });
@@ -62,7 +70,11 @@ export const deleteCoupon = asyncHandler(async (req, res) => {
 // @access   Public
 export const validateCoupon = asyncHandler(async (req, res) => {
   const { code, subtotal = 0 } = req.body;
-  const coupon = await Coupon.findOne({ code: String(code || "").toUpperCase().trim() });
+  const coupon = await Coupon.findOne({
+    code: String(code || "")
+      .toUpperCase()
+      .trim(),
+  });
 
   if (!coupon || coupon.derivedStatus() === "expired") {
     res.status(404);

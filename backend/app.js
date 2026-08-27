@@ -64,7 +64,11 @@ app.use(
           "https://accounts.google.com",
           "https://appleid.cdn-apple.com",
         ],
-        "frame-src": ["'self'", "https://accounts.google.com", "https://appleid.apple.com"],
+        "frame-src": [
+          "'self'",
+          "https://accounts.google.com",
+          "https://appleid.apple.com",
+        ],
         "connect-src": [
           ...(cspDefaults["connect-src"] || ["'self'"]),
           "https://accounts.google.com",

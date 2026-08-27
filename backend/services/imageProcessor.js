@@ -22,7 +22,11 @@ export const optimizeImage = async ({ path }) => {
   }
 
   logger.info(
-    { path, beforeKB: Math.round(before / 1024), afterKB: Math.round(Math.min(buf.length, before) / 1024) },
+    {
+      path,
+      beforeKB: Math.round(before / 1024),
+      afterKB: Math.round(Math.min(buf.length, before) / 1024),
+    },
     "Image optimized"
   );
 };

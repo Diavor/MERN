@@ -32,36 +32,144 @@ const slug = (s) =>
 
 // [name, description (ingredients), price]
 const MENU = [
-  ["O Fiore Mio", "Mozzarella fior di latte, acciughe del Mar Cantabrico, burratina artigianale, fiori di zucca, origano di Pantelleria IGP", 13.5],
-  ["Royal", "Mozzarella fior di latte, funghi porcini, crudo di Parma 24 mesi, fiocchi di Grana Padano 24 mesi", 12.5],
-  ["Marinara", "Salsa di pomodoro, origano di Pantelleria, aglio bianco Polesano DOP", 6.5],
-  ["Fresca", "Salsa di pomodoro, mozzarella fior di latte, bufala DOP, pomodorini freschi", 9.5],
-  ["Margherita DOP", "Pomodoro miracolo di San Gennaro (Presidio Slow Food), fior di latte di Agerola, olio EVO, basilico, origano di Pantelleria", 8.0],
-  ["Mediterranea", "Doppio pomodoro, bufala DOP, pomodori confit, olive taggiasche, origano di Pantelleria", 10.5],
-  ["Zingara", "Salsa di pomodoro, mozzarella fior di latte, peperoni, olive nere, salamino piccante", 10.5],
-  ["Siciliana", "Salsa di pomodoro, mozzarella fior di latte, capperi di Pantelleria IGP, acciughe del Mar Cantabrico, olive nere, salamino", 11.0],
+  [
+    "O Fiore Mio",
+    "Mozzarella fior di latte, acciughe del Mar Cantabrico, burratina artigianale, fiori di zucca, origano di Pantelleria IGP",
+    13.5,
+  ],
+  [
+    "Royal",
+    "Mozzarella fior di latte, funghi porcini, crudo di Parma 24 mesi, fiocchi di Grana Padano 24 mesi",
+    12.5,
+  ],
+  [
+    "Marinara",
+    "Salsa di pomodoro, origano di Pantelleria, aglio bianco Polesano DOP",
+    6.5,
+  ],
+  [
+    "Fresca",
+    "Salsa di pomodoro, mozzarella fior di latte, bufala DOP, pomodorini freschi",
+    9.5,
+  ],
+  [
+    "Margherita DOP",
+    "Pomodoro miracolo di San Gennaro (Presidio Slow Food), fior di latte di Agerola, olio EVO, basilico, origano di Pantelleria",
+    8.0,
+  ],
+  [
+    "Mediterranea",
+    "Doppio pomodoro, bufala DOP, pomodori confit, olive taggiasche, origano di Pantelleria",
+    10.5,
+  ],
+  [
+    "Zingara",
+    "Salsa di pomodoro, mozzarella fior di latte, peperoni, olive nere, salamino piccante",
+    10.5,
+  ],
+  [
+    "Siciliana",
+    "Salsa di pomodoro, mozzarella fior di latte, capperi di Pantelleria IGP, acciughe del Mar Cantabrico, olive nere, salamino",
+    11.0,
+  ],
   ["Friarielli e Salsiccia", "Mozzarella fior di latte, salsiccia, friarielli", 10.5],
-  ["Piccantina", "Mozzarella fior di latte, friarielli, salamino piccante, acciughe del Mar Cantabrico", 11.5],
-  ["Greca", "Doppio pomodoro, feta greca, cipolla caramellata, pomodorini, olive taggiasche, origano di Pantelleria", 10.5],
-  ["Mortadella", "Mozzarella fior di latte, mortadella di Prato IGP Presidio Slow Food, burratina artigianale, granella di pistacchio di Bronte DOP", 13.5],
-  ["Gustosa", "Salsa di pomodoro, mozzarella fior di latte, capperi di Pantelleria IGP, acciughe del Cantabrico, olive nere, pomodorini freschi", 11.0],
-  ["Capricciosa", "Salsa di pomodoro, mozzarella fior di latte, prosciutto cotto, funghi, carciofi", 10.5],
-  ["Carbonara", "Salsa di pomodoro, mozzarella fior di latte, pancetta affumicata, uovo, grana", 10.0],
-  ["Porcellina", "Salsa di pomodoro, mozzarella fior di latte, würstel, prosciutto cotto, salsiccia, salamino piccante", 11.5],
-  ["Zermanina", "Salsa di pomodoro, mozzarella fior di latte, scamorza, melanzane, crudo di Parma", 11.5],
+  [
+    "Piccantina",
+    "Mozzarella fior di latte, friarielli, salamino piccante, acciughe del Mar Cantabrico",
+    11.5,
+  ],
+  [
+    "Greca",
+    "Doppio pomodoro, feta greca, cipolla caramellata, pomodorini, olive taggiasche, origano di Pantelleria",
+    10.5,
+  ],
+  [
+    "Mortadella",
+    "Mozzarella fior di latte, mortadella di Prato IGP Presidio Slow Food, burratina artigianale, granella di pistacchio di Bronte DOP",
+    13.5,
+  ],
+  [
+    "Gustosa",
+    "Salsa di pomodoro, mozzarella fior di latte, capperi di Pantelleria IGP, acciughe del Cantabrico, olive nere, pomodorini freschi",
+    11.0,
+  ],
+  [
+    "Capricciosa",
+    "Salsa di pomodoro, mozzarella fior di latte, prosciutto cotto, funghi, carciofi",
+    10.5,
+  ],
+  [
+    "Carbonara",
+    "Salsa di pomodoro, mozzarella fior di latte, pancetta affumicata, uovo, grana",
+    10.0,
+  ],
+  [
+    "Porcellina",
+    "Salsa di pomodoro, mozzarella fior di latte, würstel, prosciutto cotto, salsiccia, salamino piccante",
+    11.5,
+  ],
+  [
+    "Zermanina",
+    "Salsa di pomodoro, mozzarella fior di latte, scamorza, melanzane, crudo di Parma",
+    11.5,
+  ],
   ["Mirada", "Mozzarella fior di latte, gamberoni, burrata, pomodorini confit", 15.0],
-  ["Tirolese", "Salsa di pomodoro, mozzarella fior di latte, porcini, speck Alto Adige", 10.5],
-  ["Valtellina", "Salsa di pomodoro, mozzarella fior di latte, bresaola, rucola, grana", 11.0],
-  ["Chiodini e Sopressa", "Salsa di pomodoro, mozzarella fior di latte, chiodini, sopressa", 10.5],
-  ["Sottobosco", "Salsa di pomodoro, mozzarella fior di latte, chiodini, porcini, trifolati", 11.0],
-  ["Verdure", "Salsa di pomodoro, mozzarella fior di latte, zucchine, melanzane, peperoni", 10.0],
-  ["Rustica", "Scamorza, mozzarella fior di latte, salsiccia, patate, cipolla di Tropea", 11.5],
-  ["Cacio e Pere", "Mozzarella fior di latte, brie, scamorza, gorgonzola, cipolla di Tropea, pere kaiser, pepe bianco", 11.5],
-  ["Saporita", "Mozzarella fior di latte, crema di carciofi, cotto alla brace, ricotta affumicata a scaglie", 11.5],
-  ["Parma", "Mozzarella fior di latte, bufala, pomodorini freschi, crudo di Parma", 11.5],
-  ["Claudia", "Ricotta, pancetta affumicata, pomodorini freschi, bufala DOP, olive taggiasche, origano di Pantelleria", 11.5],
+  [
+    "Tirolese",
+    "Salsa di pomodoro, mozzarella fior di latte, porcini, speck Alto Adige",
+    10.5,
+  ],
+  [
+    "Valtellina",
+    "Salsa di pomodoro, mozzarella fior di latte, bresaola, rucola, grana",
+    11.0,
+  ],
+  [
+    "Chiodini e Sopressa",
+    "Salsa di pomodoro, mozzarella fior di latte, chiodini, sopressa",
+    10.5,
+  ],
+  [
+    "Sottobosco",
+    "Salsa di pomodoro, mozzarella fior di latte, chiodini, porcini, trifolati",
+    11.0,
+  ],
+  [
+    "Verdure",
+    "Salsa di pomodoro, mozzarella fior di latte, zucchine, melanzane, peperoni",
+    10.0,
+  ],
+  [
+    "Rustica",
+    "Scamorza, mozzarella fior di latte, salsiccia, patate, cipolla di Tropea",
+    11.5,
+  ],
+  [
+    "Cacio e Pere",
+    "Mozzarella fior di latte, brie, scamorza, gorgonzola, cipolla di Tropea, pere kaiser, pepe bianco",
+    11.5,
+  ],
+  [
+    "Saporita",
+    "Mozzarella fior di latte, crema di carciofi, cotto alla brace, ricotta affumicata a scaglie",
+    11.5,
+  ],
+  [
+    "Parma",
+    "Mozzarella fior di latte, bufala, pomodorini freschi, crudo di Parma",
+    11.5,
+  ],
+  [
+    "Claudia",
+    "Ricotta, pancetta affumicata, pomodorini freschi, bufala DOP, olive taggiasche, origano di Pantelleria",
+    11.5,
+  ],
   ["Casper", "Mozzarella fior di latte, stracchino, zucchine, speck", 11.0],
-  ["Alpino", "Mozzarella fior di latte, misto di funghi, speck Alto Adige, origano di Pantelleria", 11.5],
+  [
+    "Alpino",
+    "Mozzarella fior di latte, misto di funghi, speck Alto Adige, origano di Pantelleria",
+    11.5,
+  ],
 ];
 
 const pizzas = MENU.map(([name, description, price]) => ({

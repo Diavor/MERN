@@ -8,7 +8,11 @@ import { STATUS, applyTransition, nextStates } from "../services/orderStateMachi
 import { emitFallbackOrderEvent, onOrderEvent } from "../services/orderEvents.js";
 import { enqueue, QUEUE, JOB } from "../services/queue.service.js";
 import { localeFromReq, t } from "../utils/i18n.js";
-import { SLOT_CAPACITY, reserveSlot, releaseSlot } from "../services/slotReservation.js";
+import {
+  SLOT_CAPACITY,
+  reserveSlot,
+  releaseSlot,
+} from "../services/slotReservation.js";
 
 // @desc     Create new order
 // @route    POST /api/orders
@@ -48,7 +52,12 @@ export const addOrderItems = asyncHandler(async (req, res) => {
         capacity = Math.min(SLOT_CAPACITY, zone.maxOrders);
       }
     }
-    const { ok } = await reserveSlot({ date: deliveryDate, time: deliverySlot, units: 1, capacity });
+    const { ok } = await reserveSlot({
+      date: deliveryDate,
+      time: deliverySlot,
+      units: 1,
+      capacity,
+    });
     if (!ok) {
       res.status(409);
       throw new Error(t(localeFromReq(req), "order.slotFull"));
@@ -78,7 +87,8 @@ export const addOrderItems = asyncHandler(async (req, res) => {
     createdOrder = await order.save();
   } catch (err) {
     // Roll back the slot hold so a failed save doesn't leave phantom load.
-    if (reserved) await releaseSlot({ date: deliveryDate, time: deliverySlot, units: 1 });
+    if (reserved)
+      await releaseSlot({ date: deliveryDate, time: deliverySlot, units: 1 });
     throw err;
   }
   emitFallbackOrderEvent("created", createdOrder.toObject());
@@ -153,7 +163,8 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
     email_address: req.body.payer?.email_address,
   };
   // Advance through the state machine (also sets isPaid/paidAt as a side-effect).
-  if (order.status === STATUS.PENDING_PAYMENT) applyTransition(order, STATUS.PAID, { by: req.user?._id });
+  if (order.status === STATUS.PENDING_PAYMENT)
+    applyTransition(order, STATUS.PAID, { by: req.user?._id });
 
   const updatedOrder = await order.save();
   emitFallbackOrderEvent("updated", updatedOrder.toObject());
@@ -174,7 +185,8 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
   const path = [STATUS.CONFIRMED, STATUS.PREPARING, STATUS.READY, STATUS.COMPLETED];
   for (const s of path) {
     if (order.status === STATUS.COMPLETED) break;
-    if (nextStates(order.status).includes(s)) applyTransition(order, s, { by: req.user?._id });
+    if (nextStates(order.status).includes(s))
+      applyTransition(order, s, { by: req.user?._id });
   }
   if (order.status !== STATUS.COMPLETED) {
     // Fallback for legacy/unknown states: force the terminal booleans.

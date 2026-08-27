@@ -43,9 +43,25 @@ export const updateZone = asyncHandler(async (req, res) => {
   }
   // Whitelist assignable fields (never let a client set _id/timestamps).
   const fields = [
-    "name", "desc", "active", "fee", "freeThreshold", "minOrder", "eta",
-    "maxOrders", "useGlobalHours", "schedule", "holidays", "coverage", "radius",
-    "postalCodes", "polygon", "restaurant", "payments", "restrictions", "notes",
+    "name",
+    "desc",
+    "active",
+    "fee",
+    "freeThreshold",
+    "minOrder",
+    "eta",
+    "maxOrders",
+    "useGlobalHours",
+    "schedule",
+    "holidays",
+    "coverage",
+    "radius",
+    "postalCodes",
+    "polygon",
+    "restaurant",
+    "payments",
+    "restrictions",
+    "notes",
   ];
   fields.forEach((f) => {
     if (req.body[f] !== undefined) zone[f] = req.body[f];

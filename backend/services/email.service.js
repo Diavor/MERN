@@ -58,7 +58,10 @@ export const renderOrderConfirmation = (order, locale = "it") => {
 
 const deliver = async ({ to, subject, text }) => {
   // Dev transport: structured log stands in for an SMTP/API send.
-  logger.info({ to, from: env.EMAIL_FROM, subject, body: text }, "Email delivered (dev transport)");
+  logger.info(
+    { to, from: env.EMAIL_FROM, subject, body: text },
+    "Email delivered (dev transport)"
+  );
 };
 
 /** Job handler: send the confirmation for a freshly created order. */

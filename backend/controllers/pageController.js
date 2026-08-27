@@ -89,7 +89,15 @@ export const updatePage = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Page not found");
   }
-  const fields = ["title", "status", "visibility", "publishDate", "featuredImage", "blocks", "seo"];
+  const fields = [
+    "title",
+    "status",
+    "visibility",
+    "publishDate",
+    "featuredImage",
+    "blocks",
+    "seo",
+  ];
   fields.forEach((f) => {
     if (req.body[f] !== undefined) page[f] = req.body[f];
   });

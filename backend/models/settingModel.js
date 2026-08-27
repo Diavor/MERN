@@ -32,14 +32,21 @@ const settingSchema = mongoose.Schema(
     },
 
     // Fresh copy per document so subdocs aren't shared across instances.
-    hours: { type: [hoursDaySchema], default: () => defaults.hours.map((d) => ({ ...d })) },
+    hours: {
+      type: [hoursDaySchema],
+      default: () => defaults.hours.map((d) => ({ ...d })),
+    },
 
     payments: {
       stripe: { type: Boolean, default: defaults.payments.stripe },
       apple: { type: Boolean, default: defaults.payments.apple },
       google: { type: Boolean, default: defaults.payments.google },
       // Contanti supports a richer state than on/off ("solo ritiro").
-      cash: { type: String, enum: ["off", "pickup", "all"], default: defaults.payments.cash },
+      cash: {
+        type: String,
+        enum: ["off", "pickup", "all"],
+        default: defaults.payments.cash,
+      },
     },
 
     notifications: {

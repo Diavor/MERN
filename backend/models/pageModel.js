@@ -30,7 +30,11 @@ const pageSchema = mongoose.Schema(
     title: { type: String, required: true, default: "Pagina senza titolo" },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     status: { type: String, enum: ["draft", "published"], default: "draft" },
-    visibility: { type: String, enum: ["public", "private", "scheduled"], default: "public" },
+    visibility: {
+      type: String,
+      enum: ["public", "private", "scheduled"],
+      default: "public",
+    },
     publishDate: { type: Date, default: null },
     featuredImage: { type: String, default: "" },
     blocks: { type: [blockSchema], default: [] },

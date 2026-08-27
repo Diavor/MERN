@@ -45,7 +45,9 @@ if (enabled) {
       // BullMQ workers hold a blocking connection; retries must not be capped.
       maxRetriesPerRequest: null,
     });
-    conn.on("error", (err) => logger.warn({ err: err.message }, "Redis connection error"));
+    conn.on("error", (err) =>
+      logger.warn({ err: err.message }, "Redis connection error")
+    );
     connections.push(conn);
     return conn;
   };
@@ -100,7 +102,10 @@ export const enqueue = async (queueName, jobName, data) => {
   try {
     await q.add(jobName, data);
   } catch (err) {
-    logger.warn({ err, queue: queueName, job: jobName }, "Enqueue failed — running inline");
+    logger.warn(
+      { err, queue: queueName, job: jobName },
+      "Enqueue failed — running inline"
+    );
     runInline();
   }
 };

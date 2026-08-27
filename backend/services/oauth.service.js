@@ -2,7 +2,9 @@ import { OAuth2Client } from "google-auth-library";
 import appleSignin from "apple-signin-auth";
 import env from "../config/env.js";
 
-const googleClient = env.GOOGLE_CLIENT_ID ? new OAuth2Client(env.GOOGLE_CLIENT_ID) : null;
+const googleClient = env.GOOGLE_CLIENT_ID
+  ? new OAuth2Client(env.GOOGLE_CLIENT_ID)
+  : null;
 
 export const googleConfigured = () => !!env.GOOGLE_CLIENT_ID;
 export const appleConfigured = () => !!env.APPLE_CLIENT_ID;
@@ -17,7 +19,10 @@ export const verifyGoogleToken = async (idToken) => {
   }
   let ticket;
   try {
-    ticket = await googleClient.verifyIdToken({ idToken, audience: env.GOOGLE_CLIENT_ID });
+    ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: env.GOOGLE_CLIENT_ID,
+    });
   } catch {
     const err = new Error("Token Google non valido");
     err.statusCode = 401;

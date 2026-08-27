@@ -31,8 +31,7 @@ const homeBlocks = [
     type: "text",
     data: {
       align: "center",
-      html:
-        "<h2>Un locale open space vista cucina</h2><p>Farine da <strong>grani antichi</strong>, lunga lievitazione e ingredienti scelti. A Mogliano Veneto, dal 2017.</p>",
+      html: "<h2>Un locale open space vista cucina</h2><p>Farine da <strong>grani antichi</strong>, lunga lievitazione e ingredienti scelti. A Mogliano Veneto, dal 2017.</p>",
     },
   },
   {
@@ -57,7 +56,8 @@ const run = async () => {
     blocks: homeBlocks,
     seo: {
       title: "Pizzeria Grani Antichi · Mogliano Veneto",
-      description: "Sforniamo pizze di qualità dal 2017. Farine da grani antichi, lunga lievitazione. Mogliano Veneto.",
+      description:
+        "Sforniamo pizze di qualità dal 2017. Farine da grani antichi, lunga lievitazione. Mogliano Veneto.",
       keywords: "pizzeria, grani antichi, mogliano veneto, pizza",
       canonical: "https://www.pizzeriagraniantichi.it/",
       ogImage: "",

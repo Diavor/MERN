@@ -6,8 +6,7 @@ const desserts = [
   {
     name: "Tiramisù della Casa",
     img: "/img/dessert-tiramisu.jpg",
-    description:
-      "Savoiardi inzuppati nel caffè, crema al mascarpone e cacao amaro.",
+    description: "Savoiardi inzuppati nel caffè, crema al mascarpone e cacao amaro.",
     brand: "Dolci",
     category: "Dolci",
     price: 5.0,
@@ -20,8 +19,7 @@ const desserts = [
   {
     name: "Panna Cotta ai Frutti di Bosco",
     img: "/img/dessert-pannacotta.jpg",
-    description:
-      "Panna cotta vellutata con coulis di frutti di bosco freschi.",
+    description: "Panna cotta vellutata con coulis di frutti di bosco freschi.",
     brand: "Dolci",
     category: "Dolci",
     price: 4.5,
@@ -34,8 +32,7 @@ const desserts = [
   {
     name: "Cannolo Siciliano",
     img: "/img/dessert-cannolo.jpg",
-    description:
-      "Cialda croccante ripiena di ricotta dolce e gocce di cioccolato.",
+    description: "Cialda croccante ripiena di ricotta dolce e gocce di cioccolato.",
     brand: "Dolci",
     category: "Dolci",
     price: 4.0,
@@ -62,8 +59,7 @@ const desserts = [
   {
     name: "Profiteroles",
     img: "/img/dessert-profiteroles.jpg",
-    description:
-      "Bignè ripieni di panna, ricoperti di crema al cioccolato.",
+    description: "Bignè ripieni di panna, ricoperti di crema al cioccolato.",
     brand: "Dolci",
     category: "Dolci",
     price: 5.0,
@@ -76,8 +72,7 @@ const desserts = [
   {
     name: "Sorbetto al Limone",
     img: "/img/dessert-sorbetto.jpg",
-    description:
-      "Sorbetto artigianale al limone, fresco e agrumato. Senza glutine.",
+    description: "Sorbetto artigianale al limone, fresco e agrumato. Senza glutine.",
     brand: "Dolci",
     category: "Dolci",
     price: 3.5,
@@ -90,8 +85,7 @@ const desserts = [
   {
     name: "Cheesecake ai Frutti di Bosco",
     img: "/img/dessert-cheesecake.jpg",
-    description:
-      "Base croccante, crema al formaggio e topping di frutti di bosco.",
+    description: "Base croccante, crema al formaggio e topping di frutti di bosco.",
     brand: "Dolci",
     category: "Dolci",
     price: 5.0,

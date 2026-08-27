@@ -33,7 +33,12 @@ export const generateTimeSlots = () => {
  * @returns {Promise<{ ok: boolean, slot: import('mongoose').Document|null }>}
  *   `ok:false` means the slot is full (caller should respond 409).
  */
-export const reserveSlot = async ({ date, time, units = 1, capacity = SLOT_CAPACITY }) => {
+export const reserveSlot = async ({
+  date,
+  time,
+  units = 1,
+  capacity = SLOT_CAPACITY,
+}) => {
   if (units > capacity) return { ok: false, slot: null };
 
   // Fast path: bump an existing slot that still has room.

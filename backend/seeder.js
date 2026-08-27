@@ -27,9 +27,11 @@ const importData = async () => {
     await Setting.deleteMany();
     const createdUsers = await User.insertMany(users);
     const adminUser = createdUsers[0]._id;
-    const sampleProducts = [...products, ...pizzas, ...beverages, ...desserts].map((product) => {
-      return { ...product, user: adminUser };
-    });
+    const sampleProducts = [...products, ...pizzas, ...beverages, ...desserts].map(
+      (product) => {
+        return { ...product, user: adminUser };
+      }
+    );
     await Product.insertMany(sampleProducts);
     await Zone.insertMany(zones);
     await Coupon.insertMany(coupons);

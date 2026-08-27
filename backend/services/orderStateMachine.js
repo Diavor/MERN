@@ -21,11 +21,21 @@ export const STATUSES = Object.values(STATUS);
 
 // Directed graph of allowed transitions. Terminal states map to [].
 export const TRANSITIONS = {
-  [STATUS.PENDING_PAYMENT]: [STATUS.PAID, STATUS.CONFIRMED, STATUS.CANCELLED, STATUS.FAILED],
+  [STATUS.PENDING_PAYMENT]: [
+    STATUS.PAID,
+    STATUS.CONFIRMED,
+    STATUS.CANCELLED,
+    STATUS.FAILED,
+  ],
   [STATUS.PAID]: [STATUS.CONFIRMED, STATUS.CANCELLED, STATUS.REFUNDED],
   [STATUS.CONFIRMED]: [STATUS.PREPARING, STATUS.CANCELLED, STATUS.REFUNDED],
   [STATUS.PREPARING]: [STATUS.READY, STATUS.CANCELLED],
-  [STATUS.READY]: [STATUS.PACKED, STATUS.OUT_FOR_DELIVERY, STATUS.COMPLETED, STATUS.CANCELLED],
+  [STATUS.READY]: [
+    STATUS.PACKED,
+    STATUS.OUT_FOR_DELIVERY,
+    STATUS.COMPLETED,
+    STATUS.CANCELLED,
+  ],
   [STATUS.PACKED]: [STATUS.OUT_FOR_DELIVERY, STATUS.COMPLETED],
   [STATUS.OUT_FOR_DELIVERY]: [STATUS.COMPLETED, STATUS.FAILED],
   [STATUS.COMPLETED]: [],
@@ -45,7 +55,9 @@ export const nextStates = (from) => TRANSITIONS[from] || [];
 
 // Short human code for pickup counter hand-off (e.g. "A47").
 const pickupCode = () =>
-  "A" + Math.floor(10 + Math.random() * 89) + String.fromCharCode(65 + Math.floor(Math.random() * 26));
+  "A" +
+  Math.floor(10 + Math.random() * 89) +
+  String.fromCharCode(65 + Math.floor(Math.random() * 26));
 
 /**
  * Apply a status transition to an order document in place: validates the move,
@@ -73,14 +85,23 @@ export const applyTransition = (order, to, ctx = {}) => {
 
   order.status = to;
   order.statusHistory = order.statusHistory || [];
-  order.statusHistory.push({ status: to, at: new Date(), by: ctx.by || null, note: ctx.note || "" });
+  order.statusHistory.push({
+    status: to,
+    at: new Date(),
+    by: ctx.by || null,
+    note: ctx.note || "",
+  });
 
   // Side-effects keep the legacy fields (and reads that still use them) correct.
   if (to === STATUS.PAID && !order.isPaid) {
     order.isPaid = true;
     order.paidAt = order.paidAt || new Date();
   }
-  if (to === STATUS.READY && order.shippingAddress?.orderType === "pickup" && !order.pickupCode) {
+  if (
+    to === STATUS.READY &&
+    order.shippingAddress?.orderType === "pickup" &&
+    !order.pickupCode
+  ) {
     order.pickupCode = pickupCode();
   }
   if (to === STATUS.COMPLETED) {

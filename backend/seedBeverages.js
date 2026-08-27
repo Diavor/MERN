@@ -29,7 +29,9 @@ const run = async () => {
     }
   }
 
-  console.log(`Beverages seeded — ${created} created, ${beverages.length - created} already existed.`);
+  console.log(
+    `Beverages seeded — ${created} created, ${beverages.length - created} already existed.`
+  );
   await disconnectDB();
   process.exit(0);
 };

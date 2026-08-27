@@ -26,7 +26,9 @@ const schema = z
     // Redis backs the BullMQ job queues (emails, image processing). Empty ⇒
     // queues disabled and jobs run inline (also the test-suite behaviour).
     REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
-    EMAIL_FROM: z.string().default("Pizzeria Grani Antichi <noreply@graniantichi.local>"),
+    EMAIL_FROM: z
+      .string()
+      .default("Pizzeria Grani Antichi <noreply@graniantichi.local>"),
 
     // Storage: "local" (uploads/ on disk) or "s3".
     STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),

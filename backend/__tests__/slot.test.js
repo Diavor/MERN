@@ -11,7 +11,14 @@ let productId;
 // A scheduled order for a given slot. `city` doubles as the delivery-zone name.
 const orderBody = ({ date, slot, orderType = "delivery", city = "Centro" }) => ({
   orderItems: [
-    { name: "Margherita", qty: 1, image: "/img/x.jpg", price: 8, toppings: [], product: productId },
+    {
+      name: "Margherita",
+      qty: 1,
+      image: "/img/x.jpg",
+      price: 8,
+      toppings: [],
+      product: productId,
+    },
   ],
   shippingAddress: {
     name: "Guest",
@@ -31,7 +38,12 @@ const orderBody = ({ date, slot, orderType = "delivery", city = "Centro" }) => (
 
 before(async () => {
   ({ app, mongo } = await startTestApp());
-  await createUser({ name: "Admin", email: "admin@example.com", password: "admin123", isAdmin: true });
+  await createUser({
+    name: "Admin",
+    email: "admin@example.com",
+    password: "admin123",
+    isAdmin: true,
+  });
   const login = await request(app)
     .post("/api/users/login")
     .send({ email: "admin@example.com", password: "admin123" });
@@ -53,7 +65,9 @@ describe("slot capacity", () => {
     const before = await request(app).get(`/api/slots?date=${date}`);
     const beforeAvail = before.body.find((s) => s.time === slot).available;
 
-    const res = await request(app).post("/api/orders").send(orderBody({ date, slot, orderType: "pickup" }));
+    const res = await request(app)
+      .post("/api/orders")
+      .send(orderBody({ date, slot, orderType: "pickup" }));
     assert.equal(res.status, 201);
 
     const after = await request(app).get(`/api/slots?date=${date}`);
@@ -67,23 +81,38 @@ describe("slot capacity", () => {
     const date = "2026-08-02";
     const slot = "19:00";
 
-    const first = await request(app).post("/api/orders").send(orderBody({ date, slot, city: "Tightville" }));
+    const first = await request(app)
+      .post("/api/orders")
+      .send(orderBody({ date, slot, city: "Tightville" }));
     assert.equal(first.status, 201);
 
-    const second = await request(app).post("/api/orders").send(orderBody({ date, slot, city: "Tightville" }));
+    const second = await request(app)
+      .post("/api/orders")
+      .send(orderBody({ date, slot, city: "Tightville" }));
     assert.equal(second.status, 409);
   });
 
   test("an order without a scheduled slot is not blocked", async () => {
-    const res = await request(app).post("/api/orders").send({
-      orderItems: [{ name: "Margherita", qty: 1, image: "/img/x.jpg", price: 8, toppings: [], product: productId }],
-      shippingAddress: { name: "Guest", orderType: "pickup" },
-      paymentMethod: "Contanti",
-      itemsNum: 1,
-      itemsPrice: 8,
-      shippingPrice: 0,
-      totalPrice: 8,
-    });
+    const res = await request(app)
+      .post("/api/orders")
+      .send({
+        orderItems: [
+          {
+            name: "Margherita",
+            qty: 1,
+            image: "/img/x.jpg",
+            price: 8,
+            toppings: [],
+            product: productId,
+          },
+        ],
+        shippingAddress: { name: "Guest", orderType: "pickup" },
+        paymentMethod: "Contanti",
+        itemsNum: 1,
+        itemsPrice: 8,
+        shippingPrice: 0,
+        totalPrice: 8,
+      });
     assert.equal(res.status, 201);
   });
 });

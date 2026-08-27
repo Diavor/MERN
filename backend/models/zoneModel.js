@@ -28,11 +28,18 @@ const zoneSchema = mongoose.Schema(
     // useGlobalHours is false; it collapses the former weekday/weekend ranges
     // into one "from → to".
     useGlobalHours: { type: Boolean, default: true },
-    schedule: { type: timeRangeSchema, default: () => ({ open: "18:00", close: "22:00" }) },
+    schedule: {
+      type: timeRangeSchema,
+      default: () => ({ open: "18:00", close: "22:00" }),
+    },
     holidays: { type: Boolean, default: false },
 
     // Copertura
-    coverage: { type: String, enum: ["radius", "postal", "polygon"], default: "radius" },
+    coverage: {
+      type: String,
+      enum: ["radius", "postal", "polygon"],
+      default: "radius",
+    },
     radius: { type: Number, default: 2.0 },
     postalCodes: { type: String, default: "" },
     polygon: { type: [[Number]], default: undefined },
