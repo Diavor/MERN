@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-import colors from "colors";
+import "colors"; // side-effect: patches String.prototype with .green / .red etc.
 import users from "./data/users.js";
 import products from "./data/products.js";
 import pizzas from "./data/pizzas.js";
@@ -16,11 +15,8 @@ import Zone from "./models/zoneModel.js";
 import Coupon from "./models/couponModel.js";
 import Setting from "./models/settingModel.js";
 import connectDB from "./config/db.js";
-
 dotenv.config();
-
 connectDB();
-
 const importData = async () => {
   try {
     await Order.deleteMany();
@@ -29,20 +25,15 @@ const importData = async () => {
     await Zone.deleteMany();
     await Coupon.deleteMany();
     await Setting.deleteMany();
-
     const createdUsers = await User.insertMany(users);
-
     const adminUser = createdUsers[0]._id;
-
     const sampleProducts = [...products, ...pizzas, ...beverages, ...desserts].map((product) => {
       return { ...product, user: adminUser };
     });
-
     await Product.insertMany(sampleProducts);
     await Zone.insertMany(zones);
     await Coupon.insertMany(coupons);
     await Setting.create(settings);
-
     console.log("Data Imported!".green.inverse);
     process.exit();
   } catch (error) {
@@ -50,7 +41,6 @@ const importData = async () => {
     process.exit(1);
   }
 };
-
 const destroyData = async () => {
   try {
     await Order.deleteMany();
@@ -59,7 +49,6 @@ const destroyData = async () => {
     await Zone.deleteMany();
     await Coupon.deleteMany();
     await Setting.deleteMany();
-
     console.log("Data Destroyed!".red.inverse);
     process.exit();
   } catch (error) {
@@ -67,5 +56,4 @@ const destroyData = async () => {
     process.exit(1);
   }
 };
-
 process.argv[2] === "-d" ? destroyData() : importData();

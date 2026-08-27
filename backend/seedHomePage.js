@@ -4,7 +4,7 @@
 // HomeScreen.
 //
 //   node backend/seedHomePage.js
-import mongoose from "mongoose";
+
 import dotenv from "dotenv";
 import connectDB, { disconnectDB } from "./config/db.js";
 import Page from "./models/pageModel.js";

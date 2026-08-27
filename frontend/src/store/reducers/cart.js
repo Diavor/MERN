@@ -4,10 +4,7 @@ import * as actionTypes from "../actionTypes";
 // without a key fall back to the product id.
 const lineId = (i) => i.key || i.product;
 
-export const cartReducer = (
-  state = { cartItems: [], shippingAddress: {} },
-  action
-) => {
+export const cartReducer = (state = { cartItems: [] }, action) => {
   switch (action.type) {
     case actionTypes.CART_ADD_ITEM: {
       const item = action.payload;
@@ -39,17 +36,6 @@ export const cartReducer = (
         cartItems: [],
       };
 
-    case actionTypes.CART_SAVE_SHIPPING_ADDRESS:
-      return {
-        ...state,
-        shippingAddress: action.payload,
-      };
-
-    case actionTypes.CART_SAVE_PAYMENT_METHOD:
-      return {
-        ...state,
-        paymentMethod: action.payload,
-      };
     default:
       return state;
   }

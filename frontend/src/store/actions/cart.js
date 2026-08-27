@@ -3,7 +3,7 @@ import * as actionTypes from "../actionTypes";
 
 // A cart line is identified by product + dough + toppings so the same pizza
 // with different configurations can coexist in the cart.
-export const cartItemKey = (productId, selectedDough, toppings = []) =>
+const cartItemKey = (productId, selectedDough, toppings = []) =>
   [
     productId,
     selectedDough ? selectedDough.name : "",
@@ -72,20 +72,4 @@ export const removeCart = (key) => (dispatch, getState) => {
 export const clearCart = () => (dispatch) => {
   dispatch({ type: actionTypes.CART_CLEAR_ITEMS });
   localStorage.removeItem("cartItems");
-};
-
-export const saveShippingAddress = (data) => (dispatch) => {
-  dispatch({
-    type: actionTypes.CART_SAVE_SHIPPING_ADDRESS,
-    payload: data,
-  });
-  localStorage.setItem("shippingAddress", JSON.stringify(data));
-};
-
-export const savePaymentMethod = (data) => (dispatch) => {
-  dispatch({
-    type: actionTypes.CART_SAVE_PAYMENT_METHOD,
-    payload: data,
-  });
-  localStorage.setItem("paymentMethod", JSON.stringify(data));
 };

@@ -16,17 +16,6 @@ import "./CartDrawer.scss";
 // checkout (the final fee is set per-zone there).
 const MIN_ZONE_FEE = Math.min(...DELIVERY_ZONES.map((z) => z.price));
 
-export function TotalRow({ label, value, muted, accent }) {
-  const cls =
-    "total-row" + (muted ? " is-muted" : "") + (accent ? " is-accent" : "");
-  return (
-    <div className={cls}>
-      <span>{label}</span>
-      <span className="total-row__value">{value}</span>
-    </div>
-  );
-}
-
 const lineCaption = (item) => {
   const parts = [];
   if (item.selectedDough) parts.push(item.selectedDough.name);
