@@ -54,11 +54,27 @@ app.use(
 // SDKs (scripts, iframes, XHRs) load when the SPA is served from this origin in
 // production. In dev the SPA is served by Vite, where this CSP doesn't apply.
 const cspDefaults = helmet.contentSecurityPolicy.getDefaultDirectives();
+
+// Product images may live on external object storage (Cloudflare R2 / S3);
+// allow that origin in img-src or the browser will block every product photo.
+let mediaOrigin = null;
+if (env.S3_PUBLIC_URL) {
+  try {
+    mediaOrigin = new URL(env.S3_PUBLIC_URL).origin;
+  } catch {
+    /* malformed URL — leave CSP untouched rather than crash the boot */
+  }
+}
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         ...cspDefaults,
+        "img-src": [
+          ...(cspDefaults["img-src"] || ["'self'", "data:"]),
+          ...(mediaOrigin ? [mediaOrigin] : []),
+        ],
         "script-src": [
           ...(cspDefaults["script-src"] || ["'self'"]),
           "https://accounts.google.com",

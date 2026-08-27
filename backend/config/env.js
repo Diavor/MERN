@@ -30,10 +30,16 @@ const schema = z
       .string()
       .default("Pizzeria Grani Antichi <noreply@graniantichi.local>"),
 
-    // Storage: "local" (uploads/ on disk) or "s3".
+    // Storage: "local" (uploads/ on disk) or "s3" (any S3-compatible store).
+    // For Cloudflare R2: S3_REGION=auto, S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com,
+    // S3_PUBLIC_URL=the bucket's public base URL (r2.dev subdomain or custom domain).
     STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
     S3_BUCKET: z.string().optional(),
     S3_REGION: z.string().optional(),
+    S3_ENDPOINT: z.string().optional(),
+    S3_PUBLIC_URL: z.string().optional(),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
 
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
