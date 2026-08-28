@@ -1,0 +1,23 @@
+{
+  "//": "Copy this file to printers.config.json (gitignored) and edit it for THIS till machine.",
+  "//id": "The `id` strings are the shared vocabulary with the admin app's Impostazioni → Stampa section (receiptPrinterIds / nonFiscalPrinterIds). Keep them short and stable: e.g. fiscal, bar, kitchen.",
+  "//docTypes": "Which documents a printer receives when the caller doesn't pass explicit targets: receipt | nonFiscalReceipt | kitchenTicket.",
+  "//types": "type=network needs host (+ optional port, default 9100). type=usb needs either device (an OS device path like /dev/usb/lp0) or name (an OS print-queue name — requires installing the optional '@thiagoelg/node-printer' package).",
+  "printers": [
+    {
+      "id": "fiscal",
+      "label": "Cassa (fiscale)",
+      "type": "network",
+      "host": "192.168.1.50",
+      "port": 9100,
+      "docTypes": ["receipt"]
+    },
+    {
+      "id": "bar",
+      "label": "Bancone bar",
+      "type": "usb",
+      "device": "/dev/usb/lp0",
+      "docTypes": ["nonFiscalReceipt", "kitchenTicket"]
+    }
+  ]
+}

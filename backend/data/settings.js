@@ -31,6 +31,17 @@ const settings = {
     pushCustomer: true,
     dailySummary: "08:00",
   },
+  // Till printing via the local print-agent (see print-agent/ at the repo
+  // root). Only LOGICAL config lives here — which agent to call and which
+  // printer ids receive which document. The ids are a shared vocabulary with
+  // the till machine's print-agent/printers.config.json (e.g. "fiscal",
+  // "bar", "kitchen"); the hardware details (USB ids, IPs) stay agent-local
+  // and never touch MongoDB.
+  printing: {
+    agentUrl: "http://localhost:9100",
+    receiptPrinterIds: ["fiscal"],
+    nonFiscalPrinterIds: [],
+  },
 };
 
 export default settings;

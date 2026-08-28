@@ -58,13 +58,12 @@ const shell = (title, bodyCss, body) => `<!doctype html><html><head><meta charse
   @media print { body { padding: 0; } }
 </style></head><body>${body}</body></html>`;
 
-/**
- * Customer receipt document.
- * @param {object} order
- * @param {object} [settings]  site settings (restaurant name/vat/address).
- * @returns {string} HTML
- */
-export function buildReceiptHTML(order, settings) {
+// Shared receipt body — the fiscal receipt and its non-fiscal copy print the
+// exact same lines/totals; only the banner/footer marking differs.
+// ⚠ The field structure here (header, id+date, meta line, item rows, totals,
+// footer) is deliberately mirrored by print-agent/src/documents.js for the
+// ESC/POS path — if you add/rename a field, update both sides.
+const receiptBody = (order, settings) => {
   const r = settings?.restaurant || {};
   const items = order.orderItems || [];
   const rows = items
@@ -77,7 +76,7 @@ export function buildReceiptHTML(order, settings) {
     Number(order.discountPrice) ||
     Math.max(0, Number(order.itemsPrice) + Number(order.shippingPrice) - Number(order.totalPrice));
 
-  const body = `
+  return `
     <div style="text-align:center">
       <div class="name">${esc(r.name || "Pizzeria")}</div>
       ${r.address ? `<div class="muted xs">${esc(r.address)}</div>` : ""}
@@ -98,7 +97,36 @@ export function buildReceiptHTML(order, settings) {
     <hr>
     <div style="text-align:center" class="muted xs">Grazie! · ${esc(shortId(order))}</div>
   `;
-  return shell(shortId(order), `.name{font-size:18px;font-weight:700}.xs{font-size:11px}.total{font-size:16px;margin-top:6px}`, body);
+};
+
+const RECEIPT_CSS = `.name{font-size:18px;font-weight:700}.xs{font-size:11px}.total{font-size:16px;margin-top:6px}`;
+
+/**
+ * Customer receipt document.
+ * @param {object} order
+ * @param {object} [settings]  site settings (restaurant name/vat/address).
+ * @returns {string} HTML
+ */
+export function buildReceiptHTML(order, settings) {
+  return shell(shortId(order), RECEIPT_CSS, receiptBody(order, settings));
+}
+
+/**
+ * Non-fiscal copy of the receipt: identical items/totals, prominently marked
+ * as NOT a fiscal document (banner + footer), for the backup/bar printer.
+ * @param {object} order
+ * @param {object} [settings]
+ * @returns {string} HTML
+ */
+export function buildNonFiscalReceiptHTML(order, settings) {
+  const banner = `<div class="nf-banner">DOCUMENTO NON FISCALE</div>`;
+  const footer = `<div class="nf-banner nf-footer">COPIA NON VALIDA AI FINI FISCALI</div>`;
+  return shell(
+    "Copia non fiscale " + shortId(order),
+    RECEIPT_CSS +
+      `.nf-banner{background:#000;color:#fff;text-align:center;font-weight:800;letter-spacing:.08em;padding:6px 4px;margin-bottom:10px}.nf-footer{margin:10px 0 0}`,
+    banner + receiptBody(order, settings) + footer
+  );
 }
 
 /**

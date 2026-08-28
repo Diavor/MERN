@@ -55,6 +55,22 @@ const settingSchema = mongoose.Schema(
       pushCustomer: { type: Boolean, default: defaults.notifications.pushCustomer },
       dailySummary: { type: String, default: defaults.notifications.dailySummary },
     },
+
+    // Till printing (local print-agent). Logical routing only: the printer id
+    // strings must match the ids configured in the till machine's
+    // print-agent/printers.config.json — hardware details (USB ids, IPs) are
+    // deliberately NOT stored here (they're till-specific, not site-wide).
+    printing: {
+      agentUrl: { type: String, default: defaults.printing.agentUrl },
+      receiptPrinterIds: {
+        type: [String],
+        default: () => [...defaults.printing.receiptPrinterIds],
+      },
+      nonFiscalPrinterIds: {
+        type: [String],
+        default: () => [...defaults.printing.nonFiscalPrinterIds],
+      },
+    },
   },
   { timestamps: true }
 );

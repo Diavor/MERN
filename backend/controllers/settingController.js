@@ -24,7 +24,7 @@ export const updateSettings = asyncHandler(async (req, res) => {
   const settings = await getOrCreate();
   // Whitelist top-level sections; a request may patch any subset (e.g. only
   // `restaurant`) without clobbering the others.
-  const sections = ["restaurant", "hours", "payments", "notifications"];
+  const sections = ["restaurant", "hours", "payments", "notifications", "printing"];
   sections.forEach((section) => {
     if (req.body[section] !== undefined) settings[section] = req.body[section];
   });

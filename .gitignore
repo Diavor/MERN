@@ -34,3 +34,6 @@ yarn-error.log*
 # machine-local Claude Code config (permissions, launch profiles)
 .claude/settings.local.json
 .claude/launch.json
+
+# print-agent: real hardware config is till-machine-specific — never commit it
+print-agent/printers.config.json
