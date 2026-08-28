@@ -1,6 +1,11 @@
 import env from "../config/env.js";
 import logger from "../utils/logger.js";
-import { deleteUpload, getS3, isOurUploadUrl, publicUrlForKey } from "./storage.service.js";
+import {
+  deleteUpload,
+  getS3,
+  isOurUploadUrl,
+  publicUrlForKey,
+} from "./storage.service.js";
 import Product from "../models/productModel.js";
 import Page from "../models/pageModel.js";
 import Order from "../models/orderModel.js";
@@ -47,6 +52,15 @@ const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export const collectImageUrls = (value, sink = new Set()) => {
   const prefix = uploadPrefix();
   if (value == null || !prefix) return sink;
+
+  // Mongoose documents/subdocuments expose their fields via prototype getters,
+  // so Object.values() on one yields internals ($__, _doc, …) and NOT the
+  // schema fields — silently missing every nested block image. Normalize to a
+  // plain object first. (Callers using .lean() are already plain; this is for
+  // the controllers, which hold real documents.)
+  if (typeof value.toObject === "function") {
+    return collectImageUrls(value.toObject(), sink);
+  }
 
   if (typeof value === "string") {
     if (isOurUploadUrl(value)) {
@@ -95,14 +109,18 @@ export const isUrlStillReferenced = async (url) => {
   return pages.some((p) => collectImageUrls(p.blocks).has(url));
 };
 
-/** JOB.DELETE_IMAGE handler: delete a URL only if nothing references it. */
-export const deleteImageIfUnreferenced = async ({ url }) => {
+/**
+ * JOB.DELETE_IMAGE handler: delete a URL only if nothing references it.
+ * @param {{ url: string, s3?: object }} data  `s3` is an injection point for
+ *   tests, forwarded to deleteUpload (matches its own `{ s3 }` pattern).
+ */
+export const deleteImageIfUnreferenced = async ({ url, s3 } = {}) => {
   if (!url || !isOurUploadUrl(url)) return;
   if (await isUrlStillReferenced(url)) {
     logger.info({ url }, "Skipping image delete — still referenced elsewhere");
     return;
   }
-  await deleteUpload(url);
+  await deleteUpload(url, { s3 });
 };
 
 /** Every image URL currently referenced across the whole database. */
@@ -170,14 +188,20 @@ export const reconcileImageStorage = async ({
   let ContinuationToken;
   do {
     const page = await client.send(
-      new ListObjectsV2Command({ Bucket: env.S3_BUCKET, Prefix: BUCKET_PREFIX, ContinuationToken })
+      new ListObjectsV2Command({
+        Bucket: env.S3_BUCKET,
+        Prefix: BUCKET_PREFIX,
+        ContinuationToken,
+      })
     );
     for (const obj of page.Contents || []) {
       scanned++;
       const url = publicUrlForKey(obj.Key);
       if (referenced.has(url)) continue;
 
-      const age = obj.LastModified ? Date.now() - new Date(obj.LastModified).getTime() : Infinity;
+      const age = obj.LastModified
+        ? Date.now() - new Date(obj.LastModified).getTime()
+        : Infinity;
       if (age < safetyHours * 3600 * 1000) {
         skippedTooYoung++;
         continue;
@@ -189,7 +213,9 @@ export const reconcileImageStorage = async ({
         continue;
       }
       try {
-        await client.send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key }));
+        await client.send(
+          new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key })
+        );
         deleted++;
       } catch (err) {
         errors.push({ key: obj.Key, error: err.message });
@@ -198,8 +224,17 @@ export const reconcileImageStorage = async ({
     ContinuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
   } while (ContinuationToken);
 
-  const summary = { scanned, orphans, deleted, skippedTooYoung, dryRun, errors: errors.length, cutoff: new Date(cutoff).toISOString() };
+  const summary = {
+    scanned,
+    orphans,
+    deleted,
+    skippedTooYoung,
+    dryRun,
+    errors: errors.length,
+    cutoff: new Date(cutoff).toISOString(),
+  };
   logger.info(summary, "Image reconciliation complete");
-  if (errors.length) logger.warn({ errors }, "Image reconciliation: some deletes failed");
+  if (errors.length)
+    logger.warn({ errors }, "Image reconciliation: some deletes failed");
   return summary;
 };

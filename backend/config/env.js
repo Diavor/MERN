@@ -41,6 +41,19 @@ const schema = z
     S3_ACCESS_KEY_ID: z.string().optional(),
     S3_SECRET_ACCESS_KEY: z.string().optional(),
 
+    // Weekly safety-net job: lists the R2 bucket and deletes objects with no
+    // matching reference anywhere in Mongo. Only runs when STORAGE_DRIVER=s3
+    // (local disk isn't the storage-cost concern this exists for) and only
+    // when Redis is configured (it's a BullMQ repeatable job) — see
+    // services/imageCleanup.js. DRY_RUN defaults to true: a bug here would
+    // silently destroy real product photos, so real deletion is opt-in.
+    IMAGE_RECONCILE_SCHEDULE: z.string().default("0 4 * * 0"), // weekly, Sun 04:00
+    IMAGE_RECONCILE_DRY_RUN: z
+      .enum(["true", "false"]) // NOT z.coerce.boolean() — Boolean("false") is true
+      .default("true")
+      .transform((v) => v === "true"),
+    IMAGE_RECONCILE_SAFETY_HOURS: z.coerce.number().int().positive().default(48),
+
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),

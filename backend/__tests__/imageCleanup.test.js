@@ -1,37 +1,55 @@
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 
+// ⚠ Only plain process.env assignments may run at module top level. Importing
+// ANY application module here (directly or transitively) loads config/env.js
+// before startTestApp() can point MONGO_URI at the in-memory server — which
+// silently connects the suite to the developer's real local database, and the
+// teardown then drops it. Every app import below is therefore dynamic, inside
+// before(). helpers/setup.js hard-fails if this rule is ever broken again.
 process.env.STORAGE_DRIVER = "s3";
 process.env.S3_BUCKET = "pga-uploads-test";
 process.env.S3_REGION = "auto";
 process.env.S3_PUBLIC_URL = "https://pub-test.r2.dev";
 
-const { startTestApp, stopTestApp } = await import("./helpers/setup.js");
-const {
-  collectImageUrls,
+let mongo, Product, Page, Order, User;
+let collectImageUrls,
   diffRemovedImages,
   isUrlStillReferenced,
   deleteImageIfUnreferenced,
   collectReferencedImageUrls,
-  reconcileImageStorage,
-} = await import("../services/imageCleanup.js");
-
-let mongo, Product, Page, Order, User;
+  reconcileImageStorage;
 
 before(async () => {
+  const { startTestApp } = await import("./helpers/setup.js");
   ({ mongo } = await startTestApp());
+  ({
+    collectImageUrls,
+    diffRemovedImages,
+    isUrlStillReferenced,
+    deleteImageIfUnreferenced,
+    collectReferencedImageUrls,
+    reconcileImageStorage,
+  } = await import("../services/imageCleanup.js"));
   ({ default: Product } = await import("../models/productModel.js"));
   ({ default: Page } = await import("../models/pageModel.js"));
   ({ default: Order } = await import("../models/orderModel.js"));
   ({ default: User } = await import("../models/userModel.js"));
 });
 after(async () => {
+  const { stopTestApp } = await import("./helpers/setup.js");
   await stopTestApp(mongo);
 });
 
 const IMG = (n) => `https://pub-test.r2.dev/products/img-${n}.webp`;
 
-const makeUser = () => User.create({ name: "Admin", email: `a${Date.now()}${Math.random()}@x.com`, password: "x", isAdmin: true });
+const makeUser = () =>
+  User.create({
+    name: "Admin",
+    email: `a${Date.now()}${Math.random()}@x.com`,
+    password: "x",
+    isAdmin: true,
+  });
 
 const makeProduct = (overrides = {}) =>
   Product.create({
@@ -48,7 +66,10 @@ describe("collectImageUrls — recursive scan over free-form CMS block data", ()
   test("finds a structured {url,name,dim} media object at any nesting depth", () => {
     const blocks = [
       { type: "hero", data: { image: { url: IMG(1), name: "a", dim: "" } } },
-      { type: "columns", data: { left: { media: { url: IMG(2) } }, right: { kind: "text" } } },
+      {
+        type: "columns",
+        data: { left: { media: { url: IMG(2) } }, right: { kind: "text" } },
+      },
       { type: "gallery", data: { images: [{ url: IMG(3) }, { url: IMG(4) }] } },
     ];
     const set = collectImageUrls(blocks);
@@ -57,7 +78,10 @@ describe("collectImageUrls — recursive scan over free-form CMS block data", ()
 
   test("extracts an <img src> embedded inside a free-form html/text block", () => {
     const blocks = [
-      { type: "html", data: { code: `<section><img src="${IMG(5)}" alt=""></section>` } },
+      {
+        type: "html",
+        data: { code: `<section><img src="${IMG(5)}" alt=""></section>` },
+      },
       { type: "text", data: { html: `<p>hello <img src="${IMG(6)}"/></p>` } },
     ];
     const set = collectImageUrls(blocks);
@@ -65,14 +89,20 @@ describe("collectImageUrls — recursive scan over free-form CMS block data", ()
   });
 
   test("ignores static/foreign strings that are not our upload URLs", () => {
-    const set = collectImageUrls({ img: "/img/alexa.jpg", note: "https://example.com/x.jpg" });
+    const set = collectImageUrls({
+      img: "/img/alexa.jpg",
+      note: "https://example.com/x.jpg",
+    });
     assert.equal(set.size, 0);
   });
 });
 
 describe("diffRemovedImages", () => {
   test("returns only URLs present before but absent after", () => {
-    const removed = diffRemovedImages({ img: IMG(1), images: [IMG(2)] }, { img: IMG(2), images: [] });
+    const removed = diffRemovedImages(
+      { img: IMG(1), images: [IMG(2)] },
+      { img: IMG(2), images: [] }
+    );
     assert.deepEqual(removed, [IMG(1)]);
   });
   test("returns nothing when nothing was removed", () => {
@@ -92,7 +122,9 @@ describe("isUrlStillReferenced / deleteImageIfUnreferenced — the order-snapsho
     const user = await makeUser();
     const replaced = IMG(20);
     await Order.create({
-      orderItems: [{ name: "Margherita", qty: 1, image: replaced, price: 8, product: user._id }],
+      orderItems: [
+        { name: "Margherita", qty: 1, image: replaced, price: 8, product: user._id },
+      ],
       paymentMethod: "Contanti",
       itemsPrice: 8,
       totalPrice: 8,
@@ -112,9 +144,16 @@ describe("isUrlStillReferenced / deleteImageIfUnreferenced — the order-snapsho
     const orphan = IMG(30);
     const sent = [];
     const s3 = {
-      client: { send: async (cmd) => { sent.push(cmd); return {}; } },
+      client: {
+        send: async (cmd) => {
+          sent.push(cmd);
+          return {};
+        },
+      },
       DeleteObjectCommand: class DeleteObjectCommand {
-        constructor(input) { this.input = input; }
+        constructor(input) {
+          this.input = input;
+        }
       },
     };
     assert.equal(await isUrlStillReferenced(orphan), false);
@@ -167,16 +206,23 @@ describe("reconcileImageStorage", () => {
         send: async (cmd) => {
           sent.push(cmd);
           if (cmd instanceof s3.ListObjectsV2Command) {
-            return listResponse(["products/img-50.webp", "products/orphan-old.webp"], 200); // both old enough
+            return listResponse(
+              ["products/img-50.webp", "products/orphan-old.webp"],
+              200
+            ); // both old enough
           }
           return {};
         },
       },
       ListObjectsV2Command: class ListObjectsV2Command {
-        constructor(input) { this.input = input; }
+        constructor(input) {
+          this.input = input;
+        }
       },
       DeleteObjectCommand: class DeleteObjectCommand {
-        constructor(input) { this.input = input; }
+        constructor(input) {
+          this.input = input;
+        }
       },
     };
 
@@ -184,7 +230,10 @@ describe("reconcileImageStorage", () => {
     assert.equal(summary.scanned, 2);
     assert.equal(summary.orphans, 1);
     assert.equal(summary.deleted, 0);
-    assert.ok(!sent.some((c) => c instanceof s3.DeleteObjectCommand), "dry-run must never delete");
+    assert.ok(
+      !sent.some((c) => c instanceof s3.DeleteObjectCommand),
+      "dry-run must never delete"
+    );
   });
 
   test("real mode: deletes only unreferenced objects older than the safety window", async () => {
@@ -198,8 +247,14 @@ describe("reconcileImageStorage", () => {
           if (cmd instanceof s3.ListObjectsV2Command) {
             return {
               Contents: [
-                { Key: "products/img-60.webp", LastModified: new Date(Date.now() - 200 * 3600 * 1000) }, // referenced
-                { Key: "products/orphan-old.webp", LastModified: new Date(Date.now() - 200 * 3600 * 1000) }, // orphan, old enough
+                {
+                  Key: "products/img-60.webp",
+                  LastModified: new Date(Date.now() - 200 * 3600 * 1000),
+                }, // referenced
+                {
+                  Key: "products/orphan-old.webp",
+                  LastModified: new Date(Date.now() - 200 * 3600 * 1000),
+                }, // orphan, old enough
                 { Key: "products/orphan-fresh.webp", LastModified: new Date() }, // orphan, but too young
               ],
               IsTruncated: false,
@@ -210,10 +265,14 @@ describe("reconcileImageStorage", () => {
         },
       },
       ListObjectsV2Command: class ListObjectsV2Command {
-        constructor(input) { this.input = input; }
+        constructor(input) {
+          this.input = input;
+        }
       },
       DeleteObjectCommand: class DeleteObjectCommand {
-        constructor(input) { this.input = input; }
+        constructor(input) {
+          this.input = input;
+        }
       },
     };
 

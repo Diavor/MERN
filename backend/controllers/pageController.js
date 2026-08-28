@@ -1,5 +1,25 @@
 import asyncHandler from "express-async-handler";
 import Page from "../models/pageModel.js";
+import { enqueue, QUEUE, JOB } from "../services/queue.service.js";
+import { collectImageUrls } from "../services/imageCleanup.js";
+
+// See productController.js's cleanupImages for the full rationale: best-effort,
+// post-commit, never the final word (the job handler re-checks the database,
+// including page blocks and historical order snapshots, before deleting).
+const cleanupImages = (urls) => {
+  for (const url of urls) enqueue(QUEUE.IMAGES, JOB.DELETE_IMAGE, { url });
+};
+
+// A page's full set of image references — featuredImage, seo.ogImage, and
+// whatever collectImageUrls' recursive scan finds inside the free-form
+// `blocks` (covers every current block shape, including <img> embedded in
+// html/text blocks — see imageCleanup.js).
+const pageImages = (page) =>
+  collectImageUrls({
+    featuredImage: page.featuredImage,
+    seo: page.seo,
+    blocks: page.blocks,
+  });
 
 const slugify = (s) =>
   String(s || "")
@@ -89,6 +109,8 @@ export const updatePage = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Page not found");
   }
+  const before = pageImages(page);
+
   const fields = [
     "title",
     "status",
@@ -113,6 +135,8 @@ export const updatePage = asyncHandler(async (req, res) => {
     }
   }
   const updated = await page.save();
+  const after = pageImages(updated);
+  cleanupImages([...before].filter((u) => !after.has(u)));
   res.json(updated);
 });
 
@@ -125,6 +149,8 @@ export const deletePage = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Page not found");
   }
+  const images = [...pageImages(page)];
   await page.deleteOne();
+  cleanupImages(images);
   res.json({ message: "Page removed" });
 });

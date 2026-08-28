@@ -1,7 +1,6 @@
-import { test, describe, before, after } from "node:test";
+import { test, describe, after } from "node:test";
 import assert from "node:assert/strict";
 import { promises as fs } from "fs";
-import path from "path";
 
 process.env.NODE_ENV = "test";
 process.env.MONGO_URI = "mongodb://127.0.0.1:1/unused"; // never connected in this file
@@ -9,14 +8,17 @@ process.env.JWT_SECRET = "test-secret-at-least-16-chars-long";
 // STORAGE_DRIVER intentionally left unset — defaults to "local", matching
 // every other test file (and real dev/single-box deployments).
 
-const { assertReasonableDimensions, isOurUploadUrl, deleteUpload } = await import(
-  "../services/storage.service.js"
-);
+const { assertReasonableDimensions, isOurUploadUrl, deleteUpload } =
+  await import("../services/storage.service.js");
 
 describe("assertReasonableDimensions", () => {
   test("passes ordinary photo sizes, including high-end mirrorless output", () => {
-    assert.doesNotThrow(() => assertReasonableDimensions({ width: 1600, height: 1200 }));
-    assert.doesNotThrow(() => assertReasonableDimensions({ width: 9504, height: 6336 })); // ~60MP
+    assert.doesNotThrow(() =>
+      assertReasonableDimensions({ width: 1600, height: 1200 })
+    );
+    assert.doesNotThrow(() =>
+      assertReasonableDimensions({ width: 9504, height: 6336 })
+    ); // ~60MP
   });
 
   test("passes when metadata couldn't determine size (never blocks on unknown)", () => {
@@ -54,34 +56,38 @@ describe("isOurUploadUrl (local driver)", () => {
 });
 
 describe("deleteUpload (local driver)", () => {
-  let dir;
-  before(async () => {
-    dir = await fs.mkdtemp(path.join(process.cwd(), "uploads-test-"));
-  });
+  // Must live under the real uploads/ dir: isOurUploadUrl() only recognizes
+  // "/uploads/..." for this driver, and deleteUpload deliberately refuses
+  // anything it doesn't recognize as its own (proven by the last test here).
+  const created = [];
+  const seed = async (name) => {
+    const rel = `uploads/${name}`;
+    await fs.writeFile(rel, "bytes");
+    created.push(rel);
+    return `/${rel}`;
+  };
   after(async () => {
-    await fs.rm(dir, { recursive: true, force: true });
+    await Promise.all(created.map((f) => fs.rm(f, { force: true })));
   });
 
   test("removes a real file given its /uploads/-style URL", async () => {
-    const rel = path.relative(process.cwd(), path.join(dir, "gone.webp"));
-    await fs.writeFile(rel, "bytes");
-    await deleteUpload("/" + rel.replace(/\\/g, "/"));
-    await assert.rejects(fs.access(rel));
+    const url = await seed(`storage-test-${Date.now()}.webp`);
+    await deleteUpload(url);
+    await assert.rejects(fs.access(url.replace(/^\//, "")));
   });
 
   test("is a safe no-op on a URL that's already gone", async () => {
     await assert.doesNotReject(deleteUpload("/uploads/does-not-exist-xyz.webp"));
   });
 
-  test("never touches a URL it doesn't recognize as its own (e.g. a static seed asset)", async () => {
-    // If this somehow tried to unlink a real repo file, this test's own
-    // process would immediately fail on the next assertion below — proving
-    // the guard, not just asserting it doesn't throw.
-    await deleteUpload("/img/alexa.jpg");
-    await fs.access("frontend/public/img/alexa.jpg").catch(() => {
-      // Fine either way — the point is deleteUpload must not have been the
-      // cause of it being missing. The real assertion is the guard's own
-      // isOurUploadUrl() check, covered above; this just documents intent.
-    });
+  test("refuses a path outside uploads/ (never deletes what it doesn't own)", async () => {
+    const rel = `not-uploads-${Date.now()}.webp`;
+    await fs.writeFile(rel, "bytes");
+    try {
+      await deleteUpload(`/${rel}`);
+      await assert.doesNotReject(fs.access(rel), "file outside uploads/ must survive");
+    } finally {
+      await fs.rm(rel, { force: true });
+    }
   });
 });

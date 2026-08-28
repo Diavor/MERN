@@ -6,7 +6,12 @@ import {
   startOrderChangeStream,
   stopOrderChangeStream,
 } from "./services/orderChangeStream.js";
-import { closeQueues } from "./services/queue.service.js";
+import {
+  closeQueues,
+  scheduleRepeatable,
+  QUEUE,
+  JOB,
+} from "./services/queue.service.js";
 
 // Boot sequence: connect to Mongo, then start accepting traffic. If the DB is
 // unreachable at startup we crash loudly so the orchestrator restarts us.
@@ -24,6 +29,22 @@ const start = async () => {
     startOrderChangeStream();
   } catch (err) {
     logger.warn({ err }, "Could not start order change stream");
+  }
+
+  // Weekly R2 orphan-cleanup sweep (see services/imageCleanup.js). Only
+  // meaningful for the s3 driver; scheduleRepeatable itself also no-ops when
+  // Redis isn't configured (a repeatable job needs something to drive it).
+  if (env.STORAGE_DRIVER === "s3") {
+    try {
+      await scheduleRepeatable(
+        QUEUE.IMAGES,
+        JOB.RECONCILE_IMAGES,
+        {},
+        { pattern: env.IMAGE_RECONCILE_SCHEDULE }
+      );
+    } catch (err) {
+      logger.warn({ err }, "Could not schedule image reconciliation job");
+    }
   }
 
   const server = app.listen(env.PORT, () =>

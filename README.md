@@ -8,7 +8,8 @@ widget.
 
 > **Handoff note for Claude / contributors.** This README is the map. It
 > describes what exists today and *where* to change things. Deeper reference
-> docs live in [`docs/`](docs/) (`ARCHITECTURE.md`, `API.md`, `SCHEMA.md`) — note
+> docs live in [`docs/`](docs/) (`ARCHITECTURE.md`, `API.md`, `SCHEMA.md`,
+> `SOCIAL_LOGIN.md`) — note
 > they still use the project's former brand name **"BRÀCE"**; the app has since
 > been rebranded to **Pizzeria Grani Antichi**, but the architecture, API, and
 > schema they describe are current. Frontend conventions are codified in
@@ -261,13 +262,56 @@ Defined and validated in `backend/config/env.js`; template in `.env.example`.
 | `ACCESS_TOKEN_TTL` | — | `15m` | access-token lifetime |
 | `REFRESH_TOKEN_TTL_DAYS` | — | `7` | refresh-cookie lifetime |
 | `CORS_ORIGINS` | — | `""` | comma-separated first-party origins (empty = same-origin) |
-| `STORAGE_DRIVER` | — | `local` | `local` (uploads/) or `s3` |
-| `S3_BUCKET` / `S3_REGION` | if s3 in prod | — | S3 target |
+| `REDIS_URL` | — | `redis://127.0.0.1:6379` | BullMQ queues (emails, image cleanup); jobs run inline if unreachable |
+| `STORAGE_DRIVER` | — | `local` | `local` (uploads/) or `s3` (any S3-compatible store, e.g. Cloudflare R2) |
+| `S3_BUCKET` / `S3_REGION` | if s3 in prod | — | S3 target (R2: `S3_REGION=auto`) |
+| `S3_ENDPOINT` | if s3-compatible | — | custom endpoint, e.g. R2's `https://<account-id>.r2.cloudflarestorage.com` |
+| `S3_PUBLIC_URL` | if s3 | — | public base URL for stored objects (R2 `.r2.dev` subdomain or a custom domain) |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | if s3 | — | credentials (R2 API token) |
+| `IMAGE_RECONCILE_SCHEDULE` | — | `0 4 * * 0` | cron for the weekly orphan sweep (s3 driver + Redis only) |
+| `IMAGE_RECONCILE_DRY_RUN` | — | `true` | must be explicitly set to `false` to let the sweep actually delete |
+| `IMAGE_RECONCILE_SAFETY_HOURS` | — | `48` | never delete an unreferenced object younger than this |
 | `LOG_LEVEL` | — | `info` | pino level |
 | `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | — | `900000` / `300` | global API limiter |
-| `GOOGLE_CLIENT_ID` | — | — | Google OAuth Web client id (button hidden if unset) |
-| `APPLE_CLIENT_ID` | — | — | Sign in with Apple **Service ID** (button hidden if unset) |
+| `GOOGLE_CLIENT_ID` | — | — | Google OAuth Web client id (button hidden if unset) — setup: [`docs/SOCIAL_LOGIN.md`](docs/SOCIAL_LOGIN.md) |
+| `APPLE_CLIENT_ID` | — | — | Sign in with Apple **Service ID** (button hidden if unset) — setup: [`docs/SOCIAL_LOGIN.md`](docs/SOCIAL_LOGIN.md) |
 | `PAYPAL_CLIENT_ID` | — | — | legacy, unused by the manual-payment flow |
+
+---
+
+## Image lifecycle (uploads → storage → cleanup)
+
+Every accepted upload (`POST /api/upload[/multiple]`, admin-only, jpg/jpeg/png/webp,
+5 MB cap) is resized and **converted to WebP** synchronously, before a URL is
+ever returned — `backend/services/imageProcessor.js` (`IMAGE_PROFILES.product`:
+1600px max width, quality 82) does the encode; `storage.service.js` also
+rejects absurdly large source resolutions (>65MP or >10000px a side) before
+that. This runs synchronously for *both* drivers deliberately: once a URL is
+handed back it gets persisted into a document (or a browser's in-flight form
+state), so it can never safely be renamed out from under the caller by a
+later background job.
+
+**Orphan cleanup** has two layers, both going through `deleteUpload()` /
+`backend/services/imageCleanup.js`:
+
+- **Event-driven** — when a product's `img`/`images`, or a CMS page's
+  `featuredImage`/`seo.ogImage`/block images, are replaced or the document is
+  deleted, the controller enqueues `JOB.DELETE_IMAGE` (via the same
+  Redis-backed queue as everything else, falling back to inline execution
+  when Redis isn't configured) for whatever's no longer referenced *by that
+  document*. The job handler re-checks the **entire database** — crucially
+  including `Order.orderItems[].image`, a permanent historical snapshot taken
+  at checkout — before deleting anything, so a past order's receipt can never
+  be broken by a later product-photo swap.
+- **Reconciliation sweep** — a weekly (`IMAGE_RECONCILE_SCHEDULE`) BullMQ
+  repeatable job lists the bucket and deletes objects that are both
+  unreferenced *and* older than `IMAGE_RECONCILE_SAFETY_HOURS` (never
+  younger, regardless of reference state). Defaults to
+  `IMAGE_RECONCILE_DRY_RUN=true` (logs what it would delete without deleting)
+  — must be explicitly turned off. No-ops on the `local` driver (it isn't the
+  storage-cost problem this exists for) and when Redis isn't configured; run
+  it manually with `node backend/reconcileImages.js [--delete]` in that case
+  (e.g. from the Railway service's Console tab).
 
 ---
 

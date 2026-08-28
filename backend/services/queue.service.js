@@ -3,7 +3,6 @@ import IORedis from "ioredis";
 import env from "../config/env.js";
 import logger from "../utils/logger.js";
 import { sendOrderConfirmation } from "./email.service.js";
-import { optimizeImage } from "./imageProcessor.js";
 
 // BullMQ job queues backed by Redis. Workers run in-process — right-sized for a
 // single-instance deployment; to scale out, move the Worker construction into a
@@ -12,21 +11,35 @@ import { optimizeImage } from "./imageProcessor.js";
 //
 // Degradation: in tests, or when Redis is unreachable, jobs run inline
 // (fire-and-forget) so the request path never depends on Redis being up.
-
+//
+// Image optimization (resize + WebP conversion) is NOT a queue job — it runs
+// synchronously inside storage.service.js's persistUpload, before a URL is
+// ever returned (see that file's header comment for why format conversion
+// can't safely happen after the fact). The IMAGES queue instead carries
+// deletion work: cleaning up an orphaned upload is safe to defer/retry,
+// unlike minting the URL a client is about to persist.
 export const QUEUE = { EMAILS: "emails", IMAGES: "images" };
 export const JOB = {
   ORDER_CONFIRMATION: "order-confirmation",
-  OPTIMIZE_IMAGE: "optimize-image",
+  DELETE_IMAGE: "delete-image",
+  RECONCILE_IMAGES: "reconcile-images",
 };
 
-// One dispatcher per queue: routes a job to its handler by name.
+// Job handlers are imported lazily inside the dispatcher (not at module top
+// level) to avoid a require cycle: imageCleanup.js pulls in the mongoose
+// models, which is fine, but keeping this file's only load-bearing top-level
+// imports to email/logger keeps it cheap to import from contexts (like a
+// one-off script) that don't need Mongoose wired up yet.
 const processors = {
   [QUEUE.EMAILS]: async (job) => {
     if (job.name === JOB.ORDER_CONFIRMATION) return sendOrderConfirmation(job.data);
     throw new Error(`Unknown email job: ${job.name}`);
   },
   [QUEUE.IMAGES]: async (job) => {
-    if (job.name === JOB.OPTIMIZE_IMAGE) return optimizeImage(job.data);
+    const { deleteImageIfUnreferenced, reconcileImageStorage } =
+      await import("./imageCleanup.js");
+    if (job.name === JOB.DELETE_IMAGE) return deleteImageIfUnreferenced(job.data);
+    if (job.name === JOB.RECONCILE_IMAGES) return reconcileImageStorage(job.data);
     throw new Error(`Unknown image job: ${job.name}`);
   },
 };
@@ -108,6 +121,30 @@ export const enqueue = async (queueName, jobName, data) => {
     );
     runInline();
   }
+};
+
+/**
+ * Register a recurring job on a cron schedule (BullMQ `repeat.pattern`).
+ * Requires Redis — there's nothing to drive a schedule when queues are
+ * disabled (no cron, no long-lived timer), so this is a documented no-op in
+ * that case; callers that need the work to happen regardless (e.g. the image
+ * reconciliation sweep) should also expose a directly-callable function for
+ * a manual/scripted run. `jobId` is derived from `jobName` so re-registering
+ * on every boot updates the existing repeatable job instead of duplicating it.
+ * @returns {Promise<boolean>} whether the job was actually scheduled.
+ */
+export const scheduleRepeatable = async (queueName, jobName, data, { pattern }) => {
+  const q = queues[queueName];
+  if (!q) {
+    logger.info(
+      { queue: queueName, job: jobName },
+      "Repeatable job not scheduled — queues disabled (no REDIS_URL); run it manually instead"
+    );
+    return false;
+  }
+  await q.add(jobName, data, { repeat: { pattern }, jobId: `repeatable:${jobName}` });
+  logger.info({ queue: queueName, job: jobName, pattern }, "Repeatable job scheduled");
+  return true;
 };
 
 /** Graceful shutdown: stop taking jobs, then close queue connections. */

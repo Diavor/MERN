@@ -10,9 +10,8 @@ process.env.S3_BUCKET = "pga-uploads-test";
 process.env.S3_REGION = "auto";
 process.env.S3_PUBLIC_URL = "https://pub-test.r2.dev";
 
-const { isOurUploadUrl, keyFromUrl, deleteUpload, persistUpload } = await import(
-  "../services/storage.service.js"
-);
+const { isOurUploadUrl, keyFromUrl, deleteUpload, persistUpload } =
+  await import("../services/storage.service.js");
 
 // A fake @aws-sdk/client-s3 client — records every command sent instead of
 // making a network call. Matches the real module's shape closely enough for
@@ -22,15 +21,26 @@ const fakeS3 = () => {
   const sent = [];
   return {
     sent,
-    client: { send: async (cmd) => { sent.push(cmd); return {}; } },
+    client: {
+      send: async (cmd) => {
+        sent.push(cmd);
+        return {};
+      },
+    },
     PutObjectCommand: class PutObjectCommand {
-      constructor(input) { this.input = input; }
+      constructor(input) {
+        this.input = input;
+      }
     },
     DeleteObjectCommand: class DeleteObjectCommand {
-      constructor(input) { this.input = input; }
+      constructor(input) {
+        this.input = input;
+      }
     },
     ListObjectsV2Command: class ListObjectsV2Command {
-      constructor(input) { this.input = input; }
+      constructor(input) {
+        this.input = input;
+      }
     },
   };
 };
@@ -38,7 +48,10 @@ const fakeS3 = () => {
 describe("isOurUploadUrl / keyFromUrl (s3 driver)", () => {
   test("recognizes URLs under S3_PUBLIC_URL as ours", () => {
     assert.equal(isOurUploadUrl("https://pub-test.r2.dev/products/img-1.webp"), true);
-    assert.equal(keyFromUrl("https://pub-test.r2.dev/products/img-1.webp"), "products/img-1.webp");
+    assert.equal(
+      keyFromUrl("https://pub-test.r2.dev/products/img-1.webp"),
+      "products/img-1.webp"
+    );
   });
 
   test("does not recognize a foreign or malformed URL", () => {
@@ -52,7 +65,12 @@ describe("persistUpload (s3 driver, injected client)", () => {
   test("optimizes to WebP, uploads under products/, and returns a public URL built from S3_PUBLIC_URL", async () => {
     const s3 = fakeS3();
     const buffer = await sharp({
-      create: { width: 800, height: 600, channels: 3, noise: { type: "gaussian", mean: 128, sigma: 40 } },
+      create: {
+        width: 800,
+        height: 600,
+        channels: 3,
+        noise: { type: "gaussian", mean: 128, sigma: 40 },
+      },
     })
       .jpeg()
       .toBuffer();
@@ -74,7 +92,12 @@ describe("persistUpload (s3 driver, injected client)", () => {
     const s3 = fakeS3();
     // Cheap to synthesize: dimensions matter for the guard, not real pixel data.
     const buffer = await sharp({
-      create: { width: 12000, height: 8000, channels: 3, background: { r: 0, g: 0, b: 0 } },
+      create: {
+        width: 12000,
+        height: 8000,
+        channels: 3,
+        background: { r: 0, g: 0, b: 0 },
+      },
     })
       .jpeg({ quality: 1 })
       .toBuffer();
@@ -87,7 +110,11 @@ describe("persistUpload (s3 driver, injected client)", () => {
         return true;
       }
     );
-    assert.equal(s3.sent.length, 0, "must not upload when the dimension check rejects the file");
+    assert.equal(
+      s3.sent.length,
+      0,
+      "must not upload when the dimension check rejects the file"
+    );
   });
 });
 
@@ -118,6 +145,8 @@ describe("deleteUpload (s3 driver, injected client)", () => {
     s3.client.send = async () => {
       throw new Error("NoSuchKey");
     };
-    await assert.doesNotReject(deleteUpload("https://pub-test.r2.dev/products/gone.webp", { s3 }));
+    await assert.doesNotReject(
+      deleteUpload("https://pub-test.r2.dev/products/gone.webp", { s3 })
+    );
   });
 });

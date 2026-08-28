@@ -22,11 +22,11 @@ const run = async () => {
     const { reconcileImageStorage } = await import("./services/imageCleanup.js");
 
     const summary = await reconcileImageStorage(forceDelete ? { dryRun: false } : {});
-    console.log(JSON.stringify(summary, null, 2)[summary.dryRun ? "yellow" : "green"] || "");
+    console.log(JSON.stringify(summary, null, 2));
     console.log(
-      (summary.dryRun ? "Dry run complete — nothing was deleted." : "Reconciliation complete.")[
-        summary.dryRun ? "yellow" : "green"
-      ]
+      summary.dryRun
+        ? "Dry run complete — nothing was deleted.".yellow
+        : "Reconciliation complete.".green
     );
 
     await disconnectDB();

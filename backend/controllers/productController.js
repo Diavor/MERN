@@ -1,5 +1,17 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/productModel.js";
+import { enqueue, QUEUE, JOB } from "../services/queue.service.js";
+import { diffRemovedImages, collectImageUrls } from "../services/imageCleanup.js";
+
+// Best-effort, post-commit cleanup: enqueue a delete for every URL that's no
+// longer referenced by THIS document. Never awaited by the request — a slow
+// or failed R2 delete must not block the save/delete the admin is waiting on
+// — and never the final word on whether a URL is actually safe to remove:
+// the job handler (imageCleanup.js) re-checks the whole database (crucially,
+// including historical order snapshots) right before deleting anything.
+const cleanupImages = (urls) => {
+  for (const url of urls) enqueue(QUEUE.IMAGES, JOB.DELETE_IMAGE, { url });
+};
 
 const PAGE_SIZE = 12;
 
@@ -61,8 +73,10 @@ export const getProductById = asyncHandler(async (req, res) => {
 export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (product) {
+    const images = [...collectImageUrls({ img: product.img, images: product.images })];
     // Mongoose 7+ removed Document.prototype.remove().
     await product.deleteOne();
+    cleanupImages(images);
     res.json({ message: "Product removed" });
   } else {
     res.status(404);
@@ -109,6 +123,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   const product = await Product.findById(req.params.id);
   if (product) {
+    const before = { img: product.img, images: product.images };
+
     product.name = name;
     product.price = price;
     product.description = description;
@@ -129,6 +145,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
     if (doughVariants !== undefined) product.doughVariants = doughVariants;
 
     const updatedProduct = await product.save();
+    cleanupImages(
+      diffRemovedImages(before, {
+        img: updatedProduct.img,
+        images: updatedProduct.images,
+      })
+    );
     res.json(updatedProduct);
   } else {
     res.status(404);
