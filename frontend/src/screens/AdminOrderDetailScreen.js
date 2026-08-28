@@ -8,7 +8,11 @@ import usePublicSettings from "../brace/ui/usePublicSettings";
 import { getOrderDetails, payOrder, updateOrderStatus } from "../store/actions/order";
 import { ORDER_PAY_RESET, ORDER_STATUS_RESET } from "../store/actionTypes";
 import { labelOf, colorOf, nextStates } from "../brace/admin/orderStatus";
-import { printReceipt, printKitchenTicket } from "../services/print";
+import {
+  printReceiptDual,
+  receiptPrintMessage,
+  printKitchenTicket,
+} from "../services/print";
 import "./AdminOrderDetailScreen.scss";
 
 const fmtDateTime = (d) =>
@@ -138,7 +142,13 @@ const AdminOrderDetailScreen = ({ match, history }) => {
         <div className="admin-order-detail__actions">
           <button
             className="b-btn sm ghost"
-            onClick={() => printReceipt(order, settings) === false && toast("Consenti i popup per stampare")}
+            onClick={async () => {
+              // Prints silently on the till's fiscal + non-fiscal printers when
+              // the print agent is configured; falls back to the browser
+              // dialog otherwise (see services/print.js).
+              const msg = receiptPrintMessage(await printReceiptDual(order, settings));
+              if (msg) toast(msg.text, msg.tone);
+            }}
           >
             Stampa ricevuta
           </button>

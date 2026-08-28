@@ -11,7 +11,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "data:import": "node backend/seeder",
     "data:destroy": "node backend/seeder -d",
-    "test": "node --test --test-concurrency=1 \"backend/__tests__/*.test.js\"",
+    "test": "node --test --test-concurrency=1 \"backend/__tests__/*.test.js\" \"frontend/src/services/__tests__/*.test.js\"",
     "lint": "eslint backend",
     "format": "prettier --write \"backend/**/*.js\"",
     "format:check": "prettier --check \"backend/**/*.js\"",

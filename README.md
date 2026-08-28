@@ -279,6 +279,35 @@ Defined and validated in `backend/config/env.js`; template in `.env.example`.
 
 ---
 
+## Till printer setup (dual fiscal + non-fiscal receipts)
+
+Clicking **Stampa ricevuta** in the admin console prints the customer receipt
+on the fiscal printer *and* a copy marked `DOCUMENTO NON FISCALE` on a second
+printer — silently, no print dialog. A browser can't do that (one printer, and
+always a dialog), so a small local service does it instead.
+
+- **[`print-agent/`](print-agent/README.md)** runs **on the till PC**, next to
+  the printers, and drives them over ESC/POS. Install and run it there
+  (`npm install && npm start`, or under pm2/nssm to survive reboots); it is
+  **not** deployed to Railway. Full setup, config and API in its own README.
+- **Hardware config** (USB device paths / printer IPs) lives only in
+  `print-agent/printers.config.json` on that machine — gitignored, and
+  deliberately never in MongoDB, since it's specific to the physical PC.
+- **Logical routing** lives in the admin console → **Impostazioni → Stampa**:
+  the agent's URL, which printer ids get the receipt, and which also get the
+  non-fiscal copy. The ids (`fiscal`, `bar`, …) are the shared vocabulary
+  between that screen and `printers.config.json`.
+- **No agent, no problem.** `printReceiptDual` (`frontend/src/services/print.js`)
+  tries the agent with a 2.5s timeout and falls back to the ordinary browser
+  print dialog whenever it's unconfigured, unreachable, or reports that nothing
+  printed — so dev machines and any till without the setup keep working exactly
+  as before. It deliberately does *not* fall back on a partial failure (fiscal
+  printed, bar printer down), which would hand the customer a duplicate.
+- **No hardware to test against?** Run the agent with `npm run dev` (`DRY_RUN`):
+  it renders real ESC/POS bytes and logs them instead of printing.
+
+---
+
 ## Image lifecycle (uploads → storage → cleanup)
 
 Every accepted upload (`POST /api/upload[/multiple]`, admin-only, jpg/jpeg/png/webp,

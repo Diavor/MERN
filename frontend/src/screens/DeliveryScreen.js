@@ -13,7 +13,7 @@ import {
   minsSince,
 } from "../brace/admin/orderStatus";
 import useOrderStream from "../brace/admin/useOrderStream";
-import { printReceipt } from "../services/print";
+import { printReceiptDual, receiptPrintMessage } from "../services/print";
 import usePublicSettings from "../brace/ui/usePublicSettings";
 import "./KitchenScreen.scss";
 
@@ -138,7 +138,12 @@ const DeliveryScreen = () => {
                 ))}
                 <button
                   className="kds__btn kds__btn--ghost"
-                  onClick={() => printReceipt(o, settings) === false && toast("Consenti i popup per stampare")}
+                  onClick={async () => {
+                    // Silent dual print via the till's print agent when
+                    // configured; browser dialog otherwise.
+                    const msg = receiptPrintMessage(await printReceiptDual(o, settings));
+                    if (msg) toast(msg.text, msg.tone);
+                  }}
                 >
                   Ricevuta
                 </button>

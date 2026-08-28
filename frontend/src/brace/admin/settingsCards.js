@@ -55,6 +55,23 @@ export const notificationsRows = (n) => [
   ["Riepilogo giornaliero", n.dailySummary],
 ];
 
+// Printer ids are edited as a comma-separated list — they're short slugs
+// ("fiscal", "bar") shared with the till's print-agent/printers.config.json,
+// so a tag editor would be more machinery than the content warrants.
+const idsToText = (ids) => (Array.isArray(ids) ? ids.join(", ") : "");
+const textToIds = (text) =>
+  String(text || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+/** @param {object} p printing section @returns {Array<[string,string]>} */
+export const printingRows = (p = {}) => [
+  ["Print agent", p.agentUrl || "— non configurato"],
+  ["Stampanti ricevuta", idsToText(p.receiptPrinterIds) || "—"],
+  ["Copia non fiscale", idsToText(p.nonFiscalPrinterIds) || "— disattivata"],
+];
+
 // ---- Section edit modals ----------------------------------------------------
 // Each receives the current section (`value`), a `save(patch)` writer, and
 // `onClose`. They reuse `useSettingsForm` for the whole submit lifecycle.
@@ -236,6 +253,75 @@ function NotificationsModal({ open, value, save, onClose }) {
   );
 }
 
+function PrintingModal({ open, value, save, onClose }) {
+  const toast = useToast();
+  const { form, set, dirty, errors, saving, submit } = useSettingsForm({ initial: value, open });
+
+  const onSubmit = () =>
+    submit({
+      validate: (f) => {
+        const e = {};
+        // Empty is legitimate — it disables agent printing and falls back to
+        // the browser dialog. Only a *malformed* URL is an error.
+        if (f.agentUrl && !/^https?:\/\/[^\s]+$/i.test(f.agentUrl.trim())) {
+          e.agentUrl = "Deve essere un URL http(s), es. http://localhost:9100";
+        }
+        return e;
+      },
+      build: (f) => ({
+        printing: {
+          agentUrl: (f.agentUrl || "").trim().replace(/\/+$/, ""),
+          receiptPrinterIds: textToIds(f.receiptPrinterIds),
+          nonFiscalPrinterIds: textToIds(f.nonFiscalPrinterIds),
+        },
+      }),
+      onSave: save,
+      onClose,
+      onError: (err) => toast(err.message),
+    });
+
+  return (
+    <SettingsModal
+      open={open}
+      onClose={onClose}
+      title="Modifica · Stampa"
+      width={620}
+      dirty={dirty}
+      saving={saving}
+      errors={errors}
+      onSubmit={onSubmit}
+    >
+      <div className="admin-settings__form">
+        <AdminFieldText
+          label="Indirizzo print agent"
+          value={form.agentUrl}
+          onChange={(v) => set({ agentUrl: v })}
+          error={errors.agentUrl}
+          mono
+          placeholder="http://localhost:9100"
+          hint="Servizio locale sul PC cassa. Vuoto = stampa dal browser."
+        />
+        <AdminFieldText
+          label="Stampanti ricevuta"
+          value={form.receiptPrinterIds}
+          onChange={(v) => set({ receiptPrinterIds: v })}
+          mono
+          placeholder="fiscal"
+          hint="Id separati da virgola, come in printers.config.json"
+        />
+        <AdminFieldText
+          label="Stampanti copia non fiscale"
+          value={form.nonFiscalPrinterIds}
+          onChange={(v) => set({ nonFiscalPrinterIds: v })}
+          mono
+          placeholder="bar"
+          hint="Ricevono una copia marcata DOCUMENTO NON FISCALE. Vuoto = nessuna copia."
+        />
+      </div>
+    </SettingsModal>
+  );
+}
+
 // ---- Registry ---------------------------------------------------------------
 // `section`  key on the settings document this card reads/writes.
 // `rows`     projects the section into read-only card rows.
@@ -269,5 +355,18 @@ export const SETTINGS_CARDS = [
     rows: (s) => notificationsRows(s.notifications),
     getValue: (s) => s.notifications,
     Modal: NotificationsModal,
+  },
+  {
+    key: "printing",
+    title: "Stampa",
+    rows: (s) => printingRows(s.printing),
+    // The modal edits the id lists as comma-separated text; the section is
+    // also absent on documents created before this feature, hence the guard.
+    getValue: (s) => ({
+      agentUrl: s.printing?.agentUrl || "",
+      receiptPrinterIds: idsToText(s.printing?.receiptPrinterIds),
+      nonFiscalPrinterIds: idsToText(s.printing?.nonFiscalPrinterIds),
+    }),
+    Modal: PrintingModal,
   },
 ];

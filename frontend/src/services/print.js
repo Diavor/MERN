@@ -167,3 +167,151 @@ export const printReceipt = (order, settings) => printHTML(buildReceiptHTML(orde
 
 /** Print a kitchen ticket. @returns {boolean} false if popup blocked. */
 export const printKitchenTicket = (order) => printHTML(buildKitchenTicketHTML(order), "Ticket cucina");
+
+// ---------------------------------------------------------------------------
+// Local print agent (silent, multi-printer)
+// ---------------------------------------------------------------------------
+// At the till, one click must put the customer receipt on the fiscal printer
+// AND a non-fiscal copy on a second printer, with no print dialog.
+// window.print() can do neither (one printer, always a dialog), so the till PC
+// runs a small local service — print-agent/ at the repo root — that drives the
+// printers directly over ESC/POS. See docs in that folder's README.
+
+// A till with no agent running must fail FAST, not hang the click.
+const AGENT_TIMEOUT_MS = 2500;
+
+/**
+ * Read the printing settings defensively: the section may be missing entirely
+ * on settings cached by a browser from before the feature existed.
+ */
+const printingConfig = (settings) => {
+  const p = settings?.printing || {};
+  const ids = (v) => (Array.isArray(v) ? v.filter(Boolean) : []);
+  return {
+    agentUrl: typeof p.agentUrl === "string" ? p.agentUrl.replace(/\/+$/, "") : "",
+    receiptPrinterIds: ids(p.receiptPrinterIds),
+    nonFiscalPrinterIds: ids(p.nonFiscalPrinterIds),
+  };
+};
+
+/**
+ * POST one document to the agent. Uses plain fetch rather than the app's axios
+ * singleton on purpose: that instance carries our API base URL, auth headers
+ * and the 401→refresh interceptor, none of which apply to (or should fire on)
+ * a call to a printer daemon on localhost.
+ * @returns {Promise<Array<{printerId: string, ok: boolean, error?: string}>>}
+ */
+const sendToAgent = async (agentUrl, body) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AGENT_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${agentUrl}/print`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Agent responded ${res.status}`);
+    const data = await res.json();
+    return Array.isArray(data?.results) ? data.results : [];
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/**
+ * Print the customer receipt via the local print agent — silently, and to the
+ * fiscal and non-fiscal printers at once — falling back to the ordinary
+ * browser print dialog whenever the agent can't be used.
+ *
+ * The fiscal receipt and the non-fiscal copy differ in content (the copy is
+ * banner-marked as not valid for tax), so they're sent as two concurrent
+ * requests with distinct docTypes rather than one request listing every
+ * printer.
+ *
+ * Falls back to `printReceipt`'s exact behaviour when the agent is not
+ * configured, unreachable, times out, errors, or reports that NOTHING printed
+ * — so the button never regresses to "does nothing" on a dev machine or any
+ * environment without the till setup. It deliberately does NOT fall back on a
+ * partial failure (fiscal printed, bar printer down): the customer's receipt
+ * already exists on paper, and printing it again from the browser would hand
+ * them a duplicate.
+ *
+ * @param {object} order
+ * @param {object} [settings]  site settings, incl. the `printing` section.
+ * @returns {Promise<{mode: "agent"|"browser"|"blocked", ok: boolean,
+ *   results?: Array<{printerId: string, ok: boolean, error?: string}>,
+ *   failed?: string[], reason?: string}>} status for the caller to toast.
+ */
+export async function printReceiptDual(order, settings) {
+  const { agentUrl, receiptPrinterIds, nonFiscalPrinterIds } = printingConfig(settings);
+
+  const jobs = [];
+  if (receiptPrinterIds.length) jobs.push(["receipt", receiptPrinterIds]);
+  if (nonFiscalPrinterIds.length) jobs.push(["nonFiscalReceipt", nonFiscalPrinterIds]);
+
+  if (agentUrl && jobs.length) {
+    try {
+      const settled = await Promise.allSettled(
+        jobs.map(([docType, targets]) =>
+          sendToAgent(agentUrl, { docType, order, settings, targets })
+        )
+      );
+
+      // A rejected call means that whole document never reached the agent;
+      // surface its printers as failed rather than losing them silently.
+      const results = settled.flatMap((s, i) =>
+        s.status === "fulfilled"
+          ? s.value
+          : jobs[i][1].map((printerId) => ({
+              printerId,
+              ok: false,
+              error: String(s.reason?.message || s.reason),
+            }))
+      );
+
+      if (results.some((r) => r.ok)) {
+        const failed = results.filter((r) => !r.ok).map((r) => r.printerId);
+        return { mode: "agent", ok: failed.length === 0, results, failed };
+      }
+      // Nothing printed at all — treat exactly like an unreachable agent.
+    } catch {
+      /* fall through to the browser dialog */
+    }
+  }
+
+  const printed = printHTML(buildReceiptHTML(order, settings), "Ricevuta");
+  return {
+    mode: printed ? "browser" : "blocked",
+    ok: printed,
+    reason: agentUrl && jobs.length ? "agent-unavailable" : "agent-not-configured",
+  };
+}
+
+/**
+ * Map a printReceiptDual result to the message the till should see. Kept here,
+ * next to the states it describes, so both call sites stay consistent.
+ * Silence is deliberate on the fully-successful agent path: the paper coming
+ * out of the printer is the feedback, and a toast per order is noise at till
+ * volume.
+ * @param {object} status  the resolved value of printReceiptDual
+ * @returns {{text: string, tone: "ok"|"info"}|null} null ⇒ say nothing
+ */
+export function receiptPrintMessage(status) {
+  if (!status) return null;
+  if (status.mode === "agent") {
+    return status.ok
+      ? null
+      : {
+          text: `Ricevuta stampata, ma queste stampanti non hanno risposto: ${status.failed.join(", ")}`,
+          tone: "info",
+        };
+  }
+  if (status.mode === "blocked") {
+    return { text: "Consenti i popup per stampare", tone: "info" };
+  }
+  // Browser fallback: only worth flagging when an agent was expected.
+  return status.reason === "agent-unavailable"
+    ? { text: "Print agent non raggiungibile — stampa dal browser", tone: "info" }
+    : null;
+}
