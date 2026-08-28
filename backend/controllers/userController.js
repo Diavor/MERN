@@ -51,20 +51,46 @@ export const registerUser = asyncHandler(async (req, res) => {
   res.status(201).json(publicUser(user, accessToken));
 });
 
-// Find an existing user by email (linking social login to an existing account)
-// or create a new one. OAuth users get a random, unusable password so the
-// password-required schema + hashing hook stay unchanged.
-const findOrCreateOAuthUser = async ({ email, name, provider }) => {
-  let user = await User.findOne({ email });
-  if (!user) {
-    user = await User.create({
-      name,
-      email,
-      password: crypto.randomBytes(32).toString("hex"),
-      authProvider: provider,
+// Resolve the account behind a verified OAuth identity, creating or linking as
+// needed. OAuth users get a random, unusable password so the password-required
+// schema + hashing hook stay unchanged.
+//
+// Lookup order matters:
+//  1. by (provider, providerId) — the provider's own stable subject id. This
+//     keeps working if the user later changes their email with Google/Apple,
+//     which an email-only lookup would treat as a brand-new person.
+//  2. by email — first-time linking, and the lazy migration path for accounts
+//     created before socialAccounts existed (they simply have an empty array
+//     and get backfilled here on the next social login).
+// When (2) matches, the linkage is RECORDED rather than just logging the user
+// in, so "why does this account also allow Google login" stays auditable.
+const findOrCreateOAuthUser = async ({ email, name, provider, providerId }) => {
+  if (providerId) {
+    const linked = await User.findOne({
+      socialAccounts: { $elemMatch: { provider, providerId } },
     });
+    if (linked) return linked;
   }
-  return user;
+
+  const existing = await User.findOne({ email });
+  if (existing) {
+    const alreadyLinked = existing.socialAccounts?.some(
+      (a) => a.provider === provider && a.providerId === providerId
+    );
+    if (providerId && !alreadyLinked) {
+      existing.socialAccounts.push({ provider, providerId });
+      await existing.save();
+    }
+    return existing;
+  }
+
+  return User.create({
+    name,
+    email,
+    password: crypto.randomBytes(32).toString("hex"),
+    authProvider: provider,
+    socialAccounts: providerId ? [{ provider, providerId }] : [],
+  });
 };
 
 const completeOAuthLogin = async (res, identity) => {

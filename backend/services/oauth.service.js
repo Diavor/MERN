@@ -62,8 +62,15 @@ export const verifyAppleToken = async (identityToken, fallbackName) => {
     err.statusCode = 401;
     throw err;
   }
-  if (!payload || !payload.email) {
-    const err = new Error("Account Apple senza email");
+  // Apple sends email_verified as the STRING "true"/"false" in most token
+  // versions (unlike Google's boolean), and apple-signin-auth passes the claim
+  // through unmodified — so normalize both shapes rather than trusting either.
+  // A private-relay address (@privaterelay.appleid.com) is always verified by
+  // Apple, so this doesn't reject "Hide My Email" users.
+  const appleEmailVerified =
+    payload?.email_verified === true || payload?.email_verified === "true";
+  if (!payload || !payload.email || !appleEmailVerified) {
+    const err = new Error("Account Apple senza email verificata");
     err.statusCode = 401;
     throw err;
   }

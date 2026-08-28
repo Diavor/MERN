@@ -15,6 +15,19 @@ export const errorHandler = (err, req, res, next) => {
   let statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
   let message = err.message || "Server Error";
 
+  // Services that throw from outside a request handler can't call res.status(),
+  // so they attach the intended code to the error itself (e.g.
+  // services/oauth.service.js → 501 when a provider isn't configured, 401 on a
+  // bad token; services/storage.service.js → 400 on an oversized image).
+  // Without this, those all collapsed into a generic 500.
+  if (
+    Number.isInteger(err.statusCode) &&
+    err.statusCode >= 400 &&
+    err.statusCode <= 599
+  ) {
+    statusCode = err.statusCode;
+  }
+
   // Mongoose: malformed ObjectId → 404 (resource can't exist).
   if (err.name === "CastError" && err.kind === "ObjectId") {
     statusCode = 404;

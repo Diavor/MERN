@@ -7,6 +7,13 @@ import PizzaOrderScreen from "./PizzaOrderScreen";
 // this lazily-loaded widget mounts, so it never enters the main Grani Antichi bundle and
 // stays out of the Tailwind/PostCSS pipeline (its Google-Fonts @import trips the
 // strict Tailwind v4 CSS parser).
+//
+// NOTE: this widget deliberately renders no <SocialAuth /> (or any login) — it
+// is guest-checkout only, by design. Its API endpoints are served with
+// credential-less CORS (`Access-Control-Allow-Origin: *`, see widgetCors in
+// backend/app.js) so third-party sites can embed it; that is fundamentally
+// incompatible with the httpOnly refresh cookie our auth relies on. Sign-in
+// belongs on the first-party storefront (/login, /register), not here.
 const BOOTSTRAP_HREF = "/vendor/bootstrap.min.css";
 
 const PizzaOrderStandalone = (props) => {
